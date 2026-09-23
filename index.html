@@ -47,15 +47,26 @@
         .badge-green { background: #dcfce7; color: #15803d; }
         .badge-amber { background: #fef3c7; color: #b45309; }
     </style>
+    <link rel="stylesheet" href="/campus_scene.css">
 </head>
 <body>
 
     <!-- 1. STAFF LOGIN SCREEN -->
-    <div id="login-screen" class="screen active">
-        <h1 style="color: #0f172a; margin-bottom: 6px; font-size: 26px;">College Staff Portal</h1>
-        <p style="color: #64748b; margin-bottom: 20px; font-size: 14px;">Secure Role-Based Examination Management</p>
-        
+    <div id="login-screen" class="screen active campus-login">
+        <section class="campus-visual" aria-label="Illustration inspired by the Wagholi campus entrance">
+            <div class="campus-brand"><span class="campus-mark">GH</span><span>GHRCEM &middot; Pune</span></div>
+            <div class="campus-art" aria-hidden="true">
+                <div class="campus-building"></div>
+                <div class="campus-sign">G H RAISONI COLLEGE OF ENGINEERING &amp; MANAGEMENT, PUNE</div>
+                <div class="campus-steps"></div>
+                <div class="campus-palm left"></div><div class="campus-palm right"></div>
+            </div>
+            <div class="campus-copy"><span class="eyebrow">Wagholi, Pune</span><h1>Your campus.<br>Your next milestone.</h1><p>A focused space for students and faculty to manage college examinations.</p></div>
+        </section>
+        <section class="campus-login-panel" aria-label="Staff portal sign in">
         <div class="login-card">
+            <h2>Welcome to the staff portal</h2>
+            <p class="login-intro">Choose your role and enter your details to continue.</p>
             <!-- Student Redirect Banner -->
             <div style="background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 10px; padding: 14px; margin-bottom: 20px; text-align: left;">
                 <div style="font-weight: 700; color: #1e40af; font-size: 14px;">🎓 Are you a Student?</div>
@@ -78,6 +89,8 @@
             <button id="loginBtn" onclick="handleLogin()" class="btn btn-blue">Login to Portal</button>
             <p id="loginError" style="color: #dc2626; display: none; margin-top: 12px; font-size: 13.5px; font-weight: 600;"></p>
         </div>
+        <p class="campus-footer">GHRCEM Pune &middot; Examination portal prototype</p>
+        </section>
     </div>
 
     <!-- 2. HOD DASHBOARD -->
