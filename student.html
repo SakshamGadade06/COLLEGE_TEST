@@ -332,6 +332,8 @@
         let faceLandmarker = null;
         let isExamStarted = false;
         let pollInterval = null;
+        let examDeadline = null;
+        let timerInterval = null;
         let isCameraVerified = false;
         const studentAnswers = {};
 
@@ -572,6 +574,7 @@
 
                 const data = await response.json();
                 if (response.ok) {
+                    examDeadline = data.deadline;
                     document.getElementById('displayName').innerText = `${studentData.name} (${studentData.rollNo})`;
                     document.getElementById('waitSubject').innerText = studentData.subject;
                     document.getElementById('waitRoll').innerText = studentData.rollNo;
@@ -607,6 +610,7 @@
                     const response = await fetch(`/api/check-status?subject=${encodeURIComponent(studentData.subject)}&rollNo=${encodeURIComponent(studentData.rollNo)}`);
                     const data = await response.json();
                     if (data.active) {
+                        examDeadline = data.deadline;
                         clearInterval(pollInterval);
                         pollInterval = null;
                         launchExamSequence();
@@ -653,6 +657,16 @@
             document.getElementById('waiting-screen').style.display = 'none';
             document.getElementById('exam-screen').style.display = 'block';
             isExamStarted = true;
+            if (examDeadline) {
+                const displayTime = () => {
+                    const remaining = Math.max(0, Math.ceil((examDeadline - Date.now()) / 1000));
+                    document.getElementById('timer').innerText =
+                        `Time: ${String(Math.floor(remaining / 60)).padStart(2, '0')}:${String(remaining % 60).padStart(2, '0')}`;
+                    if (remaining <= 2 && isExamStarted) window.submitExam();
+                };
+                displayTime();
+                timerInterval = setInterval(displayTime, 1000);
+            }
 
             await loadQuestions();
 
@@ -858,7 +872,9 @@
         }
 
         window.submitExam = async function() {
+            if (!isExamStarted) return;
             isExamStarted = false;
+            if (timerInterval) clearInterval(timerInterval);
             try {
                 const res = await fetch('/api/submit-exam', {
                     method: 'POST',
@@ -872,9 +888,13 @@
                     })
                 });
                 const data = await res.json();
-                alert(`Exam submitted successfully! Score: ${data.submission.score}`);
+                if (!res.ok) throw new Error(data.error || 'Submission failed');
+                alert(data.submission.score
+                    ? `Exam submitted successfully! Score: ${data.submission.score}`
+                    : 'Exam submitted successfully.');
             } catch (err) {
-                alert("Exam submitted.");
+                alert(err.message + '. Please contact your faculty.');
+                return;
             }
             window.location.reload();
         };
