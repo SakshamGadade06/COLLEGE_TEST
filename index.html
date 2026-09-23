@@ -689,6 +689,7 @@
                 <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; font-weight: 700; margin-bottom: 8px;">Executive Navigation</div>
                 <div class="sidebar-item active-nav" id="hod-nav-overview" onclick="showHodTab('overview')">🏛️ Overview &amp; Campus</div>
                 <div class="sidebar-item" id="hod-nav-teachers" onclick="showHodTab('teachers')">👥 Manage Class Teachers</div>
+                <div class="sidebar-item" id="hod-nav-create-hod" onclick="showHodTab('create-hod')">👑 Create HOD Account</div>
                 <div class="sidebar-item" id="hod-nav-exams" onclick="showHodTab('exams')">📊 All Subject Exams</div>
                 <div class="sidebar-item" id="hod-nav-settings" onclick="showHodTab('settings')">⚙️ Academic Controls</div>
                 
@@ -813,6 +814,63 @@
                             </div>
                             <div id="hod-staff-roster" class="staff-roster-grid">
                                 <div style="color: #94a3b8; font-size: 13.5px; padding: 20px; text-align: center;">Loading department staff directory...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: CREATE & MANAGE HOD ACCOUNTS -->
+                <div id="hod-create-hod" class="tab-content" style="display:none">
+                    <div style="display: grid; grid-template-columns: minmax(320px, 1fr) minmax(320px, 1.35fr); gap: 20px; align-items: start;">
+                        <!-- Left: Create HOD Account Form -->
+                        <div class="card" style="border-top: 4px solid #f59e0b;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                <span style="font-size: 22px;">👑</span>
+                                <div>
+                                    <h3 style="margin: 0; color: #0f2942; font-size: 17px;">Create HOD / Executive Account</h3>
+                                    <p style="margin: 2px 0 0 0; color: #64748b; font-size: 12.5px;">Register a new Head of Department or Academic Administrator.</p>
+                                </div>
+                            </div>
+
+                            <label style="display:block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">HOD IDENTIFIER / USERNAME</label>
+                            <input type="text" id="newHodId" class="input-field" placeholder="e.g. HOD_IT, HOD_MECH, HOD002">
+
+                            <label style="display:block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">SECURITY ACCESS PASSWORD</label>
+                            <input type="text" id="newHodPass" class="input-field" placeholder="Temporary administrative password">
+
+                            <label style="display:block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">FULL NAME &amp; DESIGNATION</label>
+                            <input type="text" id="newHodName" class="input-field" placeholder="e.g. Dr. Anand B. Kulkarni">
+
+                            <label style="display:block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">DEPARTMENT</label>
+                            <select id="newHodDept" class="input-field" style="height: 44px; background: white; cursor: pointer;">
+                                <option value="Computer Engineering & AI">Department of Computer Engineering &amp; AI</option>
+                                <option value="Information Technology & Data Science">Department of Information Technology &amp; DS</option>
+                                <option value="Electronics & Telecommunication">Department of Electronics &amp; Telecommunication (E&amp;TC)</option>
+                                <option value="Mechanical Engineering">Department of Mechanical Engineering</option>
+                                <option value="Civil Engineering">Department of Civil Engineering</option>
+                                <option value="Applied Science & Humanities">Department of Applied Sciences &amp; Humanities (FE)</option>
+                                <option value="Dean Office & Examination Cell">Dean Office &amp; Central Examination Cell</option>
+                            </select>
+
+                            <label style="display:block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">OFFICIAL ADMINISTRATIVE TITLE</label>
+                            <input type="text" id="newHodTitle" class="input-field" placeholder="e.g. Head of Department, Deputy HOD, Dean Academics" value="Head of Department">
+
+                            <button onclick="createHodAccount()" class="btn btn-blue" style="background: linear-gradient(135deg, #f59e0b, #d97706); margin-top: 14px; font-weight: 700; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);">
+                                👑 Register &amp; Create HOD Account
+                            </button>
+                        </div>
+
+                        <!-- Right: Registered HOD Directory -->
+                        <div class="card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                                <div>
+                                    <h3 style="margin: 0; color: #0f2942; font-size: 17px;">🏛️ Registered Department Heads (HODs)</h3>
+                                    <p style="margin: 2px 0 0 0; color: #64748b; font-size: 12.5px;">All verified administrators holding HOD executive privileges.</p>
+                                </div>
+                                <button onclick="loadHodDirectoryList()" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer;">↺ Refresh</button>
+                            </div>
+                            <div id="hod-directors-roster" class="staff-roster-grid">
+                                <div style="color: #94a3b8; font-size: 13.5px; padding: 20px; text-align: center;">Loading HOD administrative roster...</div>
                             </div>
                         </div>
                     </div>
@@ -1031,6 +1089,7 @@
                 if (idEl) idEl.innerText = currentUser.id || "HOD001";
             }
             loadHodStaffList();
+            loadHodDirectoryList();
             loadHodSubmissionsCount();
             showHodTab('overview');
         };
@@ -1091,6 +1150,92 @@
             } catch(e) {}
         };
 
+        window.createHodAccount = async () => {
+            const id = document.getElementById('newHodId').value.trim();
+            const password = document.getElementById('newHodPass').value.trim();
+            const name = document.getElementById('newHodName').value.trim();
+            const dept = document.getElementById('newHodDept').value.trim();
+            const title = document.getElementById('newHodTitle').value.trim();
+
+            if (!id || !password) {
+                alert("Please provide HOD ID and Password.");
+                return;
+            }
+            if (!name) {
+                alert("Please enter the Full Name of the HOD.");
+                return;
+            }
+
+            const data = {
+                id: id,
+                password: password,
+                role: 'HOD',
+                name: name,
+                dept: dept || 'Computer Engineering & AI',
+                className: title || 'Head of Department'
+            };
+
+            try {
+                const res = await fetch('/api/create-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (res.ok && result.success) {
+                    alert(`HOD Account for ${name} (${id}) created successfully! They can now log in with role HOD.`);
+                    document.getElementById('newHodId').value = '';
+                    document.getElementById('newHodPass').value = '';
+                    document.getElementById('newHodName').value = '';
+                    loadHodStaffList();
+                    loadHodDirectoryList();
+                } else {
+                    alert(result.error || "Failed to create HOD account.");
+                }
+            } catch (e) {
+                alert("Error connecting to server.");
+            }
+        };
+
+        window.loadHodDirectoryList = async () => {
+            const container = document.getElementById('hod-directors-roster');
+            try {
+                const res = await fetch('/api/get-staff');
+                const staffList = await res.json();
+                if (!container) return;
+                
+                const hodList = staffList.filter(s => s.role === 'HOD');
+                if (hodList.length === 0) {
+                    container.innerHTML = `<div style="color:#94a3b8; font-size:13px; padding:15px;">No HOD records found.</div>`;
+                    return;
+                }
+
+                let html = '';
+                hodList.forEach(h => {
+                    html += `
+                        <div class="staff-card" style="border-left: 3px solid #f59e0b;">
+                            <div>
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+                                    <span class="badge badge-amber">👑 Head of Dept</span>
+                                    <span style="font-size:11px; font-weight:700; color:#16a34a; display:flex; align-items:center; gap:4px;">
+                                        <span style="width:6px; height:6px; background:#16a34a; border-radius:50%; display:inline-block;"></span> Active Admin
+                                    </span>
+                                </div>
+                                <h4 style="margin:4px 0 2px 0; font-size:14.5px; color:#0f172a; font-weight:700;">${h.name || h.id}</h4>
+                                <div style="font-size:12px; color:#64748b;">HOD ID: <code>${h.id}</code></div>
+                            </div>
+                            <div style="margin-top:10px; padding-top:8px; border-top:1px dashed #e2e8f0; font-size:12px; color:#334155;">
+                                Dept: <strong>${h.dept || 'Computer Engineering & AI'}</strong>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } catch (e) {
+                if (container) container.innerHTML = `<div style="color:#dc2626; font-size:13px;">Failed to load HOD directory.</div>`;
+            }
+        };
+
         // --- DASHBOARD NAVIGATION ---
         window.showHodTab = (tab) => {
             document.querySelectorAll('#hod-dash .tab-content').forEach(t => t.style.display = 'none');
@@ -1102,6 +1247,7 @@
             if (targetNav) targetNav.classList.add('active-nav');
 
             if (tab === 'teachers') loadHodStaffList();
+            if (tab === 'create-hod') loadHodDirectoryList();
             if (tab === 'exams') viewSubjectMarks('HOD');
         };
 
