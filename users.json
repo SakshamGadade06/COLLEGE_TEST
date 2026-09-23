@@ -1,0 +1,36 @@
+[
+  {
+    "id": "HOD001",
+    "password": "admin",
+    "role": "HOD",
+    "name": "Super Admin HOD"
+  },
+  {
+    "id": "CLASSBAIML",
+    "password": "CLASSB2026",
+    "role": "CLASS_TEACHER",
+    "name": "PRIYANKA KUTE",
+    "className": "SY-AIML B"
+  },
+  {
+    "id": "CLASSCAIML",
+    "password": "CLASSC2026",
+    "role": "CLASS_TEACHER",
+    "name": "SHWETA LILHARE",
+    "className": "SY-AIML C"
+  },
+  {
+    "id": "CLASSAAIML",
+    "password": "CLASSA2026",
+    "role": "CLASS_TEACHER",
+    "name": "DEVIDAS THOSAR",
+    "className": "SY-AIML A"
+  },
+  {
+    "id": "FAC001",
+    "password": "faculty",
+    "role": "FACULTY",
+    "name": "Prof. Rajesh Sharma",
+    "subject": "DSA"
+  }
+]

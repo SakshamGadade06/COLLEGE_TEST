@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Student Exam Portal - AI Proctored</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-touch-callout: none; /* Disables mobile long-press context menu / Lens */
+            -webkit-user-select: none;   /* Disables text highlight / selection */
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background: #f1f5f9;
+            color: #1e293b;
+            overflow-x: hidden;
+        }
+
+        .screen { padding: 30px 18px; max-width: 520px; margin: 0 auto; text-align: center; }
+        #exam-screen { display: none; padding: 20px; max-width: 650px; margin: 0 auto; padding-bottom: 120px; text-align: left; }
+        #waiting-screen { display: none; }
+
+        /* Card */
+        .card {
+            background: white;
+            padding: 26px 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+            margin-top: 15px;
+        }
+
+        /* Inputs */
+        .input-group { text-align: left; margin-bottom: 12px; }
+        .input-group label { display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 4px; }
+        .input-field {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+            background: #fff;
+            box-sizing: border-box;
+        }
+        .input-field:focus { border-color: #2563eb; }
+
+        /* Buttons */
+        .btn {
+            padding: 14px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .btn-green { background: #16a34a; color: white; }
+        .btn-green:hover { background: #15803d; }
+        .btn-blue { background: #2563eb; color: white; }
+        .btn-blue:hover { background: #1d4ed8; }
+        .btn-outline { background: transparent; border: 1.5px solid #2563eb; color: #2563eb; }
+
+        /* Camera Box */
+        #camContainer {
+            position: fixed;
+            bottom: 12px;
+            right: 12px;
+            width: 120px;
+            height: 90px;
+            border: 3px solid #28a745;
+            border-radius: 10px;
+            z-index: 9999;
+            overflow: hidden;
+            background: #000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            display: none;
+            transition: border-color 0.3s;
+        }
+        #camContainer.violating { border-color: #dc2626; }
+        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+
+        /* MCQ Card */
+        .mcq-card {
+            background: white;
+            padding: 22px;
+            border-radius: 14px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            margin-bottom: 24px;
+            text-align: left;
+            border: 1px solid #e2e8f0;
+            position: relative;
+        }
+        .mcq-header {
+            font-size: 17px;
+            font-weight: bold;
+            color: #0f172a;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .img-wrapper {
+            position: relative;
+            width: 100%;
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            margin: 12px 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+        }
+        .question-img {
+            max-width: 100%;
+            max-height: 420px;
+            object-fit: contain;
+            display: block;
+            pointer-events: none;
+            -webkit-user-drag: none;
+        }
+        .watermark-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            background: repeating-linear-gradient(-45deg, rgba(15,23,42,0.04) 0px, rgba(15,23,42,0.04) 1px, transparent 1px, transparent 14px);
+            display: flex; align-items: center; justify-content: center; z-index: 10;
+        }
+        .watermark-text {
+            color: rgba(30,41,59,0.16);
+            font-size: 15px;
+            font-weight: 800;
+            transform: rotate(-25deg);
+            text-align: center;
+            line-height: 2.2;
+            width: 150%;
+        }
+        .option {
+            display: block;
+            padding: 13px 18px;
+            margin: 8px 0;
+            background: #f8f9fa;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-weight: 500;
+        }
+        .option:hover { background: #e2e8f0; }
+        .option.selected { background: #2563eb; color: white; font-weight: bold; border-color: #1d4ed8; }
+
+        .loader {
+            display: inline-block;
+            margin-top: 15px;
+            font-size: 15px;
+            font-weight: bold;
+            color: #d97706;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        #warning-banner {
+            position: fixed; top: 0; left: 0; width: 100%;
+            background: #dc2626; color: white; padding: 12px;
+            display: none; z-index: 100000; font-weight: bold;
+            text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        .header-meta {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #cbd5e1; padding-bottom: 12px; margin-bottom: 18px;
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <div id="warning-banner">WARNING: Violation Detected!</div>
+
+    <!-- PERSISTENT VIOLATION DISCLAIMER MODAL -->
+    <div id="violationModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(9,13,22,0.94); z-index:100000000; flex-direction:column; justify-content:center; align-items:center; padding:20px; box-sizing:border-box;">
+        <div style="background:#1e293b; border:2.5px solid #ef4444; border-radius:18px; padding:26px 20px; max-width:440px; width:92%; text-align:center; box-shadow:0 12px 35px rgba(0,0,0,0.7);">
+            <div style="font-size:46px; margin-bottom:6px;">🚨</div>
+            <h2 style="color:#f87171; margin:0 0 10px 0; font-size:20px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase;">Security Violation Warning</h2>
+            
+            <div style="background:#450a0a; border:1.5px solid #ef4444; border-radius:10px; padding:12px 14px; margin-bottom:14px; color:#fca5a5; font-size:13.5px; text-align:left;">
+                <div style="font-size:11px; color:#f87171; text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">Detected Violation:</div>
+                <div id="violationReasonText" style="margin-top:4px; color:#ffffff; font-weight:700; font-size:14.5px; word-break:break-word;"></div>
+            </div>
+
+            <div style="margin-bottom:14px;">
+                <div style="font-size:11px; color:#94a3b8; text-transform:uppercase; font-weight:700; margin-bottom:8px; letter-spacing:0.5px;">Proctoring Strike Penalty:</div>
+                <div id="violationStrikeMeter" style="display:flex; justify-content:center; gap:8px;"></div>
+            </div>
+
+            <div style="color:#cbd5e1; font-size:12.5px; line-height:1.45; margin:0 0 18px 0; background:rgba(0,0,0,0.3); padding:10px 12px; border-radius:8px; text-align:left; border-left:3px solid #ef4444;">
+                ⚠️ <strong>PROCTORING DISCLAIMER:</strong><br>
+                Opening external apps (such as Google), pulling down the notification bar, or switching tabs is strictly forbidden. A webcam snapshot and timestamp have been sent to the teacher's dashboard. Reaching 3 strikes results in immediate automatic exam submission.
+            </div>
+
+            <button type="button" id="acknowledgeViolationBtn" onclick="window.dismissViolationModal()" style="background:#dc2626; color:white; border:none; padding:15px 20px; font-size:15px; font-weight:700; border-radius:10px; cursor:pointer; width:100%; box-shadow:0 4px 15px rgba(220,38,38,0.4);">
+                📲 Tap to Re-Enter Fullscreen & Resume Exam
+            </button>
+        </div>
+    </div>
+
+    <!-- 1. STUDENT REGISTRATION & LOGIN SCREEN -->
+    <div id="login-screen" class="screen">
+        <h1 style="color: #0f172a; margin-bottom: 4px; font-size: 26px;">Student Exam Portal</h1>
+        <p style="color: #64748b; margin-bottom: 18px; font-size: 14px;">AI Proctored Examination • Anti-Cheat Secured</p>
+        
+        <div class="card">
+            <div class="input-group">
+                <label>Full Name</label>
+                <input type="text" id="stuName" class="input-field" placeholder="e.g. Rahul Sharma" value="Rahul Sharma" required>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <div class="input-group" style="flex: 1;">
+                    <label>Roll Number</label>
+                    <input type="text" id="stuRoll" class="input-field" placeholder="e.g. ROLL101" value="ROLL101" required>
+                </div>
+                <div class="input-group" style="flex: 1;">
+                    <label>Registration No.</label>
+                    <input type="text" id="stuReg" class="input-field" placeholder="e.g. REG2026001" value="REG2026001" required>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <div class="input-group" style="flex: 1;">
+                    <label>Class</label>
+                    <input type="text" id="stuClass" class="input-field" placeholder="e.g. SY" value="SY" required>
+                </div>
+                <div class="input-group" style="flex: 1;">
+                    <label>Division</label>
+                    <input type="text" id="stuDiv" class="input-field" placeholder="e.g. A" value="A" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Department</label>
+                <input type="text" id="stuDept" class="input-field" placeholder="e.g. AIML / Computer Engineering" value="Computer Engineering" required>
+            </div>
+            <div class="input-group">
+                <label>Examination Subject</label>
+                <input type="text" id="stuSub" class="input-field" placeholder="e.g. DSA" value="DSA" required>
+            </div>
+
+            <!-- CAMERA GATEKEEPER BOX -->
+            <div id="cameraGatekeeperBox" style="margin: 15px 0; background: #f8fafc; padding: 14px; border-radius: 10px; border: 1.5px dashed #cbd5e1;">
+                <p id="cameraStatusBadge" style="font-weight: 600; font-size: 13.5px; margin: 0 0 8px 0; color: #d97706;">⌛ Checking Camera Permissions...</p>
+                <button type="button" id="verifyCamBtn" onclick="window.requestCameraVerification()" class="btn btn-blue" style="margin: 0; font-size: 14px; padding: 10px 16px;">📷 Allow & Verify Camera</button>
+                <div id="cameraBlockedNotice" style="display:none; background:#fee2e2; border:1.5px solid #ef4444; color:#991b1b; padding:10px; border-radius:8px; margin-top:10px; text-align:left; font-size:12.5px; line-height: 1.4;">
+                    <strong>🚫 NO CAMERA = NO EXAM</strong>
+                    <p style="margin:4px 0;">AI proctoring requires continuous camera verification. Please click the 🔒 Lock/Settings icon in your browser address bar, set Camera to <strong>ALLOW</strong>, and reload.</p>
+                </div>
+            </div>
+
+            <button id="joinBtn" class="btn btn-green" disabled style="opacity: 0.4; cursor: not-allowed;">Join Exam Room</button>
+            <p id="joinError" style="color: #dc2626; display: none; margin-top: 10px; font-size: 13px; font-weight: 600;"></p>
+        </div>
+
+        <div style="margin-top: 25px; font-size: 13.5px; color: #64748b;">
+            Are you a Teacher / Faculty member? <br>
+            <a href="/staff" style="color: #2563eb; font-weight: 600; text-decoration: none;">Go to Staff & Faculty Portal &rarr;</a>
+        </div>
+    </div>
+
+    <!-- 2. WAITING ROOM (HOLDS STUDENT UNTIL FACULTY RELEASES EXAM) -->
+    <div id="waiting-screen" class="screen">
+        <h1 style="color: #0f172a; margin-bottom: 6px;">Exam Waiting Room</h1>
+        <div class="card" style="border-top: 4px solid #f59e0b;">
+            <p style="font-size: 18px; margin: 0 0 10px 0;"><strong>Welcome, <span id="displayName"></span>!</strong></p>
+            
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 18px; text-align: left; font-size: 14px;">
+                <div><strong>Subject:</strong> <span id="waitSubject" style="color:#2563eb; font-weight:bold;">...</span></div>
+                <div><strong>Roll No:</strong> <span id="waitRoll">...</span></div>
+                <div><strong>Registration No:</strong> <span id="waitReg">...</span></div>
+            </div>
+
+            <div style="background: #fef3c7; border: 1.5px solid #f59e0b; border-radius: 10px; padding: 14px; margin-bottom: 18px; text-align: left;">
+                <div style="font-weight: 800; color: #b45309; font-size: 15px; margin-bottom: 4px;">🔒 EXAM IS CURRENTLY LOCKED BY FACULTY</div>
+                <p style="margin: 0; color: #92400e; font-size: 13px; line-height: 1.45;">
+                    Your subject faculty has not yet released the exam. Please remain on this screen with your camera ready.<br>
+                    <strong>The moment your faculty clicks "RELEASE EXAM" on their panel, this page will instantly launch your test.</strong>
+                </p>
+            </div>
+
+            <div class="loader">⌛ Waiting for faculty to release exam...</div>
+        </div>
+    </div>
+
+    <!-- 3. PROCTORED EXAM SCREEN -->
+    <div id="exam-screen">
+        <div class="header-meta">
+            <div>
+                <span id="studentDisplay" style="font-weight: bold; font-size: 16px; color: #0f172a;"></span>
+                <span id="rollDisplay" style="margin-left: 8px; color: #64748b; font-size: 14px;"></span>
+                <span id="strikeBadge" style="margin-left: 8px; font-weight: bold; font-size: 12px; padding: 4px 8px; border-radius: 6px; background: #e2e8f0; color: #475569;">🛡️ Strikes: 0/3</span>
+            </div>
+            <div id="timer" style="font-weight: bold; color: #dc2626; font-size: 15px;">Time: 15:00</div>
+        </div>
+
+        <!-- DYNAMIC QUESTIONS WITH ANTI-OCR SHIELD -->
+        <div id="question-container"></div>
+
+        <button onclick="window.submitExam()" class="btn btn-green" style="max-width: 100%; margin-top: 25px; padding: 16px; font-size: 17px;">Submit Final Exam</button>
+    </div>
+
+    <!-- PROCTORING WEBCAM -->
+    <div id="camContainer">
+        <video id="video" autoplay playsinline muted></video>
+    </div>
+
+    <!-- MediaPipe Vision Module -->
+    <script type="module">
+        import { FilesetResolver, FaceLandmarker } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0";
+
+        let studentData = {};
+        let cheatCount = 0;
+        let faceLandmarker = null;
+        let isExamStarted = false;
+        let pollInterval = null;
+        let isCameraVerified = false;
+        const studentAnswers = {};
+
+        // ==========================================
+        // 1. CAMERA GATEKEEPER: NO CAMERA = NO EXAM
+        // ==========================================
+        async function checkCameraPermission(promptUser = false) {
+            const statusBadge = document.getElementById('cameraStatusBadge');
+            const blockedNotice = document.getElementById('cameraBlockedNotice');
+            const joinBtn = document.getElementById('joinBtn');
+            const verifyBtn = document.getElementById('verifyCamBtn');
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "user" },
+                    audio: false
+                });
+
+                // Immediately stop test tracks so the indicator turns off
+                stream.getTracks().forEach(track => track.stop());
+
+                isCameraVerified = true;
+                if (statusBadge) statusBadge.innerHTML = `<span style="color:#16a34a; font-weight:bold;">✅ Camera Verified & Ready</span>`;
+                if (blockedNotice) blockedNotice.style.display = 'none';
+                if (verifyBtn) verifyBtn.style.display = 'none';
+
+                if (joinBtn) {
+                    joinBtn.disabled = false;
+                    joinBtn.style.opacity = '1';
+                    joinBtn.style.cursor = 'pointer';
+                }
+                return true;
+            } catch (err) {
+                isCameraVerified = false;
+                if (statusBadge) statusBadge.innerHTML = `<span style="color:#dc2626; font-weight:bold;">❌ Camera Required: Access Blocked or Denied</span>`;
+                if (blockedNotice) blockedNotice.style.display = 'block';
+                if (verifyBtn) verifyBtn.style.display = 'inline-block';
+
+                if (joinBtn) {
+                    joinBtn.disabled = true;
+                    joinBtn.style.opacity = '0.4';
+                    joinBtn.style.cursor = 'not-allowed';
+                }
+
+                if (promptUser) {
+                    alert("CRITICAL REQUIREMENT:\nNo Camera = No Exam.\n\nPlease click the Lock/Settings icon in your browser address bar, set Camera to ALLOW, and reload.");
+                }
+                return false;
+            }
+        }
+
+        window.checkCameraPermission = checkCameraPermission;
+        window.requestCameraVerification = () => checkCameraPermission(true);
+
+        window.addEventListener('load', () => {
+            checkCameraPermission(false);
+        });
+
+        // ==========================================
+        // 2. AUDIO & VIBRATION ALERT FEEDBACK
+        // ==========================================
+        function playAlertSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(480, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.25);
+                gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.35);
+            } catch(e) {}
+        }
+
+        // ==========================================
+        // 3. PERSISTENT VIOLATION MODAL
+        // ==========================================
+        let pendingViolation = null;
+        let lastViolationTimestamp = 0;
+
+        function showViolationModal(reason, strike) {
+            const modal = document.getElementById('violationModal');
+            const reasonEl = document.getElementById('violationReasonText');
+            const meterEl = document.getElementById('violationStrikeMeter');
+            if (!modal) return;
+
+            if (reasonEl) reasonEl.innerText = reason;
+            if (meterEl) {
+                let html = '';
+                for (let i = 1; i <= 3; i++) {
+                    if (i < strike) {
+                        html += `<span style="background:#ef4444; color:white; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:bold;">Strike ${i} ✕</span>`;
+                    } else if (i === strike) {
+                        html += `<span style="background:#dc2626; color:white; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:bold; border:2px solid #fecaca;">Strike ${i} ⚠️</span>`;
+                    } else {
+                        html += `<span style="background:#334155; color:#94a3b8; padding:4px 10px; border-radius:6px; font-size:12px;">Strike ${i} ○</span>`;
+                    }
+                }
+                meterEl.innerHTML = html;
+            }
+            modal.style.display = 'flex';
+        }
+
+        window.dismissViolationModal = function() {
+            const modal = document.getElementById('violationModal');
+            if (modal) modal.style.display = 'none';
+            pendingViolation = null;
+
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            }
+        };
+
+        // ==========================================
+        // 4. PROCTORING EVENT LISTENERS
+        // ==========================================
+        window.addEventListener('blur', () => {
+            if (isExamStarted) {
+                handleViolation("Focus lost: Switched to Google, external app, or split-screen");
+            }
+        });
+
+        window.addEventListener("focus", () => {
+            if (!isExamStarted) return;
+            if (pendingViolation) {
+                showViolationModal(pendingViolation.reason, pendingViolation.strike);
+            }
+        });
+
+        document.addEventListener("visibilitychange", () => {
+            if (!isExamStarted) return;
+            if (document.hidden) {
+                handleViolation("App switched or Google opened (Tab hidden)");
+            } else {
+                if (pendingViolation) {
+                    showViolationModal(pendingViolation.reason, pendingViolation.strike);
+                }
+            }
+        });
+
+        document.addEventListener("fullscreenchange", () => {
+            if (isExamStarted && !document.fullscreenElement) {
+                handleViolation("Fullscreen exited: Notification drawer pulled or app switched");
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            if (isExamStarted) {
+                const screenWidth = window.screen.width;
+                const windowWidth = window.innerWidth;
+                if (windowWidth < screenWidth * 0.65) {
+                    handleViolation("Split-screen detected: Window size reduced to view external app");
+                }
+            }
+        });
+
+        let touchStartY = 0;
+        window.addEventListener('touchstart', (e) => {
+            if (isExamStarted && e.touches.length > 0) {
+                touchStartY = e.touches[0].clientY;
+                if (touchStartY <= 60) {
+                    handleViolation("Notification drawer / Status bar touch detected");
+                }
+            }
+        }, { passive: true });
+
+        window.addEventListener('touchmove', (e) => {
+            if (isExamStarted && e.touches.length > 0) {
+                const currentY = e.touches[0].clientY;
+                if (touchStartY <= 75 && currentY - touchStartY > 20) {
+                    handleViolation("Notification drawer pull-down gesture detected");
+                } else if (currentY <= 50) {
+                    handleViolation("Top status bar swipe detected");
+                }
+            }
+        }, { passive: true });
+
+        window.addEventListener("keydown", (e) => {
+            if (e.key === "PrintScreen") {
+                e.preventDefault();
+                navigator.clipboard?.writeText("Protected");
+                handleViolation("Screenshot Attempt (PrintScreen)");
+                return false;
+            }
+            if (e.ctrlKey || e.metaKey) {
+                if (['c', 'v', 'u', 's', 'p', 'a'].includes(e.key.toLowerCase())) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+            if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ['i', 'j', 'c'].includes(e.key.toLowerCase()))) {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // ==========================================
+        // 5. STUDENT JOIN FLOW
+        // ==========================================
+        document.getElementById('joinBtn').onclick = async () => {
+            const stuName = document.getElementById('stuName').value.trim();
+            const stuRoll = document.getElementById('stuRoll').value.trim();
+            const stuReg = document.getElementById('stuReg').value.trim();
+            const stuClass = document.getElementById('stuClass').value.trim();
+            const stuDiv = document.getElementById('stuDiv').value.trim();
+            const stuDept = document.getElementById('stuDept').value.trim();
+            const stuSub = document.getElementById('stuSub').value.trim();
+            const joinError = document.getElementById('joinError');
+
+            if (!stuName || !stuRoll || !stuSub) {
+                joinError.innerText = "Please provide Name, Roll Number, and Subject.";
+                joinError.style.display = 'block';
+                return;
+            }
+            joinError.style.display = 'none';
+
+            studentData = {
+                name: stuName,
+                rollNo: stuRoll,
+                regNo: stuReg,
+                className: stuClass,
+                division: stuDiv,
+                dept: stuDept,
+                subject: stuSub,
+                collegeId: stuRoll
+            };
+
+            try {
+                const response = await fetch('/api/join', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(studentData)
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    document.getElementById('displayName').innerText = `${studentData.name} (${studentData.rollNo})`;
+                    document.getElementById('waitSubject').innerText = studentData.subject;
+                    document.getElementById('waitRoll').innerText = studentData.rollNo;
+                    document.getElementById('waitReg').innerText = studentData.regNo;
+
+                    document.getElementById('studentDisplay').innerText = `${studentData.name} (${studentData.subject})`;
+                    document.getElementById('rollDisplay').innerText = `Roll: ${studentData.rollNo}`;
+
+                    document.getElementById('login-screen').style.display = 'none';
+
+                    // ONLY start if faculty already released the exam for this subject!
+                    if (data.examActive) {
+                        launchExamSequence();
+                    } else {
+                        document.getElementById('waiting-screen').style.display = 'block';
+                        startWaitingRoomPolling();
+                    }
+                } else {
+                    joinError.innerText = data.error || "Could not join exam.";
+                    joinError.style.display = 'block';
+                }
+            } catch(e) {
+                joinError.innerText = "Error connecting to exam server.";
+                joinError.style.display = 'block';
+            }
+        };
+
+        // Polling until faculty releases the exam
+        function startWaitingRoomPolling() {
+            if (pollInterval) clearInterval(pollInterval);
+            pollInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/api/check-status?subject=${encodeURIComponent(studentData.subject)}&rollNo=${encodeURIComponent(studentData.rollNo)}`);
+                    const data = await response.json();
+                    if (data.active) {
+                        clearInterval(pollInterval);
+                        pollInterval = null;
+                        launchExamSequence();
+                    }
+                } catch(e) {}
+            }, 2500);
+        }
+
+        async function launchExamSequence() {
+            if (!isCameraVerified) {
+                const verified = await checkCameraPermission(true);
+                if (!verified) {
+                    alert("ACCESS DENIED: You cannot view questions without active camera verification.");
+                    return;
+                }
+            }
+
+            let stream;
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
+                    audio: false
+                });
+            } catch (err) {
+                alert("CRITICAL ERROR: Camera access revoked or unavailable! Entrance blocked.");
+                window.location.reload();
+                return;
+            }
+
+            const video = document.getElementById('video');
+            video.srcObject = stream;
+            try { await video.play(); } catch(e) {}
+            document.getElementById('camContainer').style.display = 'block';
+
+            // Fail-safe: camera disconnected
+            stream.getVideoTracks().forEach(track => {
+                track.onended = () => {
+                    handleViolation("CRITICAL: Camera disconnected or revoked! Exam terminated.");
+                    setTimeout(() => { window.submitExam(); }, 2000);
+                };
+            });
+
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('waiting-screen').style.display = 'none';
+            document.getElementById('exam-screen').style.display = 'block';
+            isExamStarted = true;
+
+            await loadQuestions();
+
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            }
+
+            await initAI();
+            startMonitoring();
+            takeSnapshot();
+        }
+
+        async function loadQuestions() {
+            const container = document.getElementById('question-container');
+            try {
+                const response = await fetch(`/api/get-questions?subject=${encodeURIComponent(studentData.subject)}`);
+                const questions = await response.json();
+                container.innerHTML = "";
+
+                if (!questions || questions.length === 0) {
+                    container.innerHTML = `
+                        <div class="mcq-card" style="text-align: center; padding: 40px 20px;">
+                            <h3 style="color: #64748b;">No Questions Found for ${studentData.subject}</h3>
+                            <p style="color: #94a3b8; font-size: 14px;">Your faculty has not uploaded questions yet for this subject.</p>
+                        </div>`;
+                    return;
+                }
+
+                const watermarkContent = `${studentData.rollNo} • ${studentData.subject} • PROCTORED\n`.repeat(6);
+
+                questions.forEach((q, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'mcq-card';
+                    const imgSource = q.image.startsWith('/') ? q.image : '/' + q.image;
+
+                    card.innerHTML = `
+                        <div class="mcq-header">
+                            <span>Question ${index + 1}</span>
+                            <span style="font-size: 12px; color: #16a34a; font-weight: 600;">🔒 Anti-Lens Protected</span>
+                        </div>
+                        <div class="img-wrapper">
+                            <img src="${imgSource}" class="question-img" alt="Question ${index + 1}">
+                            <div class="watermark-overlay">
+                                <div class="watermark-text">${watermarkContent}</div>
+                            </div>
+                        </div>
+                        <div class="option" onclick="window.ans(${index}, 'A', this)">Option A</div>
+                        <div class="option" onclick="window.ans(${index}, 'B', this)">Option B</div>
+                        <div class="option" onclick="window.ans(${index}, 'C', this)">Option C</div>
+                        <div class="option" onclick="window.ans(${index}, 'D', this)">Option D</div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (err) {
+                console.error("Failed to load questions:", err);
+            }
+        }
+
+        window.ans = function(qIndex, option, el) {
+            studentAnswers[qIndex] = option;
+            if (el) {
+                const parent = el.parentElement;
+                parent.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+                el.classList.add('selected');
+            }
+        };
+
+        async function initAI() {
+            try {
+                const vision = await FilesetResolver.forVisionTasks(
+                    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm"
+                );
+                faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
+                    baseOptions: {
+                        modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker.task",
+                        delegate: "GPU"
+                    },
+                    runningMode: "VIDEO",
+                    numFaces: 1
+                });
+            } catch(e) {}
+        }
+
+        function startMonitoring() {
+            setInterval(async () => {
+                if (!isExamStarted || !faceLandmarker) return;
+                const video = document.getElementById('video');
+                if (video.readyState < 2) return;
+
+                try {
+                    const results = faceLandmarker.detectForVideo(video, performance.now());
+                    if (!results.faceLandmarks || results.faceLandmarks.length === 0) {
+                        handleViolation("Face Not Detected");
+                    } else {
+                        const nose = results.faceLandmarks[0][1];
+                        const left = results.faceLandmarks[0][234];
+                        const right = results.faceLandmarks[0][454];
+                        const forehead = results.faceLandmarks[0][10];
+                        const chin = results.faceLandmarks[0][152];
+
+                        // 1. Horizontal Turn (Yaw)
+                        const centerX = (left.x + right.x) / 2;
+                        if (Math.abs(nose.x - centerX) > 0.055) {
+                            handleViolation("Looking Away from Screen (Head Turned)");
+                        } else {
+                            // 2. Vertical Tilt (Pitch)
+                            const faceHeight = chin.y - forehead.y;
+                            if (faceHeight > 0.1) {
+                                const verticalRatio = (nose.y - forehead.y) / faceHeight;
+                                if (verticalRatio > 0.70) {
+                                    handleViolation("Looking Down (Possible hidden device/notes)");
+                                } else if (verticalRatio < 0.30) {
+                                    handleViolation("Looking Up (Notification area peek)");
+                                }
+                            }
+                        }
+                    }
+                } catch(e) {}
+            }, 3000);
+
+            setInterval(takeSnapshot, 60000);
+        }
+
+        async function handleViolation(reason) {
+            if (!isExamStarted) return;
+            const now = Date.now();
+            if (now - lastViolationTimestamp < 2500) return;
+            lastViolationTimestamp = now;
+            cheatCount++;
+
+            playAlertSound();
+            if (navigator.vibrate) navigator.vibrate([300, 150, 300]);
+
+            const strikeBadge = document.getElementById('strikeBadge');
+            if (strikeBadge) {
+                if (cheatCount === 1) {
+                    strikeBadge.style.background = '#fef3c7';
+                    strikeBadge.style.color = '#b45309';
+                    strikeBadge.innerHTML = '⚠️ Strikes: 1/3 (Warning)';
+                } else if (cheatCount === 2) {
+                    strikeBadge.style.background = '#fee2e2';
+                    strikeBadge.style.color = '#dc2626';
+                    strikeBadge.innerHTML = '🚨 Strikes: 2/3 (FINAL WARNING)';
+                } else if (cheatCount >= 3) {
+                    strikeBadge.style.background = '#991b1b';
+                    strikeBadge.style.color = '#ffffff';
+                    strikeBadge.innerHTML = '🚫 Strikes: 3/3 (LOCKED)';
+                }
+            }
+
+            const banner = document.getElementById('warning-banner');
+            const camBox = document.getElementById('camContainer');
+            if (camBox) camBox.classList.add('violating');
+            if (banner) {
+                banner.style.display = 'block';
+                banner.innerText = `VIOLATION: ${reason} (Strike ${cheatCount}/3)`;
+            }
+
+            pendingViolation = { reason, strike: cheatCount };
+            showViolationModal(reason, cheatCount);
+            takeSnapshot();
+
+            try {
+                await fetch('/api/log-cheat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        studentId: studentData.collegeId, 
+                        rollNo: studentData.rollNo, 
+                        reason, 
+                        strike: cheatCount 
+                    })
+                });
+            } catch (e) {}
+
+            if (cheatCount >= 3) {
+                setTimeout(() => {
+                    alert("3 EXAM VIOLATIONS REACHED!\nYour exam is locked and has been automatically submitted to the proctor.");
+                    window.submitExam();
+                }, 800);
+            }
+
+            setTimeout(() => { 
+                if (banner) banner.style.display = 'none'; 
+                if (camBox) camBox.classList.remove('violating');
+            }, 5000);
+        }
+
+        function takeSnapshot() {
+            const video = document.getElementById('video');
+            if (!video || !video.videoWidth) return;
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            const data = canvas.toDataURL('image/jpeg', 0.6);
+
+            fetch('/api/upload-snapshot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ studentId: `${studentData.rollNo}_${studentData.subject}`, image: data })
+            }).catch(() => {});
+        }
+
+        window.submitExam = async function() {
+            isExamStarted = false;
+            try {
+                const res = await fetch('/api/submit-exam', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        collegeId: studentData.collegeId, 
+                        rollNo: studentData.rollNo, 
+                        name: studentData.name,
+                        subject: studentData.subject,
+                        answers: studentAnswers 
+                    })
+                });
+                const data = await res.json();
+                alert(`Exam submitted successfully! Score: ${data.submission.score}`);
+            } catch (err) {
+                alert("Exam submitted.");
+            }
+            window.location.reload();
+        };
+    </script>
+</body>
+</html>

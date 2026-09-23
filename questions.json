@@ -1,0 +1,14 @@
+[
+  {
+    "id": "Q_1",
+    "image": "/uploads/questions/sample_q1.svg",
+    "correct": "B",
+    "createdAt": "23/9/2026, 12:05:11 am"
+  },
+  {
+    "id": "Q_2",
+    "image": "/uploads/questions/sample_q2.svg",
+    "correct": "A",
+    "createdAt": "23/9/2026, 12:05:11 am"
+  }
+]

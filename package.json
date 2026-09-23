@@ -1,0 +1,14 @@
+{
+  "name": "mobile-exam-portal",
+  "version": "1.0.0",
+  "description": "Secure Mobile Exam Portal with MediaPipe AI proctoring and Express backend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "localtunnel": "^2.0.2",
+    "multer": "^2.4.0"
+  }
+}

@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>College Staff Portal - Exam Management</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #f1f5f9; color: #1e293b; }
+        .screen { padding: 40px 20px; max-width: 900px; margin: 0 auto; text-align: center; display: none; }
+        .active { display: block; }
+        
+        /* Login Styles */
+        .login-card { background: white; padding: 32px 24px; border-radius: 18px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); max-width: 440px; margin: 0 auto; border: 1px solid #e2e8f0; }
+        .role-selector { display: flex; gap: 8px; justify-content: center; margin-bottom: 22px; flex-wrap: wrap; }
+        .role-btn { padding: 10px 16px; border: 1.5px solid #cbd5e1; border-radius: 8px; background: white; cursor: pointer; font-weight: 600; font-size: 13.5px; transition: all 0.2s; }
+        .role-btn.selected { background: #2563eb; color: white; border-color: #2563eb; }
+        .input-field { width: 100%; padding: 12px 14px; margin: 8px 0; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; background: #fff; font-size: 14.5px; box-sizing: border-box; }
+        .input-field:focus { border-color: #2563eb; }
+        .btn { padding: 13px 24px; font-size: 15px; cursor: pointer; border: none; border-radius: 8px; font-weight: 600; transition: all 0.2s; width: 100%; margin-top: 10px; }
+        .btn-green { background: #16a34a; color: white; }
+        .btn-green:hover { background: #15803d; }
+        .btn-blue { background: #2563eb; color: white; }
+        .btn-blue:hover { background: #1d4ed8; }
+        .btn-red { background: #dc2626; color: white; }
+        .btn-red:hover { background: #b91c1c; }
+
+        /* Dashboard Styles */
+        .dash-container { display: grid; grid-template-columns: 240px 1fr; gap: 20px; text-align: left; max-width: 1200px; margin: 0 auto; }
+        @media (max-width: 768px) {
+            .dash-container { grid-template-columns: 1fr; }
+        }
+        .sidebar { background: #1e293b; color: white; padding: 20px; border-radius: 12px; height: fit-content; position: sticky; top: 20px; }
+        .sidebar h3 { margin-top: 0; font-size: 17px; padding-bottom: 10px; border-bottom: 1px solid #334155; }
+        .sidebar-item { padding: 12px; cursor: pointer; border-radius: 6px; margin-bottom: 6px; font-size: 14px; font-weight: 500; transition: background 0.2s; }
+        .sidebar-item:hover { background: #334155; }
+        .sidebar-item.active-nav { background: #2563eb; font-weight: 600; }
+        .main-content { padding: 0 10px; }
+        .card { background: white; padding: 22px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+        th, td { padding: 12px 14px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 14px; }
+        th { background: #f8fafc; color: #64748b; font-weight: 600; }
+        
+        .search-bar { width: 100%; padding: 11px 14px; margin-bottom: 15px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+        .badge-green { background: #dcfce7; color: #15803d; }
+        .badge-amber { background: #fef3c7; color: #b45309; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. STAFF LOGIN SCREEN -->
+    <div id="login-screen" class="screen active">
+        <h1 style="color: #0f172a; margin-bottom: 6px; font-size: 26px;">College Staff Portal</h1>
+        <p style="color: #64748b; margin-bottom: 20px; font-size: 14px;">Secure Role-Based Examination Management</p>
+        
+        <div class="login-card">
+            <!-- Student Redirect Banner -->
+            <div style="background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 10px; padding: 14px; margin-bottom: 20px; text-align: left;">
+                <div style="font-weight: 700; color: #1e40af; font-size: 14px;">🎓 Are you a Student?</div>
+                <div style="color: #3b82f6; font-size: 13px; margin: 4px 0 8px 0;">This portal is for faculty & teachers. Students must enter via the dedicated exam page.</div>
+                <a href="/student" style="display: block; text-align: center; background: #2563eb; color: white; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 13.5px;">Go to Student Exam Portal &rarr;</a>
+            </div>
+
+            <!-- Role Selector -->
+            <div class="role-selector">
+                <button class="role-btn selected" onclick="setRole('FACULTY', this)">Faculty</button>
+                <button class="role-btn" onclick="setRole('CLASS_TEACHER', this)">Class Teacher</button>
+                <button class="role-btn" onclick="setRole('HOD', this)">HOD</button>
+            </div>
+
+            <div id="staff-fields">
+                <input type="text" id="staffId" class="input-field" placeholder="Staff ID (e.g. FAC001 / HOD001)" value="FAC001">
+                <input type="password" id="staffPass" class="input-field" placeholder="Password" value="faculty">
+            </div>
+
+            <button id="loginBtn" onclick="handleLogin()" class="btn btn-blue">Login to Portal</button>
+            <p id="loginError" style="color: #dc2626; display: none; margin-top: 12px; font-size: 13.5px; font-weight: 600;"></p>
+        </div>
+    </div>
+
+    <!-- 2. HOD DASHBOARD -->
+    <div id="hod-dash" class="screen">
+        <div class="dash-container">
+            <div class="sidebar">
+                <h3>👑 HOD Panel</h3>
+                <div class="sidebar-item active-nav" onclick="showHodTab('teachers')">Manage Class Teachers</div>
+                <div class="sidebar-item" onclick="showHodTab('exams')">All Subject Exams</div>
+                <div class="sidebar-item" onclick="showHodTab('settings')">Global Settings</div>
+                <div class="sidebar-item" style="margin-top:20px; color:#fca5a5" onclick="location.reload()">Logout</div>
+            </div>
+            <div class="main-content">
+                <div id="hod-teachers" class="tab-content">
+                    <div class="card">
+                        <h3>Create Class Teacher</h3>
+                        <input type="text" id="ctId" class="input-field" placeholder="ID (e.g. CT001)">
+                        <input type="text" id="ctPass" class="input-field" placeholder="Password">
+                        <input type="text" id="ctName" class="input-field" placeholder="Full Name">
+                        <input type="text" id="ctClass" class="input-field" placeholder="Assigned Class (e.g. SY-A)">
+                        <button onclick="createStaff('CLASS_TEACHER')" class="btn btn-blue">Create Class Teacher</button>
+                    </div>
+                </div>
+                <div id="hod-exams" class="tab-content" style="display:none">
+                    <div class="card">
+                        <h3>Subject-wise Results (All)</h3>
+                        <input type="text" id="hod-sub-search" class="search-bar" placeholder="Enter Subject (e.g. DSA) to view marks..." oninput="viewSubjectMarks('HOD')">
+                        <div id="hod-results-table"></div>
+                    </div>
+                </div>
+                <div id="hod-settings" class="tab-content" style="display:none">
+                    <div class="card">
+                        <h3>Global Student Access</h3>
+                        <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                            <input type="checkbox" id="global-marks-toggle" onchange="updateGlobalMarks()">
+                            <span>Allow Students to see marks immediately across all subjects</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. CLASS TEACHER DASHBOARD -->
+    <div id="ct-dash" class="screen">
+        <div class="dash-container">
+            <div class="sidebar">
+                <h3>🏫 Class Teacher</h3>
+                <div class="sidebar-item active-nav" onclick="showCtTab('faculty')">Manage Faculty</div>
+                <div class="sidebar-item" onclick="showCtTab('students')">Class Student List</div>
+                <div class="sidebar-item" style="margin-top:20px; color:#fca5a5" onclick="location.reload()">Logout</div>
+            </div>
+            <div class="main-content">
+                <div id="ct-faculty" class="tab-content">
+                    <div class="card">
+                        <h3>Assign Subject Teacher</h3>
+                        <input type="text" id="facId" class="input-field" placeholder="ID (e.g. FAC001)">
+                        <input type="text" id="facPass" class="input-field" placeholder="Password">
+                        <input type="text" id="facName" class="input-field" placeholder="Full Name">
+                        <input type="text" id="facSub" class="input-field" placeholder="Subject (e.g. DSA)">
+                        <button onclick="createStaff('FACULTY')" class="btn btn-blue">Create Faculty</button>
+                    </div>
+                </div>
+                <div id="ct-students" class="tab-content" style="display:none">
+                    <div class="card">
+                        <h3>My Class Students</h3>
+                        <input type="text" id="ct-stu-search" class="search-bar" placeholder="Search by Name or Roll No..." oninput="searchStudents('CT')">
+                        <div id="ct-student-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. FACULTY DASHBOARD (WITH MASTER RELEASE SWITCH) -->
+    <div id="fac-dash" class="screen">
+        <div class="dash-container">
+            <div class="sidebar">
+                <h3>👨‍🏫 Faculty Panel</h3>
+                <div style="font-size: 13px; color: #94a3b8; margin-bottom: 15px;" id="faculty-profile-badge">...</div>
+                <div class="sidebar-item active-nav" onclick="showFacTab('exam')">Exam Control & Paper</div>
+                <div class="sidebar-item" onclick="showFacTab('marks')">Student Marks & Submissions</div>
+                <div class="sidebar-item" style="margin-top:20px; color:#fca5a5" onclick="location.reload()">Logout</div>
+            </div>
+            <div class="main-content">
+                <div id="fac-exam" class="tab-content">
+                    
+                    <!-- MASTER EXAM RELEASE SWITCH -->
+                    <div class="card" style="border: 2px solid #2563eb; background: #eff6ff;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
+                            <div>
+                                <h3 style="margin:0 0 4px 0; color:#1e3a8a; font-size:18px;">
+                                    Exam Master Release Switch (<span id="exam-control-sub">...</span>)
+                                </h3>
+                                <p style="margin:0; font-size:13.5px; color:#2563eb;">
+                                    Students in the waiting room <strong>cannot start</strong> until you release the exam here.
+                                </p>
+                                <div id="faculty-exam-status-badge" style="margin-top:8px; font-weight:800; font-size:15px; color:#d97706;">
+                                    🔒 Status: EXAM IS LOCKED (Students in Waiting Room)
+                                </div>
+                                <div id="faculty-student-counter" style="font-size:13px; color:#475569; margin-top:4px;">
+                                    👥 Connected Students: 0 waiting, 0 in exam
+                                </div>
+                            </div>
+                            <div>
+                                <button type="button" id="facultyToggleExamBtn" onclick="toggleFacultyExam()" class="btn btn-green" style="padding:14px 24px; font-size:15px; width:auto; margin:0;">
+                                    🚀 RELEASE EXAM FOR STUDENTS NOW
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- UPLOAD QUESTIONS -->
+                    <div class="card">
+                        <h3>Upload Questions for <span id="my-subject-display">...</span></h3>
+                        <p style="color:#64748b; font-size:13.5px; margin-top:0;">Upload question images. The student portal will automatically apply anti-OCR watermarks.</p>
+                        <form id="upload-form" enctype="multipart/form-data">
+                            <input type="file" id="qImg" accept="image/*" class="input-field" required>
+                            <input type="text" id="qCorrect" class="input-field" placeholder="Correct Option (A, B, C, or D)" maxlength="1" required>
+                            <button type="button" onclick="uploadQuestion()" class="btn btn-blue">Upload Question Image</button>
+                        </form>
+                        
+                        <h4 style="margin-top:25px; margin-bottom:10px; color:#0f172a;">Current Exam Questions</h4>
+                        <div id="question-list" style="margin-top:10px;"></div>
+                    </div>
+                </div>
+
+                <div id="fac-marks" class="tab-content" style="display:none">
+                    <div class="card">
+                        <h3>Student Results & Submissions</h3>
+                        <label style="display:flex; align-items:center; gap:10px; margin-bottom:15px; cursor:pointer;">
+                            <input type="checkbox" id="fac-marks-toggle" onchange="updateSubjectMarks()">
+                            <span>Allow students of this subject to see their score immediately upon submission</span>
+                        </label>
+                        <input type="text" id="fac-stu-search" class="search-bar" placeholder="Search student by name or roll number..." oninput="searchStudents('FAC')">
+                        <div id="fac-results-table"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let currentRole = 'FACULTY';
+        let facultyExamActive = false;
+        let facultyPollInterval = null;
+
+        // --- LOGIN & ROLE MANAGEMENT ---
+        window.setRole = (role, btn) => {
+            currentRole = role;
+            document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+        };
+
+        window.handleLogin = async () => {
+            const errorEl = document.getElementById('loginError');
+            errorEl.style.display = 'none';
+
+            const data = {
+                id: document.getElementById('staffId').value.trim(),
+                password: document.getElementById('staffPass').value.trim(),
+                role: currentRole
+            };
+
+            if (!data.id || !data.password) {
+                errorEl.innerText = "Please enter Staff ID and Password.";
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (res.ok && result.success) {
+                    currentUser = result.user;
+                    document.getElementById('login-screen').classList.remove('active');
+                    
+                    if (currentRole === 'HOD') {
+                        document.getElementById('hod-dash').classList.add('active');
+                    } else if (currentRole === 'CLASS_TEACHER') {
+                        document.getElementById('ct-dash').classList.add('active');
+                    } else if (currentRole === 'FACULTY') {
+                        document.getElementById('fac-dash').classList.add('active');
+                        initFacultyDashboard();
+                    }
+                } else {
+                    throw new Error(result.error || "Invalid Credentials or Role");
+                }
+            } catch (e) {
+                errorEl.innerText = e.message;
+                errorEl.style.display = 'block';
+            }
+        };
+
+        // --- DASHBOARD NAVIGATION ---
+        window.showHodTab = (tab) => {
+            document.querySelectorAll('#hod-dash .tab-content').forEach(t => t.style.display = 'none');
+            document.getElementById(`hod-${tab}`).style.display = 'block';
+        };
+
+        window.showCtTab = (tab) => {
+            document.querySelectorAll('#ct-dash .tab-content').forEach(t => t.style.display = 'none');
+            document.getElementById(`ct-${tab}`).style.display = 'block';
+        };
+
+        window.showFacTab = (tab) => {
+            document.querySelectorAll('#fac-dash .tab-content').forEach(t => t.style.display = 'none');
+            document.getElementById(`fac-${tab}`).style.display = 'block';
+            if (tab === 'marks') searchStudents('FAC');
+            if (tab === 'exam') loadFacultyQuestions();
+        };
+
+        // --- FACULTY EXAM RELEASE SWITCH & QUESTIONS ---
+        function initFacultyDashboard() {
+            document.getElementById('faculty-profile-badge').innerText = `${currentUser.name} • Subject: ${currentUser.subject}`;
+            document.getElementById('my-subject-display').innerText = currentUser.subject;
+            document.getElementById('exam-control-sub').innerText = currentUser.subject;
+
+            loadFacultyQuestions();
+            pollWaitingRoom();
+            if (facultyPollInterval) clearInterval(facultyPollInterval);
+            facultyPollInterval = setInterval(pollWaitingRoom, 3000);
+        }
+
+        async function pollWaitingRoom() {
+            if (!currentUser || currentRole !== 'FACULTY') return;
+            try {
+                const res = await fetch(`/api/waiting-students?subject=${encodeURIComponent(currentUser.subject)}`);
+                const data = await res.json();
+
+                facultyExamActive = !!data.isExamActive;
+                updateFacultySwitchUI();
+
+                const counterEl = document.getElementById('faculty-student-counter');
+                if (counterEl) {
+                    counterEl.innerHTML = `👥 <strong>Students Connected:</strong> <span class="badge badge-amber">${data.waiting} in waiting room</span> | <span class="badge badge-green">${data.in_exam} taking exam</span>`;
+                }
+            } catch (e) {}
+        }
+
+        function updateFacultySwitchUI() {
+            const badge = document.getElementById('faculty-exam-status-badge');
+            const btn = document.getElementById('facultyToggleExamBtn');
+            if (!badge || !btn) return;
+
+            if (facultyExamActive) {
+                badge.innerHTML = `<span style="color:#16a34a;">🟢 Status: EXAM IS LIVE & RELEASED (Students can start now)</span>`;
+                btn.className = "btn btn-red";
+                btn.style.width = "auto";
+                btn.style.margin = "0";
+                btn.innerText = "🔒 LOCK / STOP EXAM";
+            } else {
+                badge.innerHTML = `<span style="color:#d97706;">🔒 Status: EXAM IS LOCKED (Students in Waiting Room)</span>`;
+                btn.className = "btn btn-green";
+                btn.style.width = "auto";
+                btn.style.margin = "0";
+                btn.innerText = "🚀 RELEASE EXAM FOR STUDENTS NOW";
+            }
+        }
+
+        window.toggleFacultyExam = async () => {
+            const endpoint = facultyExamActive ? '/api/stop-exam' : '/api/start-exam';
+            try {
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ subject: currentUser.subject })
+                });
+                const data = await res.json();
+                facultyExamActive = !!data.active;
+                updateFacultySwitchUI();
+                pollWaitingRoom();
+            } catch (e) {
+                alert("Error toggling exam status.");
+            }
+        };
+
+        async function loadFacultyQuestions() {
+            if (!currentUser || !currentUser.subject) return;
+            try {
+                const res = await fetch(`/api/get-questions?subject=${encodeURIComponent(currentUser.subject)}`);
+                const questions = await res.json();
+                const container = document.getElementById('question-list');
+                if (!container) return;
+
+                if (!questions || questions.length === 0) {
+                    container.innerHTML = `<p style="color:#64748b; font-size:14px;">No questions uploaded yet for ${currentUser.subject}. Use the form above to add questions.</p>`;
+                    return;
+                }
+
+                let html = '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:15px;">';
+                questions.forEach((q, idx) => {
+                    html += `
+                        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:12px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                <strong>Question ${idx + 1}</strong>
+                                <button onclick="deleteQuestion('${q.id}')" style="background:#fee2e2; border:1px solid #ef4444; color:#dc2626; border-radius:6px; padding:4px 8px; font-size:12px; cursor:pointer;">🗑️ Delete</button>
+                            </div>
+                            <img src="${q.image}" style="max-width:100%; height:140px; object-fit:contain; background:#fff; border-radius:6px; display:block; margin:0 auto 8px auto;">
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            } catch (e) {}
+        }
+
+        window.uploadQuestion = async () => {
+            const fileInput = document.getElementById('qImg');
+            const correctInput = document.getElementById('qCorrect');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert("Please select a question image.");
+                return;
+            }
+            if (!correctInput.value.trim()) {
+                alert("Please specify the correct option (A, B, C, or D).");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('questionImage', fileInput.files[0]);
+            formData.append('correctOption', correctInput.value.trim().toUpperCase());
+            formData.append('subject', currentUser.subject);
+
+            try {
+                const res = await fetch('/api/upload-question', { method: 'POST', body: formData });
+                if (res.ok) {
+                    alert("Question Uploaded Successfully!");
+                    fileInput.value = '';
+                    correctInput.value = '';
+                    loadFacultyQuestions();
+                } else {
+                    alert("Failed to upload question.");
+                }
+            } catch(e) {
+                alert("Error connecting to server.");
+            }
+        };
+
+        window.deleteQuestion = async (id) => {
+            if (!confirm("Are you sure you want to delete this question?")) return;
+            try {
+                const res = await fetch('/api/delete-question', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ subject: currentUser.subject, id })
+                });
+                if (res.ok) {
+                    loadFacultyQuestions();
+                }
+            } catch(e) {}
+        };
+
+        // --- MARKS & SUBMISSIONS ---
+        window.searchStudents = async (role) => {
+            const sub = (role === 'FAC') ? currentUser.subject : (document.getElementById('hod-sub-search')?.value || "");
+            const query = (role === 'FAC') ? (document.getElementById('fac-stu-search')?.value || "") : (document.getElementById('ct-stu-search')?.value || "");
+            
+            try {
+                const res = await fetch(`/api/get-submissions?subject=${encodeURIComponent(sub)}`);
+                const data = await res.json();
+                
+                const filtered = data.filter(s => 
+                    !query || 
+                    (s.rollNo && s.rollNo.toLowerCase().includes(query.toLowerCase())) || 
+                    (s.name && s.name.toLowerCase().includes(query.toLowerCase()))
+                );
+                
+                let html = `<table><thead><tr><th>Roll No</th><th>Student Name</th><th>Subject</th><th>Score</th><th>Submitted Time</th></tr></thead><tbody>`;
+                if (filtered.length === 0) {
+                    html += `<tr><td colspan="5" style="text-align:center; color:#94a3b8;">No submissions found.</td></tr>`;
+                } else {
+                    filtered.forEach(s => {
+                        html += `<tr><td><strong>${s.rollNo}</strong></td><td>${s.name || 'Student'}</td><td>${s.subject}</td><td><span class="badge badge-green">${s.score}</span></td><td style="color:#64748b; font-size:12px;">${s.time}</td></tr>`;
+                    });
+                }
+                html += `</tbody></table>`;
+                
+                const target = document.getElementById(role === 'FAC' ? 'fac-results-table' : (role === 'CT' ? 'ct-student-list' : 'hod-results-table'));
+                if (target) target.innerHTML = html;
+            } catch(e) {}
+        };
+
+        window.viewSubjectMarks = (role) => searchStudents(role);
+
+        window.updateGlobalMarks = async () => {
+            const val = document.getElementById('global-marks-toggle').checked;
+            await fetch('/api/update-settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ showMarks: val })
+            });
+        };
+
+        window.updateSubjectMarks = async () => {
+            const val = document.getElementById('fac-marks-toggle').checked;
+            await fetch('/api/update-settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ subject: currentUser.subject, showMarks: val })
+            });
+        };
+
+        window.createStaff = async (role) => {
+            const data = (role === 'CLASS_TEACHER') ? {
+                id: document.getElementById('ctId').value.trim(),
+                password: document.getElementById('ctPass').value.trim(),
+                name: document.getElementById('ctName').value.trim(),
+                className: document.getElementById('ctClass').value.trim(),
+                role: role
+            } : {
+                id: document.getElementById('facId').value.trim(),
+                password: document.getElementById('facPass').value.trim(),
+                name: document.getElementById('facName').value.trim(),
+                subject: document.getElementById('facSub').value.trim(),
+                role: role
+            };
+
+            if (!data.id || !data.password) {
+                alert("Please provide ID and Password.");
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/create-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (res.ok && result.success) {
+                    alert("Staff account created successfully!");
+                    if (role === 'CLASS_TEACHER') {
+                        document.getElementById('ctId').value = '';
+                        document.getElementById('ctPass').value = '';
+                        document.getElementById('ctName').value = '';
+                        document.getElementById('ctClass').value = '';
+                    } else {
+                        document.getElementById('facId').value = '';
+                        document.getElementById('facPass').value = '';
+                        document.getElementById('facName').value = '';
+                        document.getElementById('facSub').value = '';
+                    }
+                } else {
+                    alert(result.error || "Failed to create staff account.");
+                }
+            } catch(e) {
+                alert("Error connecting to server.");
+            }
+        };
+    </script>
+</body>
+</html>
