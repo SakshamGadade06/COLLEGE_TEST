@@ -1,0 +1,35 @@
+/* GHRCEM Pune inspired campus scene. Pure CSS: no photo or WebGL download. */
+#login-screen.campus-login {
+  max-width: none; min-height: 100vh; padding: 0; display: none;
+  background: linear-gradient(125deg,#e9f2fa 0%,#f8fbff 54%,#e6eef8 100%);
+}
+#login-screen.campus-login.active { display: grid; grid-template-columns: minmax(0,1.2fr) minmax(380px,.8fr); align-items: stretch; text-align: left; }
+.campus-visual { position: relative; min-height: 720px; overflow: hidden; isolation: isolate; display:flex; flex-direction:column; justify-content:space-between; padding: clamp(24px,4vw,72px); color:#17324f; }
+.campus-visual::before { content:""; position:absolute; inset:0; z-index:-2; background:radial-gradient(circle at 66% 38%,#fff 0 8%,transparent 48%),linear-gradient(150deg,#d8eaf8,#f3f8fc 60%,#d9e8f2); }
+.campus-visual::after { content:"";position:absolute;inset:auto -12% -80px;height:260px;z-index:-1;background:#adcebd;border-radius:50% 50% 0 0;transform:rotate(-3deg); }
+.campus-brand { display:flex;align-items:center;gap:12px;font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;z-index:2; }
+.campus-mark { width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:#143b62;color:#fff;font-size:15px;letter-spacing:0; }
+.campus-copy { z-index:2;max-width:580px; }
+.campus-copy .eyebrow { font-size:12px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#176b88; }
+.campus-copy h1 { font-size:clamp(32px,4vw,60px);line-height:1.08;letter-spacing:-.04em;margin:12px 0;color:#143451; }
+.campus-copy p { font-size:16px;line-height:1.6;max-width:450px;color:#45637b; }
+.campus-art { position:absolute;left:4%;right:1%;top:23%;height:48%;z-index:0;filter:drop-shadow(0 24px 25px rgba(21,55,79,.17));animation:float-campus 8s ease-in-out infinite alternate;pointer-events:none; }
+.campus-building {position:absolute;left:14%;right:9%;bottom:12%;height:76%;background:repeating-linear-gradient(90deg,#d4dfdf 0 2px,transparent 2px 22%),linear-gradient(112deg,#fff 10%,#edf1ee 58%,#d2dedc);border:1px solid #d4e0df;transform:skewY(-2deg);box-shadow:inset -28px -8px 45px #bfcfce,12px 17px 0 #c1d0cd;clip-path:polygon(0 8%,95% 0,100% 100%,0 100%);}
+.campus-building::before { content:"";position:absolute;inset:12% 6% 28%;background:repeating-linear-gradient(90deg,transparent 0 8%,#264c63 8% 10%,#8cabb5 10% 11%,transparent 11% 18%);opacity:.75; }
+.campus-building::after {content:"";position:absolute;left:34%;right:31%;bottom:0;height:35%;background:linear-gradient(90deg,#264458 0 45%,#adc4c6 46% 48%,#264458 49% 100%);border:8px solid #f4f5ee;border-bottom:0;box-shadow:0 -65px 0 -46px #6c3883;}
+.campus-sign {position:absolute;left:25%;right:17%;bottom:41%;padding:8px 7px;text-align:center;color:white;background:#5c376f;box-shadow:0 5px 8px #35475944;font:700 clamp(7px,.8vw,12px)/1.1 Arial,sans-serif;letter-spacing:.02em;transform:skewY(-2deg);}
+.campus-steps {position:absolute;left:33%;right:30%;bottom:5%;height:13%;background:repeating-linear-gradient(0deg,#cad2ce 0 6px,#f4f4ed 6px 14px);clip-path:polygon(20% 0,80% 0,100% 100%,0 100%);transform:skewY(-2deg);}
+.campus-palm {position:absolute;bottom:11%;width:8px;height:48%;border-radius:10px;background:linear-gradient(90deg,#866947,#b89b6e,#806444);transform-origin:bottom;}
+.campus-palm.left {left:10%;transform:rotate(-7deg)} .campus-palm.right {right:8%;transform:rotate(8deg)}
+.campus-palm::before {content:"";position:absolute;top:-28px;left:-60px;width:130px;height:95px;background:#3d8269;clip-path:polygon(48% 42%,0 26%,37% 52%,8% 79%,46% 60%,44% 100%,53% 58%,92% 83%,63% 49%,100% 25%,54% 43%,52% 0);}
+.campus-login-panel {position:relative;z-index:3;display:flex;flex-direction:column;justify-content:center;padding:clamp(24px,4vw,70px);background:#fff;box-shadow:-18px 0 45px #1a4c6b0d;}
+.campus-login-panel .login-card {width:100%;max-width:480px;margin:0 auto;padding:0;box-shadow:none;border:0;}
+.campus-login-panel .login-card h2 {font-size:29px;letter-spacing:-.03em;margin:0 0 8px;color:#17324f;}
+.campus-login-panel .login-card .login-intro {color:#64768b;line-height:1.5;margin:0 0 26px;}
+.campus-login-panel .role-btn {font-size:13px;}
+.campus-login-panel .input-field {margin:7px 0;padding:14px;}
+.campus-footer {font-size:12px;color:#718397;margin:30px auto 0;max-width:480px;width:100%;}
+@keyframes float-campus {to{transform:translateY(-8px)}}
+@media(max-width:900px){#login-screen.campus-login.active{grid-template-columns:1fr}.campus-visual{min-height:350px;padding:24px}.campus-art{top:15%;height:65%;left:13%;right:7%;}.campus-copy{display:none}.campus-login-panel{padding:30px 20px}.campus-sign{font-size:8px}}
+@media(max-width:540px){.campus-visual{min-height:220px}.campus-art{top:18%;height:75%;left:0;right:0}.campus-login-panel .login-card h2{font-size:25px}.campus-login-panel .role-selector{gap:6px}.campus-login-panel .role-btn{padding:9px 10px;font-size:12px}}
+@media(prefers-reduced-motion:reduce){.campus-art{animation:none}}
