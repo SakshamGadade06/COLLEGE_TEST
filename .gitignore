@@ -2,3 +2,13 @@ node_modules/
 cloudflared.exe
 snapshots/
 *.log
+users.json
+submissions.json
+exam_settings.json
+questions.json
+questions_by_subject/
+questions/
+uploads/
+tunnel_url.txt
+.env
+.env.*
