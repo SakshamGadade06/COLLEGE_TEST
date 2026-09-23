@@ -97,6 +97,19 @@ app.post('/api/create-user', (req, res) => {
     res.json({ success: true });
 });
 
+app.get('/api/get-staff', (req, res) => {
+    const users = readJSON(usersFile);
+    const sanitized = users.map(u => ({
+        id: u.id,
+        name: u.name,
+        role: u.role,
+        className: u.className || '',
+        subject: u.subject || '',
+        dept: u.dept || 'Computer Engineering & AI'
+    }));
+    res.json(sanitized);
+});
+
 // =========================================
 // 2. SUBJECT-WISE EXAM MANAGEMENT
 // =========================================

@@ -46,6 +46,238 @@
         .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; }
         .badge-green { background: #dcfce7; color: #15803d; }
         .badge-amber { background: #fef3c7; color: #b45309; }
+        .badge-blue { background: #dbeafe; color: #1d4ed8; }
+        .badge-purple { background: #f3e8ff; color: #7e22ce; }
+
+        /* Institutional Header & HOD Executive Suite */
+        #hod-dash.screen {
+            max-width: 1380px;
+            padding: 20px 20px 60px 20px;
+            text-align: left;
+            margin: 0 auto;
+        }
+        .inst-header {
+            background: linear-gradient(135deg, #091a33 0%, #0f2942 50%, #1e3a8a 100%);
+            color: #ffffff;
+            border-radius: 16px;
+            padding: 20px 28px;
+            margin-bottom: 22px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.22);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .inst-brand-box {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+        .inst-logo-wrap {
+            background: #ffffff;
+            padding: 8px 14px;
+            border-radius: 12px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .inst-logo-img {
+            height: 48px;
+            width: auto;
+            object-fit: contain;
+            display: block;
+        }
+        .inst-text h1 {
+            font-size: 19px;
+            font-weight: 800;
+            letter-spacing: 0.03em;
+            margin: 0 0 3px 0;
+            color: #ffffff;
+            text-transform: uppercase;
+        }
+        .inst-text .inst-sub {
+            font-size: 13px;
+            color: #cbd5e1;
+            font-weight: 500;
+            margin: 0 0 6px 0;
+        }
+        .inst-accreditations {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .inst-badge-img {
+            height: 26px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2px 7px;
+            border-radius: 5px;
+            object-fit: contain;
+        }
+        .hod-profile-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            padding: 12px 18px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .hod-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: white;
+            box-shadow: 0 2px 8px rgba(217, 119, 6, 0.4);
+            flex-shrink: 0;
+        }
+        .hod-info h4 {
+            margin: 0 0 2px 0;
+            font-size: 14px;
+            color: #ffffff;
+            font-weight: 700;
+        }
+        .hod-info p {
+            margin: 0;
+            font-size: 12px;
+            color: #93c5fd;
+            font-weight: 500;
+        }
+        .hod-logout-btn {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .hod-logout-btn:hover {
+            background: #ef4444;
+            color: #ffffff;
+        }
+
+        /* Stats Grid */
+        .hod-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+        .stat-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 18px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+        }
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+        .stat-num {
+            font-size: 22px;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.2;
+        }
+        .stat-label {
+            font-size: 12.5px;
+            color: #64748b;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        /* Campus Showcase Grid */
+        .campus-gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px;
+            margin-top: 14px;
+        }
+        .campus-photo-card {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            transition: all 0.25s ease;
+        }
+        .campus-photo-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+        }
+        .campus-photo-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            display: block;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .campus-photo-card .photo-body {
+            padding: 14px 16px;
+        }
+        .campus-photo-card h4 {
+            margin: 0 0 6px 0;
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f2942;
+        }
+        .campus-photo-card p {
+            margin: 0;
+            font-size: 12.5px;
+            color: #64748b;
+            line-height: 1.45;
+        }
+
+        /* Faculty & Class Teacher Roster Grid */
+        .staff-roster-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 14px;
+            margin-top: 14px;
+        }
+        .staff-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.2s;
+        }
+        .staff-card:hover {
+            border-color: #93c5fd;
+            background: #ffffff;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+        }
     </style>
     <link rel="stylesheet" href="/campus_scene.css">
 </head>
@@ -383,41 +615,250 @@
         </section>
     </div>
 
-    <!-- 2. HOD DASHBOARD -->
+    <!-- 2. HOD DASHBOARD: EXECUTIVE COMMAND SUITE -->
     <div id="hod-dash" class="screen">
+        <!-- Institutional Header Banner -->
+        <header class="inst-header">
+            <div class="inst-brand-box">
+                <div class="inst-logo-wrap">
+                    <img src="https://rgicdn.s3.ap-south-1.amazonaws.com/raisoni/rgi/images/logo/logo-color.webp" alt="Raisoni Group Logo" class="inst-logo-img">
+                </div>
+                <div class="inst-text">
+                    <div class="inst-sub">Autonomous Institute Affiliated to Savitribai Phule Pune University (SPPU) &bull; Approved by AICTE, New Delhi</div>
+                    <h1>G H Raisoni College of Engineering and Management</h1>
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
+                        <span style="background: rgba(254, 240, 138, 0.2); border: 1px solid rgba(253, 224, 71, 0.5); color: #fef08a; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 700; letter-spacing: 0.05em;">DEPARTMENT OF COMPUTER ENGINEERING &amp; AI</span>
+                        <span style="color: #94a3b8; font-size: 12px;">&bull; Wagholi, Pune</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                <div class="inst-accreditations">
+                    <img src="https://rgicdn.s3.ap-south-1.amazonaws.com/raisoni/rgi/images/acredientions/naac-plus-plus.webp" alt="NAAC A++" class="inst-badge-img" title="NAAC Accredited A++">
+                    <img src="https://rgicdn.s3.ap-south-1.amazonaws.com/raisoni/rgi/images/acredientions/nba.webp" alt="NBA Accredited" class="inst-badge-img" title="NBA Accredited">
+                    <img src="https://rgicdn.s3.ap-south-1.amazonaws.com/raisoni/rgi/images/acredientions/aicte.webp" alt="AICTE" class="inst-badge-img" title="AICTE Approved">
+                    <img src="https://rgicdn.s3.ap-south-1.amazonaws.com/raisoni/rgi/images/acredientions/nirf.webp" alt="NIRF Ranked" class="inst-badge-img" title="NIRF Ranked Institution">
+                </div>
+                <div class="hod-profile-card">
+                    <div class="hod-avatar">🎓</div>
+                    <div class="hod-info">
+                        <h4 id="hod-profile-name">Super Admin HOD</h4>
+                        <p>Head of Department &bull; ID: <span id="hod-profile-id">HOD001</span></p>
+                    </div>
+                    <button class="hod-logout-btn" onclick="location.reload()" title="Sign out of administrative portal">Sign Out</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Executive KPI Counters Grid -->
+        <div class="hod-stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#eff6ff; color:#2563eb;">🏛️</div>
+                <div>
+                    <div class="stat-num">GHRCEM</div>
+                    <div class="stat-label">Autonomous Wagholi Campus</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#f0fdf4; color:#16a34a;">👨‍🏫</div>
+                <div>
+                    <div class="stat-num" id="hod-stat-faculty">4</div>
+                    <div class="stat-label">Appointed Faculty &amp; Staff</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#fef3c7; color:#d97706;">📝</div>
+                <div>
+                    <div class="stat-num" id="hod-stat-submissions">0</div>
+                    <div class="stat-label">Candidate Exam Submissions</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#faf5ff; color:#7e22ce;">🛡️</div>
+                <div>
+                    <div class="stat-num">99.8%</div>
+                    <div class="stat-label">AI Proctoring Integrity Active</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Body: Navigation Sidebar + Tab Contents -->
         <div class="dash-container">
             <div class="sidebar">
-                <h3>👑 HOD Panel</h3>
-                <div class="sidebar-item active-nav" onclick="showHodTab('teachers')">Manage Class Teachers</div>
-                <div class="sidebar-item" onclick="showHodTab('exams')">All Subject Exams</div>
-                <div class="sidebar-item" onclick="showHodTab('settings')">Global Settings</div>
-                <div class="sidebar-item" style="margin-top:20px; color:#fca5a5" onclick="location.reload()">Logout</div>
+                <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; font-weight: 700; margin-bottom: 8px;">Executive Navigation</div>
+                <div class="sidebar-item active-nav" id="hod-nav-overview" onclick="showHodTab('overview')">🏛️ Overview &amp; Campus</div>
+                <div class="sidebar-item" id="hod-nav-teachers" onclick="showHodTab('teachers')">👥 Manage Class Teachers</div>
+                <div class="sidebar-item" id="hod-nav-exams" onclick="showHodTab('exams')">📊 All Subject Exams</div>
+                <div class="sidebar-item" id="hod-nav-settings" onclick="showHodTab('settings')">⚙️ Academic Controls</div>
+                
+                <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #334155; font-size: 12px; color: #94a3b8; line-height: 1.5;">
+                    <div style="color: #cbd5e1; font-weight: 700; margin-bottom: 4px;">Institutional Portal v2.6</div>
+                    <div>SPPU Exam Centre 412207</div>
+                    <div style="color: #64748b; font-size: 11px; margin-top: 4px;">Wagholi, Pune - 412207</div>
+                </div>
+                <div class="sidebar-item" style="margin-top: 16px; color: #fca5a5; background: rgba(239, 68, 68, 0.1);" onclick="location.reload()">🚪 Sign Out</div>
             </div>
+
             <div class="main-content">
-                <div id="hod-teachers" class="tab-content">
+                <!-- TAB 1: OVERVIEW & REAL CAMPUS INFRASTRUCTURE SHOWCASE -->
+                <div id="hod-overview" class="tab-content">
+                    <div class="card" style="border-left: 4px solid #2563eb;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px;">
+                            <div>
+                                <h3 style="margin: 0 0 6px 0; color: #0f2942; font-size: 18px;">
+                                    Executive Department Overview &bull; Academic Session 2025-26
+                                </h3>
+                                <p style="margin: 0; color: #475569; font-size: 13.5px; line-height: 1.5;">
+                                    Welcome to the Head of Department administrative suite. Monitor examination integrity, review faculty allocations, verify syllabus coverage, and examine candidate submissions in real time.
+                                </p>
+                            </div>
+                            <span class="badge badge-green" style="font-size: 12px; padding: 6px 12px;">Autonomous Session Active</span>
+                        </div>
+                    </div>
+
+                    <!-- Campus Infrastructure Gallery -->
                     <div class="card">
-                        <h3>Create Class Teacher</h3>
-                        <input type="text" id="ctId" class="input-field" placeholder="ID (e.g. CT001)">
-                        <input type="text" id="ctPass" class="input-field" placeholder="Password">
-                        <input type="text" id="ctName" class="input-field" placeholder="Full Name">
-                        <input type="text" id="ctClass" class="input-field" placeholder="Assigned Class (e.g. SY-A)">
-                        <button onclick="createStaff('CLASS_TEACHER')" class="btn btn-blue">Create Class Teacher</button>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-wrap: wrap; gap: 8px;">
+                            <h3 style="margin: 0; color: #0f2942; font-size: 17px;">🏛️ Official GH Raisoni Campus &amp; Research Infrastructure</h3>
+                            <span style="font-size: 12.5px; color: #64748b;">GHRCEM Wagholi, Pune Facilities</span>
+                        </div>
+                        <p style="color: #64748b; font-size: 13px; margin: 4px 0 16px 0;">World-class computing laboratories, interactive digital classrooms, and central knowledge centers powering our academic excellence.</p>
+                        
+                        <div class="campus-gallery-grid">
+                            <!-- Card 1: Campus -->
+                            <div class="campus-photo-card">
+                                <img src="https://rgicdn.s3.ap-south-1.amazonaws.com/raisoni/rgi/images/campus-infra/campus.webp" alt="GHRCEM Wagholi Campus" loading="lazy">
+                                <div class="photo-body">
+                                    <h4>Academic &amp; Research Complex</h4>
+                                    <p>State-of-the-art multi-acre campus located on Pune-Nagar Road, Wagholi. Houses department wings, research centers, and central administrative tower.</p>
+                                </div>
+                            </div>
+                            <!-- Card 2: AI Lab -->
+                            <div class="campus-photo-card">
+                                <img src="https://rgicdn.s3.ap-south-1.amazonaws.com/raisoni/rgi/images/campus-infra/lab.webp" alt="High Tech Labs" loading="lazy">
+                                <div class="photo-body">
+                                    <h4>Advanced AI &amp; Computing Labs</h4>
+                                    <p>High-performance computing workstations equipped with GPU acceleration, gigabit fiber network, and specialized AI/ML model deployment clusters.</p>
+                                </div>
+                            </div>
+                            <!-- Card 3: Library -->
+                            <div class="campus-photo-card">
+                                <img src="https://rgicdn.s3.ap-south-1.amazonaws.com/raisoni/rgi/images/campus-infra/library.webp" alt="Central Library" loading="lazy">
+                                <div class="photo-body">
+                                    <h4>Central Digital Library</h4>
+                                    <p>Extensive repository of 50,000+ volumes, IEEE Xplore, ScienceDirect, and ACM Digital Library subscriptions with round-the-clock research carrels.</p>
+                                </div>
+                            </div>
+                            <!-- Card 4: Classroom -->
+                            <div class="campus-photo-card">
+                                <img src="https://rgicdn.s3.ap-south-1.amazonaws.com/raisoni/rgi/images/campus-infra/classroom.webp" alt="Smart Classroom" loading="lazy">
+                                <div class="photo-body">
+                                    <h4>Smart Audio-Visual Classrooms</h4>
+                                    <p>Ergonomically designed tiered amphitheaters featuring interactive digital podiums, synchronized projectors, and automated lecture recording systems.</p>
+                                </div>
+                            </div>
+                            <!-- Card 5: Sports Complex -->
+                            <div class="campus-photo-card">
+                                <img src="https://rgicdn.s3.ap-south-1.amazonaws.com/raisoni/rgi/images/campus-infra/sport.webp" alt="Sports & Turf" loading="lazy">
+                                <div class="photo-body">
+                                    <h4>Sports Arena &amp; Synthetic Turf</h4>
+                                    <p>Multi-sport athletic complex with FIFA-standard synthetic turf, cricket pitch, badminton courts, and state-of-the-art student fitness centre.</p>
+                                </div>
+                            </div>
+                            <!-- Card 6: Raisonian Pride -->
+                            <div class="campus-photo-card" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; background: linear-gradient(135deg, #091a33, #1e3a8a); color: white; padding: 24px;">
+                                <img src="https://rgicdn.s3.ap-south-1.amazonaws.com/raisoni/rgi/images/identity/proudly-raisonian.webp" alt="Proudly Raisonian" style="height: 90px; width: auto; object-fit: contain; border: none; margin-bottom: 12px; background: transparent;">
+                                <h4 style="color: white; margin: 0 0 6px 0;">Proudly Raisonian</h4>
+                                <p style="color: #93c5fd; font-size: 12.5px; margin: 0;">Nurturing over 25+ years of academic innovation, industry partnerships, and engineering leaders.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                <!-- TAB 2: MANAGE CLASS TEACHERS & FACULTY ROSTER -->
+                <div id="hod-teachers" class="tab-content" style="display:none">
+                    <div style="display: grid; grid-template-columns: minmax(320px, 1fr) minmax(320px, 1.35fr); gap: 20px; align-items: start;">
+                        <!-- Left: Create Class Teacher Card -->
+                        <div class="card">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                <span style="font-size: 20px;">✍️</span>
+                                <h3 style="margin: 0; color: #0f2942; font-size: 17px;">Appoint Class Teacher</h3>
+                            </div>
+                            <p style="color: #64748b; font-size: 13px; margin: 0 0 16px 0;">Authorize new class teachers with division administrative control for the academic term.</p>
+                            
+                            <label style="display:block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">TEACHER IDENTIFIER</label>
+                            <input type="text" id="ctId" class="input-field" placeholder="Staff ID (e.g. CT004)">
+                            
+                            <label style="display:block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">INITIAL ACCESS PASSWORD</label>
+                            <input type="text" id="ctPass" class="input-field" placeholder="Temporary Password">
+                            
+                            <label style="display:block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">FACULTY FULL NAME</label>
+                            <input type="text" id="ctName" class="input-field" placeholder="Full Name (e.g. Dr. Rajesh Sharma)">
+                            
+                            <label style="display:block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">ASSIGNED CLASS DIVISION</label>
+                            <input type="text" id="ctClass" class="input-field" placeholder="Division (e.g. SY-AIML D)">
+                            
+                            <button onclick="createStaff('CLASS_TEACHER')" class="btn btn-blue" style="margin-top: 12px;">Appoint Class Teacher</button>
+                        </div>
+
+                        <!-- Right: Active Staff & Teachers Directory -->
+                        <div class="card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                                <div>
+                                    <h3 style="margin: 0; color: #0f2942; font-size: 17px;">👨‍🏫 Department Faculty &amp; Class Teachers</h3>
+                                    <p style="margin: 2px 0 0 0; color: #64748b; font-size: 12.5px;">Active faculty members authorized for this session.</p>
+                                </div>
+                                <button onclick="loadHodStaffList()" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer;">↺ Refresh</button>
+                            </div>
+                            <div id="hod-staff-roster" class="staff-roster-grid">
+                                <div style="color: #94a3b8; font-size: 13.5px; padding: 20px; text-align: center;">Loading department staff directory...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: ALL SUBJECT EXAMS -->
                 <div id="hod-exams" class="tab-content" style="display:none">
                     <div class="card">
-                        <h3>Subject-wise Results (All)</h3>
-                        <input type="text" id="hod-sub-search" class="search-bar" placeholder="Enter Subject (e.g. DSA) to view marks..." oninput="viewSubjectMarks('HOD')">
-                        <div id="hod-results-table"></div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                            <div>
+                                <h3 style="margin: 0; color: #0f2942; font-size: 17px;">📊 Subject-wise Examination Records &amp; Marks</h3>
+                                <p style="margin: 2px 0 0 0; color: #64748b; font-size: 13px;">Review candidate performance across all subjects under Department of Computer Engineering &amp; AI.</p>
+                            </div>
+                            <button onclick="viewSubjectMarks('HOD')" style="background: #2563eb; color: white; border: none; border-radius: 6px; padding: 8px 14px; font-size: 12.5px; font-weight: 600; cursor: pointer;">↺ Refresh Submissions</button>
+                        </div>
+                        <input type="text" id="hod-sub-search" class="search-bar" placeholder="Enter Subject (e.g. DSA, AI, ML) or student roll no to filter records..." oninput="viewSubjectMarks('HOD')">
+                        <div id="hod-results-table">
+                            <div style="text-align: center; color: #94a3b8; padding: 30px; font-size: 13.5px;">Type a subject code above or click Refresh to view submissions.</div>
+                        </div>
                     </div>
                 </div>
+
+                <!-- TAB 4: GLOBAL SETTINGS & ACADEMIC POLICIES -->
                 <div id="hod-settings" class="tab-content" style="display:none">
                     <div class="card">
-                        <h3>Global Student Access</h3>
-                        <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
-                            <input type="checkbox" id="global-marks-toggle" onchange="updateGlobalMarks()">
-                            <span>Allow Students to see marks immediately across all subjects</span>
-                        </label>
+                        <h3 style="margin: 0 0 8px 0; color: #0f2942; font-size: 17px;">⚙️ Global Institutional Exam Access &amp; Compliance</h3>
+                        <p style="color: #64748b; font-size: 13.5px; margin: 0 0 20px 0;">Configure university exam publishing guidelines, student result disclosure, and anti-cheat policies.</p>
+                        
+                        <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 18px; margin-bottom: 20px;">
+                            <label style="display:flex; align-items:center; gap:12px; cursor:pointer;">
+                                <input type="checkbox" id="global-marks-toggle" onchange="updateGlobalMarks()" style="width: 18px; height: 18px; cursor: pointer;">
+                                <div>
+                                    <div style="font-weight: 700; color: #0f172a; font-size: 14px;">Instant Score Disclosure for Candidates</div>
+                                    <div style="color: #64748b; font-size: 12.5px; margin-top: 2px;">When enabled, students immediately view their calculated score upon exam submission.</div>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div style="background: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: 10px; padding: 18px;">
+                            <h4 style="margin: 0 0 6px 0; color: #166534; font-size: 14.5px;">🛡️ University AI Proctoring Guidelines (Active)</h4>
+                            <ul style="margin: 8px 0 0 0; padding-left: 20px; font-size: 13px; color: #15803d; line-height: 1.7;">
+                                <li><strong>Facial Tracking:</strong> Continuous MediaPipe Face Landmark proctoring active on candidate devices.</li>
+                                <li><strong>Anti-OCR Canvas:</strong> Questions are rendered with algorithmic canvas watermarking to prevent OCR scanning.</li>
+                                <li><strong>Tab &amp; Fullscreen Lock:</strong> Candidate violations trigger real-time strike logging and automatic submission at 3 strikes.</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -565,6 +1006,7 @@
                     
                     if (currentRole === 'HOD') {
                         document.getElementById('hod-dash').classList.add('active');
+                        initHodDashboard();
                     } else if (currentRole === 'CLASS_TEACHER') {
                         document.getElementById('ct-dash').classList.add('active');
                     } else if (currentRole === 'FACULTY') {
@@ -580,10 +1022,87 @@
             }
         };
 
+        // --- HOD DASHBOARD INITIALIZATION & MANAGEMENT ---
+        window.initHodDashboard = async () => {
+            if (currentUser) {
+                const nameEl = document.getElementById('hod-profile-name');
+                const idEl = document.getElementById('hod-profile-id');
+                if (nameEl) nameEl.innerText = currentUser.name || "Super Admin HOD";
+                if (idEl) idEl.innerText = currentUser.id || "HOD001";
+            }
+            loadHodStaffList();
+            loadHodSubmissionsCount();
+            showHodTab('overview');
+        };
+
+        window.loadHodStaffList = async () => {
+            const container = document.getElementById('hod-staff-roster');
+            try {
+                const res = await fetch('/api/get-staff');
+                const staffList = await res.json();
+                
+                const staffCountEl = document.getElementById('hod-stat-faculty');
+                if (staffCountEl) staffCountEl.innerText = staffList.length;
+
+                if (!container) return;
+                if (!staffList || staffList.length === 0) {
+                    container.innerHTML = `<div style="color:#94a3b8; font-size:13px; padding:15px;">No staff records found.</div>`;
+                    return;
+                }
+
+                let html = '';
+                staffList.forEach(s => {
+                    const isCT = s.role === 'CLASS_TEACHER';
+                    const isHOD = s.role === 'HOD';
+                    const roleBadgeClass = isHOD ? 'badge-amber' : (isCT ? 'badge-blue' : 'badge-purple');
+                    const roleTitle = isHOD ? 'Head of Dept' : (isCT ? 'Class Teacher' : 'Faculty Member');
+                    const detail = isCT ? `Division: <strong>${s.className || 'General'}</strong>` : (s.subject ? `Subject: <strong>${s.subject}</strong>` : 'Administration');
+                    
+                    html += `
+                        <div class="staff-card">
+                            <div>
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+                                    <span class="badge ${roleBadgeClass}">${roleTitle}</span>
+                                    <span style="font-size:11px; font-weight:700; color:#16a34a; display:flex; align-items:center; gap:4px;">
+                                        <span style="width:6px; height:6px; background:#16a34a; border-radius:50%; display:inline-block;"></span> Active
+                                    </span>
+                                </div>
+                                <h4 style="margin:4px 0 2px 0; font-size:14.5px; color:#0f172a; font-weight:700;">${s.name || s.id}</h4>
+                                <div style="font-size:12px; color:#64748b;">Staff ID: <code>${s.id}</code></div>
+                            </div>
+                            <div style="margin-top:10px; padding-top:8px; border-top:1px dashed #e2e8f0; font-size:12px; color:#334155;">
+                                ${detail}
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } catch(e) {
+                if (container) container.innerHTML = `<div style="color:#dc2626; font-size:13px;">Failed to load staff list.</div>`;
+            }
+        };
+
+        window.loadHodSubmissionsCount = async () => {
+            try {
+                const res = await fetch('/api/get-submissions');
+                const subs = await res.json();
+                const subCountEl = document.getElementById('hod-stat-submissions');
+                if (subCountEl) subCountEl.innerText = subs ? subs.length : 0;
+            } catch(e) {}
+        };
+
         // --- DASHBOARD NAVIGATION ---
         window.showHodTab = (tab) => {
             document.querySelectorAll('#hod-dash .tab-content').forEach(t => t.style.display = 'none');
-            document.getElementById(`hod-${tab}`).style.display = 'block';
+            document.querySelectorAll('#hod-dash .sidebar .sidebar-item').forEach(b => b.classList.remove('active-nav'));
+            
+            const targetContent = document.getElementById(`hod-${tab}`);
+            const targetNav = document.getElementById(`hod-nav-${tab}`);
+            if (targetContent) targetContent.style.display = 'block';
+            if (targetNav) targetNav.classList.add('active-nav');
+
+            if (tab === 'teachers') loadHodStaffList();
+            if (tab === 'exams') viewSubjectMarks('HOD');
         };
 
         window.showCtTab = (tab) => {
@@ -823,6 +1342,7 @@
                         document.getElementById('ctPass').value = '';
                         document.getElementById('ctName').value = '';
                         document.getElementById('ctClass').value = '';
+                        if (typeof loadHodStaffList === 'function') loadHodStaffList();
                     } else {
                         document.getElementById('facId').value = '';
                         document.getElementById('facPass').value = '';
