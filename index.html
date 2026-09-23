@@ -1515,13 +1515,6 @@
         const btn3D = document.getElementById('btn3DView');
         const btn2D = document.getElementById('btn2DView');
 
-        try {
-            campus3DInstance = createCampus3D(canvas);
-        } catch (e) {
-            console.warn("WebGL 3D Campus not supported, falling back to 2D:", e);
-            window.switchCampusMode('2d');
-        }
-
         window.switchCampusMode = function(mode) {
             if (mode === '3d') {
                 if (container3D) container3D.style.display = 'block';
@@ -1542,6 +1535,13 @@
                 localStorage.setItem('ghrcem_campus_mode', '2d');
             }
         };
+
+        try {
+            campus3DInstance = createCampus3D(canvas);
+        } catch (e) {
+            console.warn("WebGL 3D Campus not supported, falling back to 2D:", e);
+            window.switchCampusMode('2d');
+        }
 
         window.replayCampus3D = function() {
             if (campus3DInstance) {
