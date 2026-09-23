@@ -836,7 +836,7 @@
                             <input type="text" id="newHodId" class="input-field" placeholder="e.g. HOD_IT, HOD_MECH, HOD002">
 
                             <label style="display:block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">SECURITY ACCESS PASSWORD</label>
-                            <input type="text" id="newHodPass" class="input-field" placeholder="Temporary administrative password">
+                            <input type="password" id="newHodPass" class="input-field" placeholder="At least 12 characters">
 
                             <label style="display:block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">FULL NAME &amp; DESIGNATION</label>
                             <input type="text" id="newHodName" class="input-field" placeholder="e.g. Dr. Anand B. Kulkarni">
@@ -871,6 +871,12 @@
                             </div>
                             <div id="hod-directors-roster" class="staff-roster-grid">
                                 <div style="color: #94a3b8; font-size: 13.5px; padding: 20px; text-align: center;">Loading HOD administrative roster...</div>
+                            </div>
+                            <div style="margin-top:20px; border-top:1px solid #e2e8f0; padding-top:18px;">
+                                <h4>Reset a staff password</h4>
+                                <input type="text" id="resetStaffId" class="input-field" placeholder="Existing staff ID">
+                                <input type="password" id="resetStaffPass" class="input-field" placeholder="New unique password (12+ characters)">
+                                <button type="button" onclick="resetStaffPassword()" class="btn btn-blue">Set new password</button>
                             </div>
                         </div>
                     </div>
@@ -1195,6 +1201,25 @@
             } catch (e) {
                 alert("Error connecting to server.");
             }
+        };
+
+        window.resetStaffPassword = async () => {
+            const id = document.getElementById('resetStaffId').value.trim();
+            const password = document.getElementById('resetStaffPass').value;
+            if (!id || password.length < 12) {
+                alert('Enter an existing staff ID and a unique password of at least 12 characters.');
+                return;
+            }
+            try {
+                const res = await fetch('/api/reset-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, password })
+                });
+                if (!res.ok) throw new Error('Could not reset this account.');
+                document.getElementById('resetStaffPass').value = '';
+                alert('Password reset. The staff member can now sign in.');
+            } catch (err) { alert(err.message); }
         };
 
         window.loadHodDirectoryList = async () => {
