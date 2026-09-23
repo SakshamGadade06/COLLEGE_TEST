@@ -2,6 +2,7 @@
 // G H RAISONI COLLEGE OF ENGINEERING AND MANAGEMENT, WAGHOLI, PUNE
 // Interactive Procedural 3D WebGL Campus Module (Three.js)
 // Real-world OpenStreetMap GIS footprints & Architectural Simulation
+// Features: Dynamic Blueprint Construction Rise -> Cinematic Main Gate Swoop
 // =========================================================================
 
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js';
@@ -12,7 +13,11 @@ export function createCampus3D(canvas, options = {}) {
     let animId = null;
     let isRunning = true;
     let userInteracting = false;
-    let pointerX = 0, pointerY = 0;
+    let isIntroMode = true;
+    let introTime = 0.0;
+    const INTRO_DURATION = 7.5; // Seconds: 0-3.8s Build up -> 3.8-7.2s Swoop to Gate
+
+    // Orbit coordinates when user takes manual control
     let targetAzimuth = -0.9;
     let currentAzimuth = -0.9;
     let targetPolar = 0.82;
@@ -30,34 +35,34 @@ export function createCampus3D(canvas, options = {}) {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
+    renderer.toneMappingExposure = 1.1;
 
-    // --- Scene & Fog (Professional Bright Daylight) ---
+    // --- Scene & Fog ---
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0e1c36); // Deep rich royal navy/academic sky
-    scene.fog = new THREE.FogExp2(0x0e1c36, 0.0018);
+    scene.background = new THREE.Color(0x0a192f); // Prestigious Navy Sky
+    scene.fog = new THREE.FogExp2(0x0a192f, 0.0016);
 
     // --- Camera ---
-    const camera = new THREE.PerspectiveCamera(42, 1, 1, 2800);
+    const camera = new THREE.PerspectiveCamera(40, 1, 1, 3000);
 
-    // --- Professional Lighting ---
-    const hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x1e293b, 1.9);
+    // --- Lighting ---
+    const hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x1e293b, 2.0);
     scene.add(hemiLight);
 
-    const sunLight = new THREE.DirectionalLight(0xfffbeb, 2.2);
-    sunLight.position.set(-180, 280, 140);
+    const sunLight = new THREE.DirectionalLight(0xfffbeb, 2.5);
+    sunLight.position.set(-180, 300, 140);
     scene.add(sunLight);
 
-    const fillLight = new THREE.DirectionalLight(0x60a5fa, 0.85);
-    fillLight.position.set(160, 120, -140);
+    const fillLight = new THREE.DirectionalLight(0x60a5fa, 0.9);
+    fillLight.position.set(160, 140, -140);
     scene.add(fillLight);
 
-    // Grid System: 10m minor, 50m major academic blueprint grid
-    const minorGrid = new THREE.GridHelper(1200, 120, 0x1e3a5f, 0x152844);
+    // Academic Blueprint Grid
+    const minorGrid = new THREE.GridHelper(1400, 140, 0x1e3a5f, 0x112338);
     minorGrid.position.y = 0.02;
     scene.add(minorGrid);
 
-    const majorGrid = new THREE.GridHelper(1200, 24, 0x3b82f6, 0x1d4ed8);
+    const majorGrid = new THREE.GridHelper(1400, 28, 0x2563eb, 0x1d4ed8);
     majorGrid.position.y = 0.05;
     scene.add(majorGrid);
 
@@ -174,7 +179,23 @@ export function createCampus3D(canvas, options = {}) {
     const toV2 = ([x, y]) => new THREE.Vector2(x, -y);
     const centroid = r => r.reduce((a, [x, y]) => [a[0] + x / r.length, a[1] + y / r.length], [0, 0]);
 
-    // --- Texture Generator ---
+    // Main Academic Building Math & Gate Orientation
+    const main = DATA.buildings[0];
+    const [mx, my] = centroid(main.outer);
+    const [ax1, ay1] = main.outer[1], [ax2, ay2] = main.outer[2];
+    const faceLen = Math.hypot(ax2 - ax1, ay2 - ay1);
+    const faceDir = [(ax2 - ax1) / faceLen, (ay2 - ay1) / faceLen];
+    const faceMid = [(ax1 + ax2) / 2, (ay1 + ay2) / 2];
+    let faceOut = [faceDir[1], -faceDir[0]];
+    if ((faceMid[0] - mx) * faceOut[0] + (faceMid[1] - my) * faceOut[1] < 0) faceOut = faceOut.map(v => -v);
+
+    const ENTRY = [ax2 + (ax1 - ax2) * 16 / faceLen, ay2 + (ay1 - ay2) * 16 / faceLen];
+    const alongFace = d => [ENTRY[0] + faceOut[0] * d, ENTRY[1] + faceOut[1] * d];
+    const GATE_POS = alongFace(40); // Location of Grand Entrance Arch Gate on Wagholi road
+    const GATE_CAM_POS = alongFace(56); // Camera spot right outside the gate looking in
+    const GATE_TARGET_POS = alongFace(20); // Focus point through the arch towards main building
+
+    // Texture Generator
     function makeFacadeTexture(tileW, draw, floors = 1) {
         const PX = 32, tileH = FLOOR_H * floors;
         const c = document.createElement('canvas');
@@ -195,16 +216,15 @@ export function createCampus3D(canvas, options = {}) {
         return tex;
     }
 
-    // High quality academic building materials
     const mainWallTex = makeFacadeTexture(2.0, rect => {
-        rect(0.2, 0.9, 1.6, 1.9, '#1e293b'); // Dark reflective windows
-        rect(0, 0, 2.0, 0.15, '#cbd5e1'); // Floor dividing concrete sill
+        rect(0.2, 0.9, 1.6, 1.9, '#1e293b');
+        rect(0, 0, 2.0, 0.15, '#cbd5e1');
     });
 
     const hostelWallTex = makeFacadeTexture(1.5, rect => {
-        rect(0, 0.1, 1.5, 0.9, '#0284c7'); // Teal accent spandrel
-        rect(0.1, 1.1, 1.3, 1.5, '#0f172a'); // Glass
-        rect(0, 2.7, 1.5, 0.9, '#94a3b8'); // Upper trim
+        rect(0, 0.1, 1.5, 0.9, '#0284c7');
+        rect(0.1, 1.1, 1.3, 1.5, '#0f172a');
+        rect(0, 2.7, 1.5, 0.9, '#94a3b8');
     });
 
     const wallMatMain = new THREE.MeshStandardMaterial({
@@ -227,9 +247,8 @@ export function createCampus3D(canvas, options = {}) {
     const concreteMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.85 });
     const lawnMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.95 });
     const roadMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.9 });
-    const goldMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.3, metalness: 0.6, emissive: 0x78350f });
 
-    // --- Campus Boundary Line ---
+    // Boundary Line
     const boundaryPoints = DATA.campus.map(([x, y]) => P(x, y, 0.2));
     boundaryPoints.push(boundaryPoints[0]);
     const boundaryGeo = new THREE.BufferGeometry().setFromPoints(boundaryPoints);
@@ -240,8 +259,8 @@ export function createCampus3D(canvas, options = {}) {
     boundaryLine.computeLineDistances();
     scene.add(boundaryLine);
 
-    // --- Build Buildings ---
-    const buildingMeshGroup = new THREE.Group();
+    // --- Build Buildings with Upward Stagger Animation Support ---
+    const buildingList = [];
     DATA.buildings.forEach((b) => {
         const h = b.levels * FLOOR_H;
         const shape = new THREE.Shape(b.outer.map(toV2));
@@ -261,7 +280,6 @@ export function createCampus3D(canvas, options = {}) {
         if (b.style === 'main_academic') {
             const finGeo = new THREE.BoxGeometry(0.8, h, 0.6);
             const finMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.6 });
-            const [cx, cy] = centroid(b.outer);
 
             for (let i = 0; i < b.outer.length; i++) {
                 const [x1, y1] = b.outer[i];
@@ -289,13 +307,19 @@ export function createCampus3D(canvas, options = {}) {
             }
         }
 
-        buildingMeshGroup.add(bGroup);
+        const [cx, cy] = centroid(b.outer);
+        const dist = Math.hypot(cx - mx, cy - my);
+        const delay = Math.min(1.2, dist / 220); // Distance-based stagger delay
+
+        bGroup.scale.y = 0.001; // Starts flat on ground
+        scene.add(bGroup);
+        buildingList.push({ group: bGroup, delay });
     });
-    scene.add(buildingMeshGroup);
 
     // --- Grand Parabolic Entrance Arch Gate on Wagholi Road ---
+    let archGroup = null;
     function makeArch() {
-        const archGroup = new THREE.Group();
+        const arch = new THREE.Group();
         const shape = new THREE.Shape();
         shape.moveTo(-11, 0);
         shape.quadraticCurveTo(0, 22, 11, 0);
@@ -308,9 +332,9 @@ export function createCampus3D(canvas, options = {}) {
         const archMesh = new THREE.Mesh(archGeo, concreteMat);
         const archEdges = new THREE.LineSegments(new THREE.EdgesGeometry(archGeo, 24), edgeMat);
 
-        archGroup.add(archMesh, archEdges);
-        archGroup.position.set(73, 0, -38); // Location on the Wagholi entrance road
-        archGroup.rotation.y = 0.42;
+        arch.add(archMesh, archEdges);
+        arch.position.set(GATE_POS[0], 0, GATE_POS[1]);
+        arch.rotation.y = Math.atan2(-faceDir[1], faceDir[0]);
 
         // Golden Marquee Banner on Arch
         const signC = document.createElement('canvas');
@@ -337,11 +361,13 @@ export function createCampus3D(canvas, options = {}) {
             new THREE.MeshBasicMaterial({ map: signTex, side: THREE.DoubleSide })
         );
         signPlane.position.set(0, 8.8, 1.5);
-        archGroup.add(signPlane);
+        arch.add(signPlane);
 
-        return archGroup;
+        arch.scale.y = 0.001;
+        return arch;
     }
-    scene.add(makeArch());
+    archGroup = makeArch();
+    scene.add(archGroup);
 
     // --- Football Turf & Sports Grounds ---
     const turfCoords = [[-29.9, -22.5], [-8.8, -16.1], [-19.8, 19.5], [-40.8, 13.1]];
@@ -362,7 +388,9 @@ export function createCampus3D(canvas, options = {}) {
         new THREE.BufferGeometry().setFromPoints(turfFenceLines),
         new THREE.LineBasicMaterial({ color: 0x4ade80, transparent: true, opacity: 0.75 })
     );
-    scene.add(turfMesh, fenceSegments);
+    const turfGroup = new THREE.Group();
+    turfGroup.add(turfMesh, fenceSegments);
+    scene.add(turfGroup);
 
     // --- Campus Roads ---
     function makeRoadRibbon(points, width) {
@@ -382,7 +410,9 @@ export function createCampus3D(canvas, options = {}) {
         geo.computeVertexNormals();
         return new THREE.Mesh(geo, roadMat);
     }
-    ROADS.forEach(r => scene.add(makeRoadRibbon(r.pts, r.w)));
+    const roadsGroup = new THREE.Group();
+    ROADS.forEach(r => roadsGroup.add(makeRoadRibbon(r.pts, r.w)));
+    scene.add(roadsGroup);
 
     // --- Royal Palm Tree Avenues ---
     const palmPositions = [];
@@ -391,7 +421,7 @@ export function createCampus3D(canvas, options = {}) {
         palmPositions.push([22 - t * 0.7, -12 - t * 0.6]);
     }
     for (let d = 10; d <= 42; d += 8) {
-        palmPositions.push([58 - d * 0.6, -18 - d * 0.8]);
+        palmPositions.push([GATE_POS[0] - d * 0.6, GATE_POS[1] - d * 0.8]);
     }
 
     const trunkGeo = new THREE.CylinderGeometry(0.2, 0.35, 9, 6);
@@ -407,10 +437,21 @@ export function createCampus3D(canvas, options = {}) {
         crown.position.set(px, 9.2, py);
         palmGroup.add(trunk, crown);
     });
+    palmGroup.scale.y = 0.001;
     scene.add(palmGroup);
 
-    // --- Center Reference Coordinates ---
+    // --- Cinematic Camera Keyframes ---
     const campusCenter = new THREE.Vector3(0, 10, -20);
+    const aerialStartPos = new THREE.Vector3(-90, 180, 240);
+    const aerialStartLook = new THREE.Vector3(0, 15, -20);
+
+    const gateCameraPos = new THREE.Vector3(GATE_CAM_POS[0], 4.2, GATE_CAM_POS[1]);
+    const gateTargetPos = new THREE.Vector3(GATE_TARGET_POS[0], 7.5, GATE_TARGET_POS[1]);
+
+    const currentLookTarget = new THREE.Vector3().copy(aerialStartLook);
+
+    // Status hint element on UI
+    const hintEl = document.querySelector('.campus-3d-hint');
 
     // --- Resize Handler ---
     function resize() {
@@ -424,13 +465,14 @@ export function createCampus3D(canvas, options = {}) {
     window.addEventListener('resize', resize);
     resize();
 
-    // --- Interactive Orbit Controls (Pointer Drag) ---
+    // --- User Interactive Controls ---
     let isDragging = false;
     let prevMouseX = 0, prevMouseY = 0;
 
     function onPointerDown(e) {
         isDragging = true;
         userInteracting = true;
+        isIntroMode = false; // User took over camera control
         prevMouseX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
         prevMouseY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
     }
@@ -445,12 +487,12 @@ export function createCampus3D(canvas, options = {}) {
         prevMouseY = clientY;
 
         targetAzimuth += dx * 0.005;
-        targetPolar = Math.max(0.2, Math.min(1.4, targetPolar - dy * 0.005));
+        targetPolar = Math.max(0.15, Math.min(1.4, targetPolar - dy * 0.005));
     }
 
     function onPointerUp() {
         isDragging = false;
-        setTimeout(() => { userInteracting = false; }, 3000);
+        setTimeout(() => { userInteracting = false; }, 4000);
     }
 
     canvas.addEventListener('mousedown', onPointerDown);
@@ -461,7 +503,11 @@ export function createCampus3D(canvas, options = {}) {
     canvas.addEventListener('touchmove', onPointerMove, { passive: true });
     window.addEventListener('touchend', onPointerUp);
 
-    // --- Render Loop (Continuous Majestic Drone Orbit) ---
+    // Ease in-out helper
+    const easeCubic = p => p < 0.5 ? 4 * Math.pow(p, 3) : 1 - Math.pow(-2 * p + 2, 3) / 2;
+    const easeOutCubic = p => 1 - Math.pow(1 - p, 3);
+
+    // --- Animation Loop ---
     let clock = new THREE.Clock();
 
     function animate() {
@@ -469,25 +515,92 @@ export function createCampus3D(canvas, options = {}) {
         animId = requestAnimationFrame(animate);
 
         const delta = clock.getDelta();
-        const total = clock.getElapsedTime();
+        introTime += delta;
 
-        // Slow, majestic continuous drone camera pan
-        if (!userInteracting) {
-            targetAzimuth += 0.045 * delta;
+        // -------------------------------------------------------------
+        // PHASE 1: BUILD UP STRUCTURES IN FRONT OF VIEWER (0.0s - 3.8s)
+        // -------------------------------------------------------------
+        const buildProgress = Math.min(1.0, introTime / 3.4);
+        buildingList.forEach((b) => {
+            const bp = Math.min(1.0, Math.max(0, (introTime - 0.2 - b.delay) / 2.0));
+            b.group.scale.y = Math.max(0.001, easeOutCubic(bp));
+        });
+
+        if (archGroup) {
+            const archP = Math.min(1.0, Math.max(0, (introTime - 1.2) / 2.0));
+            archGroup.scale.y = Math.max(0.001, easeOutCubic(archP));
         }
 
-        // Smooth Lerp damping
-        currentAzimuth += (targetAzimuth - currentAzimuth) * 0.08;
-        currentPolar += (targetPolar - currentPolar) * 0.08;
-        zoomRadius += (targetRadius - zoomRadius) * 0.08;
+        const palmsP = Math.min(1.0, Math.max(0, (introTime - 1.5) / 2.0));
+        palmGroup.scale.y = Math.max(0.001, easeOutCubic(palmsP));
 
-        const effectiveRadius = camera.aspect < 1 ? zoomRadius * 1.35 : zoomRadius;
-        const cx = campusCenter.x + effectiveRadius * Math.sin(currentPolar) * Math.cos(currentAzimuth);
-        const cy = campusCenter.y + effectiveRadius * Math.cos(currentPolar) + 30;
-        const cz = campusCenter.z + effectiveRadius * Math.sin(currentPolar) * Math.sin(currentAzimuth);
+        // -------------------------------------------------------------
+        // CAMERA CHOREOGRAPHY
+        // -------------------------------------------------------------
+        if (isIntroMode) {
+            if (introTime < 3.8) {
+                // High Overview as structures rise up
+                if (hintEl) hintEl.innerHTML = '<span>🏗️</span> Constructing GHRCEM 3D Campus Model...';
+                const p = easeOutCubic(Math.min(1.0, introTime / 3.8));
+                camera.position.set(
+                    aerialStartPos.x + Math.sin(introTime * 0.1) * 20,
+                    aerialStartPos.y - p * 30,
+                    aerialStartPos.z - p * 40
+                );
+                currentLookTarget.copy(aerialStartLook);
+                camera.lookAt(currentLookTarget);
 
-        camera.position.set(cx, cy, cz);
-        camera.lookAt(campusCenter.x, 15, campusCenter.z);
+            } else if (introTime < 7.2) {
+                // Swoop down to Main Entrance Gate
+                if (hintEl) hintEl.innerHTML = '<span>🏛️</span> Gliding to GHRCEM Main Entrance Arch...';
+                const flightT = (introTime - 3.8) / 3.4;
+                const e = easeCubic(Math.min(1.0, flightT));
+
+                // Position swoops down along entrance road
+                camera.position.lerpVectors(
+                    new THREE.Vector3(aerialStartPos.x, aerialStartPos.y - 30, aerialStartPos.z - 40),
+                    gateCameraPos,
+                    e
+                );
+                // Additional parabolic dive altitude
+                camera.position.y += Math.sin(Math.PI * e) * 25;
+
+                // Look target focuses smoothly on the entrance arch & marquee
+                currentLookTarget.lerpVectors(aerialStartLook, gateTargetPos, e);
+                camera.lookAt(currentLookTarget);
+
+            } else {
+                // Settled at Main Gate: gentle cinematic ambient drift framing the college name
+                if (hintEl) hintEl.innerHTML = '<span>🏛️</span> Welcome to GHRCEM Wagholi &middot; Drag to explore';
+                const lingerTime = introTime - 7.2;
+                const swayX = Math.sin(lingerTime * 0.25) * 3.5;
+                const swayY = Math.cos(lingerTime * 0.2) * 0.6;
+                const swayZ = Math.cos(lingerTime * 0.25) * 3.5;
+
+                camera.position.set(
+                    gateCameraPos.x + swayX,
+                    gateCameraPos.y + swayY,
+                    gateCameraPos.z + swayZ
+                );
+                camera.lookAt(gateTargetPos);
+            }
+        } else {
+            // Interactive 360 Degree Orbit
+            if (!userInteracting) {
+                targetAzimuth += 0.04 * delta;
+            }
+            currentAzimuth += (targetAzimuth - currentAzimuth) * 0.08;
+            currentPolar += (targetPolar - currentPolar) * 0.08;
+            zoomRadius += (targetRadius - zoomRadius) * 0.08;
+
+            const effectiveRadius = camera.aspect < 1 ? zoomRadius * 1.35 : zoomRadius;
+            const cx = campusCenter.x + effectiveRadius * Math.sin(currentPolar) * Math.cos(currentAzimuth);
+            const cy = campusCenter.y + effectiveRadius * Math.cos(currentPolar) + 25;
+            const cz = campusCenter.z + effectiveRadius * Math.sin(currentPolar) * Math.sin(currentAzimuth);
+
+            camera.position.set(cx, cy, cz);
+            camera.lookAt(campusCenter.x, 12, campusCenter.z);
+        }
 
         renderer.render(scene, camera);
     }
@@ -495,6 +608,11 @@ export function createCampus3D(canvas, options = {}) {
     animate();
 
     return {
+        replayIntro() {
+            introTime = 0.0;
+            isIntroMode = true;
+            userInteracting = false;
+        },
         pause() { isRunning = false; if (animId) cancelAnimationFrame(animId); },
         resume() { if (!isRunning) { isRunning = true; clock.start(); animate(); } },
         resize,

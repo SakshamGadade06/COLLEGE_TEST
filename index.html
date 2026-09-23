@@ -71,6 +71,9 @@
                     <button type="button" class="campus-view-btn active" id="btn3DView" onclick="window.switchCampusMode('3d')">
                         <span>🌐</span> 3D Tour
                     </button>
+                    <button type="button" class="campus-view-btn" id="btnReplay3D" onclick="window.replayCampus3D()" title="Replay Campus Construction &amp; Gate Swoop" style="padding: 7px 11px;">
+                        <span>↺</span> Replay
+                    </button>
                     <button type="button" class="campus-view-btn" id="btn2DView" onclick="window.switchCampusMode('2d')">
                         <span>🎨</span> 2D Art
                     </button>
@@ -871,6 +874,13 @@
                 if (btn2D) btn2D.classList.add('active');
                 if (campus3DInstance) campus3DInstance.pause();
                 localStorage.setItem('ghrcem_campus_mode', '2d');
+            }
+        };
+
+        window.replayCampus3D = function() {
+            if (campus3DInstance) {
+                window.switchCampusMode('3d');
+                campus3DInstance.replayIntro();
             }
         };
 
