@@ -54,16 +54,39 @@
     <!-- 1. STAFF LOGIN SCREEN -->
     <div id="login-screen" class="screen active campus-login">
         <section class="campus-visual" aria-label="Illustration of GH Raisoni College of Engineering and Management Wagholi Pune">
-            <div class="campus-brand">
-                <span class="campus-mark">GH</span>
-                <div>
-                    <div>GHRCEM &middot; PUNE</div>
-                    <span class="campus-brand-sub">G H Raisoni College of Engineering &amp; Management</span>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; z-index: 15; flex-wrap: wrap; gap: 12px;">
+                <div class="campus-brand">
+                    <span class="campus-mark">GH</span>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <span style="font-size: 14px; font-weight: 900; letter-spacing: 0.1em;">GHRCEM &middot; PUNE</span>
+                            <span style="background: rgba(37, 99, 235, 0.25); border: 1px solid rgba(147, 197, 253, 0.4); color: #93c5fd; font-size: 9px; padding: 2px 7px; border-radius: 4px; font-weight: 700; letter-spacing: 0.05em;">NAAC A+ &middot; AUTONOMOUS</span>
+                        </div>
+                        <span class="campus-brand-sub">G H Raisoni College of Engineering &amp; Management, Wagholi</span>
+                    </div>
+                </div>
+
+                <!-- VIEW TOGGLE BUTTON: 3D Campus Tour vs 2D Campus Artwork -->
+                <div class="campus-view-toggle">
+                    <button type="button" class="campus-view-btn active" id="btn3DView" onclick="window.switchCampusMode('3d')">
+                        <span>🌐</span> 3D Tour
+                    </button>
+                    <button type="button" class="campus-view-btn" id="btn2DView" onclick="window.switchCampusMode('2d')">
+                        <span>🎨</span> 2D Art
+                    </button>
                 </div>
             </div>
 
-            <!-- ANIMATED CAMPUS ART CANVAS -->
-            <div class="campus-art-wrapper" aria-hidden="true">
+            <!-- 1. PROCEDURAL 3D THREE.JS CAMPUS CANVAS -->
+            <div id="campus3dContainer" class="campus-3d-wrapper">
+                <canvas id="scene3d"></canvas>
+                <div class="campus-3d-hint">
+                    <span>🖱️</span> Drag to rotate &amp; explore GHRCEM Wagholi in 3D
+                </div>
+            </div>
+
+            <!-- 2. ANIMATED 2D CAMPUS ART CANVAS -->
+            <div id="campus2dContainer" class="campus-art-wrapper" style="display: none;" aria-hidden="true">
                 <svg class="campus-svg-canvas" viewBox="0 0 1000 650" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <!-- Sky Gradient -->
@@ -318,9 +341,13 @@
 
             <!-- Bottom Narrative Copy -->
             <div class="campus-copy">
-                <span class="eyebrow">Wagholi, Pune</span>
-                <h1>Excellence in Engineering &amp; Innovation</h1>
-                <p>Welcome to the official online examination and academic administration system of G H Raisoni College of Engineering and Management, Wagholi, Pune.</p>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                    <span class="eyebrow" style="margin: 0;">Wagholi, Pune</span>
+                    <span style="color: #64748b;">&bull;</span>
+                    <span style="font-size: 11px; font-weight: 700; color: #fbbf24; text-transform: uppercase; letter-spacing: 0.08em;">Autonomous Institute</span>
+                </div>
+                <h1 style="font-size: 24px; line-height: 1.25; margin: 0 0 8px 0;">Excellence in Engineering &amp; Innovation</h1>
+                <p style="font-size: 13px; line-height: 1.5; color: #cbd5e1; margin: 0;">Official Examination &amp; Faculty Administration Portal &bull; Approved by AICTE, New Delhi &amp; Affiliated to Savitribai Phule Pune University (SPPU).</p>
             </div>
         </section>
         <section class="campus-login-panel" aria-label="Staff portal sign in">
@@ -806,6 +833,51 @@
                 alert("Error connecting to server.");
             }
         };
+    </script>
+
+    <!-- 3D Campus Simulation Controller -->
+    <script type="module">
+        import { createCampus3D } from './campus_3d.js';
+
+        let campus3DInstance = null;
+        const canvas = document.getElementById('scene3d');
+        const container3D = document.getElementById('campus3dContainer');
+        const container2D = document.getElementById('campus2dContainer');
+        const btn3D = document.getElementById('btn3DView');
+        const btn2D = document.getElementById('btn2DView');
+
+        try {
+            campus3DInstance = createCampus3D(canvas);
+        } catch (e) {
+            console.warn("WebGL 3D Campus not supported, falling back to 2D:", e);
+            window.switchCampusMode('2d');
+        }
+
+        window.switchCampusMode = function(mode) {
+            if (mode === '3d') {
+                if (container3D) container3D.style.display = 'block';
+                if (container2D) container2D.style.display = 'none';
+                if (btn3D) btn3D.classList.add('active');
+                if (btn2D) btn2D.classList.remove('active');
+                if (campus3DInstance) {
+                    campus3DInstance.resume();
+                    campus3DInstance.resize();
+                }
+                localStorage.setItem('ghrcem_campus_mode', '3d');
+            } else {
+                if (container3D) container3D.style.display = 'none';
+                if (container2D) container2D.style.display = 'block';
+                if (btn3D) btn3D.classList.remove('active');
+                if (btn2D) btn2D.classList.add('active');
+                if (campus3DInstance) campus3DInstance.pause();
+                localStorage.setItem('ghrcem_campus_mode', '2d');
+            }
+        };
+
+        const savedMode = localStorage.getItem('ghrcem_campus_mode');
+        if (savedMode === '2d') {
+            window.switchCampusMode('2d');
+        }
     </script>
 </body>
 </html>
