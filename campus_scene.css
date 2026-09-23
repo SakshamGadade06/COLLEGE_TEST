@@ -1,35 +1,374 @@
-/* GHRCEM Pune inspired campus scene. Pure CSS: no photo or WebGL download. */
+/* ============================================================
+   G H RAISONI COLLEGE OF ENGINEERING AND MANAGEMENT, WAGHOLI, PUNE
+   Animated Campus Illustration & Portal Styling
+   ============================================================ */
+
 #login-screen.campus-login {
-  max-width: none; min-height: 100vh; padding: 0; display: none;
-  background: linear-gradient(125deg,#e9f2fa 0%,#f8fbff 54%,#e6eef8 100%);
+  max-width: none;
+  min-height: 100vh;
+  padding: 0;
+  display: none;
+  background: #0f172a;
 }
-#login-screen.campus-login.active { display: grid; grid-template-columns: minmax(0,1.2fr) minmax(380px,.8fr); align-items: stretch; text-align: left; }
-.campus-visual { position: relative; min-height: 720px; overflow: hidden; isolation: isolate; display:flex; flex-direction:column; justify-content:space-between; padding: clamp(24px,4vw,72px); color:#17324f; }
-.campus-visual::before { content:""; position:absolute; inset:0; z-index:-2; background:radial-gradient(circle at 66% 38%,#fff 0 8%,transparent 48%),linear-gradient(150deg,#d8eaf8,#f3f8fc 60%,#d9e8f2); }
-.campus-visual::after { content:"";position:absolute;inset:auto -12% -80px;height:260px;z-index:-1;background:#adcebd;border-radius:50% 50% 0 0;transform:rotate(-3deg); }
-.campus-brand { display:flex;align-items:center;gap:12px;font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;z-index:2; }
-.campus-mark { width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:#143b62;color:#fff;font-size:15px;letter-spacing:0; }
-.campus-copy { z-index:2;max-width:580px; }
-.campus-copy .eyebrow { font-size:12px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#176b88; }
-.campus-copy h1 { font-size:clamp(32px,4vw,60px);line-height:1.08;letter-spacing:-.04em;margin:12px 0;color:#143451; }
-.campus-copy p { font-size:16px;line-height:1.6;max-width:450px;color:#45637b; }
-.campus-art { position:absolute;left:4%;right:1%;top:23%;height:48%;z-index:0;filter:drop-shadow(0 24px 25px rgba(21,55,79,.17));animation:float-campus 8s ease-in-out infinite alternate;pointer-events:none; }
-.campus-building {position:absolute;left:14%;right:9%;bottom:12%;height:76%;background:repeating-linear-gradient(90deg,#d4dfdf 0 2px,transparent 2px 22%),linear-gradient(112deg,#fff 10%,#edf1ee 58%,#d2dedc);border:1px solid #d4e0df;transform:skewY(-2deg);box-shadow:inset -28px -8px 45px #bfcfce,12px 17px 0 #c1d0cd;clip-path:polygon(0 8%,95% 0,100% 100%,0 100%);}
-.campus-building::before { content:"";position:absolute;inset:12% 6% 28%;background:repeating-linear-gradient(90deg,transparent 0 8%,#264c63 8% 10%,#8cabb5 10% 11%,transparent 11% 18%);opacity:.75; }
-.campus-building::after {content:"";position:absolute;left:34%;right:31%;bottom:0;height:35%;background:linear-gradient(90deg,#264458 0 45%,#adc4c6 46% 48%,#264458 49% 100%);border:8px solid #f4f5ee;border-bottom:0;box-shadow:0 -65px 0 -46px #6c3883;}
-.campus-sign {position:absolute;left:25%;right:17%;bottom:41%;padding:8px 7px;text-align:center;color:white;background:#5c376f;box-shadow:0 5px 8px #35475944;font:700 clamp(7px,.8vw,12px)/1.1 Arial,sans-serif;letter-spacing:.02em;transform:skewY(-2deg);}
-.campus-steps {position:absolute;left:33%;right:30%;bottom:5%;height:13%;background:repeating-linear-gradient(0deg,#cad2ce 0 6px,#f4f4ed 6px 14px);clip-path:polygon(20% 0,80% 0,100% 100%,0 100%);transform:skewY(-2deg);}
-.campus-palm {position:absolute;bottom:11%;width:8px;height:48%;border-radius:10px;background:linear-gradient(90deg,#866947,#b89b6e,#806444);transform-origin:bottom;}
-.campus-palm.left {left:10%;transform:rotate(-7deg)} .campus-palm.right {right:8%;transform:rotate(8deg)}
-.campus-palm::before {content:"";position:absolute;top:-28px;left:-60px;width:130px;height:95px;background:#3d8269;clip-path:polygon(48% 42%,0 26%,37% 52%,8% 79%,46% 60%,44% 100%,53% 58%,92% 83%,63% 49%,100% 25%,54% 43%,52% 0);}
-.campus-login-panel {position:relative;z-index:3;display:flex;flex-direction:column;justify-content:center;padding:clamp(24px,4vw,70px);background:#fff;box-shadow:-18px 0 45px #1a4c6b0d;}
-.campus-login-panel .login-card {width:100%;max-width:480px;margin:0 auto;padding:0;box-shadow:none;border:0;}
-.campus-login-panel .login-card h2 {font-size:29px;letter-spacing:-.03em;margin:0 0 8px;color:#17324f;}
-.campus-login-panel .login-card .login-intro {color:#64768b;line-height:1.5;margin:0 0 26px;}
-.campus-login-panel .role-btn {font-size:13px;}
-.campus-login-panel .input-field {margin:7px 0;padding:14px;}
-.campus-footer {font-size:12px;color:#718397;margin:30px auto 0;max-width:480px;width:100%;}
-@keyframes float-campus {to{transform:translateY(-8px)}}
-@media(max-width:900px){#login-screen.campus-login.active{grid-template-columns:1fr}.campus-visual{min-height:350px;padding:24px}.campus-art{top:15%;height:65%;left:13%;right:7%;}.campus-copy{display:none}.campus-login-panel{padding:30px 20px}.campus-sign{font-size:8px}}
-@media(max-width:540px){.campus-visual{min-height:220px}.campus-art{top:18%;height:75%;left:0;right:0}.campus-login-panel .login-card h2{font-size:25px}.campus-login-panel .role-selector{gap:6px}.campus-login-panel .role-btn{padding:9px 10px;font-size:12px}}
-@media(prefers-reduced-motion:reduce){.campus-art{animation:none}}
+
+#login-screen.campus-login.active {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(400px, 0.85fr);
+  align-items: stretch;
+  text-align: left;
+}
+
+/* Campus Visual Half */
+.campus-visual {
+  position: relative;
+  min-height: 720px;
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(24px, 4vw, 60px);
+  background: linear-gradient(175deg, #091a33 0%, #112d52 35%, #1e4a7a 70%, #3a70a8 100%);
+  color: #f8fafc;
+}
+
+/* Atmospheric Sun & Gradient Glow */
+.campus-visual::before {
+  content: "";
+  position: absolute;
+  top: 6%;
+  right: 15%;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(254, 240, 138, 0.45) 0%, rgba(251, 191, 36, 0.2) 40%, rgba(245, 158, 11, 0) 70%);
+  filter: blur(20px);
+  z-index: 1;
+  pointer-events: none;
+  animation: sunGlowPulse 6s ease-in-out infinite alternate;
+}
+
+/* Subtle Ground Ambient Light */
+.campus-visual::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 140px;
+  background: linear-gradient(0deg, rgba(6, 17, 33, 0.85) 0%, transparent 100%);
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* Top Branding Bar */
+.campus-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  z-index: 10;
+}
+
+.campus-mark {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.45);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+}
+
+.campus-brand-sub {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #93c5fd;
+  text-transform: none;
+}
+
+/* Campus Copy */
+.campus-copy {
+  z-index: 10;
+  max-width: 580px;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 22px 26px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  margin-top: 20px;
+}
+
+.campus-copy .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #38bdf8;
+  margin-bottom: 6px;
+}
+
+.campus-copy .eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #38bdf8;
+  box-shadow: 0 0 8px #38bdf8;
+}
+
+.campus-copy h1 {
+  font-size: clamp(24px, 2.8vw, 38px);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  margin: 8px 0;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.campus-copy p {
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: #cbd5e1;
+  margin: 0;
+}
+
+/* ------------------------------------------------------------
+   ANIMATED SVG CAMPUS SCENE CONTAINER
+   ------------------------------------------------------------ */
+.campus-art-wrapper {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.campus-svg-canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Keyframe Animations */
+
+/* 1. Clouds Drifting Across Pune Sky */
+.anim-cloud-slow {
+  animation: driftClouds 55s linear infinite;
+}
+.anim-cloud-med {
+  animation: driftClouds 40s linear infinite;
+  animation-delay: -15s;
+}
+.anim-cloud-fast {
+  animation: driftClouds 28s linear infinite;
+  animation-delay: -8s;
+}
+
+@keyframes driftClouds {
+  0% { transform: translateX(-400px); }
+  100% { transform: translateX(1100px); }
+}
+
+/* 2. Flying Birds Across Campus */
+.anim-birds-group {
+  animation: birdsCross 22s linear infinite;
+}
+@keyframes birdsCross {
+  0% { transform: translate(-100px, 40px) scale(0.65); opacity: 0; }
+  10% { opacity: 0.85; }
+  90% { opacity: 0.85; }
+  100% { transform: translate(1100px, -60px) scale(0.9); opacity: 0; }
+}
+
+.bird-wing-l {
+  animation: flapWing 0.4s ease-in-out infinite alternate;
+  transform-origin: center right;
+}
+.bird-wing-r {
+  animation: flapWing 0.4s ease-in-out infinite alternate-reverse;
+  transform-origin: center left;
+}
+@keyframes flapWing {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-25deg); }
+}
+
+/* 3. Swaying Palm Trees in Pune Breeze */
+.anim-palm-left {
+  transform-origin: 120px 580px;
+  animation: swayPalm 5.5s ease-in-out infinite alternate;
+}
+.anim-palm-right {
+  transform-origin: 880px 580px;
+  animation: swayPalmRight 6.2s ease-in-out infinite alternate;
+}
+
+@keyframes swayPalm {
+  0% { transform: rotate(0deg); }
+  50% { transform: rotate(2.5deg); }
+  100% { transform: rotate(-1.8deg); }
+}
+
+@keyframes swayPalmRight {
+  0% { transform: rotate(0deg); }
+  50% { transform: rotate(-2.8deg); }
+  100% { transform: rotate(1.5deg); }
+}
+
+/* 4. Indian Flag Fluttering on Central Tower */
+.anim-flag {
+  transform-origin: left center;
+  animation: flagWave 2.2s ease-in-out infinite alternate;
+}
+@keyframes flagWave {
+  0% { transform: skewY(0deg) scaleY(1); }
+  50% { transform: skewY(3deg) scaleY(0.96); }
+  100% { transform: skewY(-2.5deg) scaleY(1.02); }
+}
+
+/* 5. Window Gleam / Light Shimmer */
+.anim-window-gleam {
+  animation: windowShimmer 7s ease-in-out infinite;
+}
+@keyframes windowShimmer {
+  0%, 70% { opacity: 0.4; }
+  85% { opacity: 0.95; }
+  100% { opacity: 0.4; }
+}
+
+/* 6. Sun Pulsing Glow */
+@keyframes sunGlowPulse {
+  0% { transform: scale(0.95); opacity: 0.7; }
+  100% { transform: scale(1.15); opacity: 1; }
+}
+
+/* 7. Floating Ambient Campus Particles */
+.particle-group circle {
+  animation: particleFloat 8s ease-in-out infinite;
+}
+.particle-group circle:nth-child(2) { animation-delay: -2s; }
+.particle-group circle:nth-child(3) { animation-delay: -4s; }
+.particle-group circle:nth-child(4) { animation-delay: -6s; }
+
+@keyframes particleFloat {
+  0% { transform: translateY(0) scale(1); opacity: 0; }
+  20% { opacity: 0.7; }
+  80% { opacity: 0.7; }
+  100% { transform: translateY(-70px) scale(1.3); opacity: 0; }
+}
+
+/* 8. College Marquee Board Ambient Glow */
+.marquee-glow {
+  filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.6));
+  animation: boardGlow 3.5s ease-in-out infinite alternate;
+}
+@keyframes boardGlow {
+  0% { filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.4)); }
+  100% { filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.85)); }
+}
+
+/* ------------------------------------------------------------
+   RIGHT PANEL: STAFF SIGN-IN CARD
+   ------------------------------------------------------------ */
+.campus-login-panel {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(24px, 4vw, 55px);
+  background: #ffffff;
+  box-shadow: -15px 0 40px rgba(15, 23, 42, 0.1);
+}
+
+.campus-login-panel .login-card {
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 0;
+  box-shadow: none;
+  border: 0;
+}
+
+.campus-login-panel .login-card h2 {
+  font-size: 27px;
+  letter-spacing: -0.03em;
+  margin: 0 0 6px;
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.campus-login-panel .login-card .login-intro {
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 22px;
+}
+
+.campus-footer {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 25px auto 0;
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 960px) {
+  #login-screen.campus-login.active {
+    grid-template-columns: 1fr;
+  }
+  .campus-visual {
+    min-height: 380px;
+    padding: 24px;
+  }
+  .campus-copy {
+    display: none;
+  }
+  .campus-login-panel {
+    padding: 35px 22px;
+  }
+}
+
+@media (max-width: 540px) {
+  .campus-visual {
+    min-height: 250px;
+  }
+  .campus-login-panel .login-card h2 {
+    font-size: 23px;
+  }
+  .campus-login-panel .role-selector {
+    gap: 6px;
+  }
+  .campus-login-panel .role-btn {
+    padding: 8px 12px;
+    font-size: 12.5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-cloud-slow, .anim-cloud-med, .anim-cloud-fast,
+  .anim-birds-group, .anim-palm-left, .anim-palm-right,
+  .anim-flag, .anim-window-gleam, .particle-group circle {
+    animation: none !important;
+  }
+}
