@@ -15,7 +15,8 @@ const submissionsFile = path.join(ROOT, 'submissions.json');
 const questionsDir = path.join(ROOT, 'questions_by_subject');
 const uploadsDir = path.join(ROOT, 'uploads', 'questions');
 const snapshotsDir = path.join(ROOT, 'snapshots');
-const EXAM_MS = 15 * 60 * 1000;
+const examStatusFile = path.join(ROOT, 'exam_status.json');
+const EXAM_MS = 120 * 60 * 1000;
 const SESSION_MS = 8 * 60 * 60 * 1000;
 const sessions = new Map();
 const studentSessions = new Map();
@@ -145,7 +146,28 @@ function bootstrap() {
         writeJSON(usersFile, users);
     }
 }
+function loadPersistentExams() {
+    const data = readJSON(examStatusFile, {});
+    if (data.globalExam && data.globalExam.active && Date.now() < data.globalExam.deadline) {
+        globalExam = data.globalExam;
+    }
+    if (data.subjectExams && typeof data.subjectExams === 'object') {
+        for (const [sub, ex] of Object.entries(data.subjectExams)) {
+            if (ex && ex.active && Date.now() < ex.deadline) {
+                subjectExamStatus.set(sub, ex);
+            }
+        }
+    }
+}
+function savePersistentExams() {
+    const subjectExams = {};
+    for (const [sub, ex] of subjectExamStatus.entries()) {
+        subjectExams[sub] = ex;
+    }
+    writeJSON(examStatusFile, { globalExam, subjectExams });
+}
 bootstrap();
+loadPersistentExams();
 
 // Serve only selected browser assets. Data files and snapshots are never public.
 app.get(['/', '/staff'], (req, res) => res.sendFile(path.join(ROOT, 'index.html')));
@@ -485,25 +507,66 @@ app.post('/api/join', (req, res) => {
     setCookie(res, 'student_session', key, SESSION_MS);
     res.json({ success: true, examActive: !!activeExam(subject), deadline: activeExam(subject)?.deadline || null });
 });
-app.get('/api/check-status', student, (req, res) => {
-    const exam = activeExam(req.student.subject);
-    res.json({ active: !!exam, deadline: exam?.deadline || null });
+app.get('/api/check-status', (req, res) => {
+    const participant = currentStudent(req);
+    const sub = (participant && participant.subject) || req.query.subject;
+    if (!sub) return res.json({ active: !!globalExam && globalExam.active && Date.now() < globalExam.deadline });
+    const exam = activeExam(sub);
+    res.json({ active: !!exam, deadline: exam?.deadline || null, subject: sub });
+});
+app.get('/api/exam-statuses', staff('HOD', 'FACULTY', 'CLASS_TEACHER'), (req, res) => {
+    const subjects = ['DSA', 'AI', 'DBMS', 'Web Technology'];
+    const users = readJSON(usersFile, []);
+    users.filter(u => u.subject).forEach(u => { if (!subjects.includes(u.subject)) subjects.push(u.subject); });
+    const statuses = {};
+    subjects.forEach(sub => {
+        const ex = activeExam(sub);
+        const waiting = [...activeStudents.values()].filter(s => s.subject === sub && s.status === 'waiting').length;
+        const inExam = [...activeStudents.values()].filter(s => s.subject === sub && s.status === 'in_exam').length;
+        statuses[sub] = {
+            active: !!ex,
+            deadline: ex?.deadline || null,
+            remainingMinutes: ex ? Math.max(0, Math.ceil((ex.deadline - Date.now()) / 60000)) : 0,
+            waiting,
+            inExam
+        };
+    });
+    res.json({
+        globalActive: !!globalExam && globalExam.active && Date.now() < globalExam.deadline,
+        subjects: statuses
+    });
 });
 app.post('/api/start-exam', staff('HOD', 'FACULTY'), ownSubject, (req, res) => {
-    const { subject } = req.body;
+    const { subject, all } = req.body;
+    if (all && req.staff.role === 'HOD') {
+        const subjects = ['DSA', 'AI', 'DBMS', 'Web Technology'];
+        const exam = { id: token(), active: true, deadline: Date.now() + EXAM_MS };
+        globalExam = exam;
+        subjects.forEach(sub => subjectExamStatus.set(sub, { ...exam, id: token() }));
+        savePersistentExams();
+        return res.json({ success: true, active: true, all: true, deadline: exam.deadline });
+    }
     if (subject && !validSubject(subject)) return res.sendStatus(400);
     if (!subject && req.staff.role !== 'HOD') return res.sendStatus(403);
     const exam = { id: token(), active: true, deadline: Date.now() + EXAM_MS };
     if (subject) subjectExamStatus.set(subject, exam);
     else globalExam = exam;
+    savePersistentExams();
     res.json({ success: true, active: true, subject, deadline: exam.deadline });
 });
 app.post('/api/stop-exam', staff('HOD', 'FACULTY'), ownSubject, (req, res) => {
-    const { subject } = req.body;
+    const { subject, all } = req.body;
+    if (all && req.staff.role === 'HOD') {
+        globalExam = null;
+        subjectExamStatus.clear();
+        savePersistentExams();
+        return res.json({ success: true, active: false, all: true });
+    }
     if (subject && !validSubject(subject)) return res.sendStatus(400);
     if (!subject && req.staff.role !== 'HOD') return res.sendStatus(403);
     if (subject) subjectExamStatus.set(subject, { active: false });
     else globalExam = null;
+    savePersistentExams();
     res.json({ success: true, active: false, subject });
 });
 app.get('/api/waiting-students', staff('HOD', 'FACULTY', 'CLASS_TEACHER'), ownSubject, (req, res) => {

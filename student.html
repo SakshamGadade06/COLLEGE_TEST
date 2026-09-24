@@ -431,15 +431,19 @@
     }
 
     async function launchExamSequence() {
-        if (!isCameraVerified) { const v = await checkCameraPermission(true); if (!v) { alert("ACCESS DENIED: Camera required."); return; } }
         let stream;
-        try { stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }, audio: false }); }
-        catch (err) { alert("CRITICAL: Camera access revoked. Exam terminated."); window.location.reload(); return; }
-        const video = document.getElementById('video');
-        video.srcObject = stream;
-        try { await video.play(); } catch(e) {}
-        document.getElementById('camContainer').style.display = 'block';
-        stream.getVideoTracks().forEach(track => { track.onended = () => { handleViolation("Camera disconnected!"); setTimeout(() => window.submitExam(), 2000); }; });
+        try {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }, audio: false });
+                const video = document.getElementById('video');
+                video.srcObject = stream;
+                try { await video.play(); } catch(e) {}
+                document.getElementById('camContainer').style.display = 'block';
+                stream.getVideoTracks().forEach(track => { track.onended = () => { handleViolation("Camera disconnected!"); setTimeout(() => window.submitExam(), 2000); }; });
+            }
+        } catch (err) {
+            console.warn("Camera could not be activated:", err);
+        }
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('waiting-screen').style.display = 'none';
         document.getElementById('exam-screen').style.display = 'block';
@@ -450,7 +454,7 @@
         }
         await loadQuestions();
         if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
-        await initAI(); startMonitoring(); takeSnapshot();
+        try { await initAI(); startMonitoring(); takeSnapshot(); } catch(e) {}
     }
 
     async function loadQuestions() {
@@ -459,7 +463,17 @@
             const res = await fetch(`/api/get-questions?subject=${encodeURIComponent(studentData.subject)}`);
             const questions = await res.json();
             container.innerHTML = "";
-            if (!questions || !questions.length) { container.innerHTML = '<div class="mcq-card" style="text-align:center;padding:40px;"><h3 style="color:#64748b;">No Questions Found</h3><p style="color:#94a3b8;font-size:14px;">Your faculty has not uploaded questions yet.</p></div>'; return; }
+            if (!res.ok || !Array.isArray(questions) || !questions.length) {
+                container.innerHTML = `
+                    <div class="mcq-card" style="text-align:center;padding:40px;">
+                        <h3 style="color:#0f172a;margin-bottom:8px;">${res.status === 403 ? 'Exam Paper Unavailable' : 'No Questions Found'}</h3>
+                        <p style="color:#64748b;font-size:14px;max-width:440px;margin:0 auto 16px;">
+                            ${res.status === 403 ? 'This subject examination has not been released yet or time has expired. Please contact your invigilator or faculty.' : 'Your faculty has not uploaded questions for this subject yet.'}
+                        </p>
+                        <button type="button" onclick="loadQuestions()" class="btn btn-blue btn-sm" style="width:auto;margin:0 auto;display:inline-block;">↺ Retry Loading Questions</button>
+                    </div>`;
+                return;
+            }
             const watermark = `${studentData.rollNo} • ${studentData.subject} • PROCTORED\n`.repeat(6);
             questions.forEach((q, idx) => {
                 const card = document.createElement('div'); card.className = 'mcq-card';
