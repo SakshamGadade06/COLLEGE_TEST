@@ -229,20 +229,25 @@
             </div>
             <div class="form-group">
                 <label for="stuSub">Examination Subject</label>
-                <input type="text" id="stuSub" class="input-field" placeholder="e.g. DSA" value="DSA">
+                <select id="stuSub" class="input-field" style="font-weight:700;">
+                    <option value="DSA" selected>DSA (Data Structures &amp; Algorithms)</option>
+                    <option value="AI">AI (Artificial Intelligence)</option>
+                    <option value="DBMS">DBMS (Database Management Systems)</option>
+                    <option value="Web Technology">Web Technology</option>
+                </select>
             </div>
 
             <div class="cam-gate">
-                <div class="status" id="cameraStatusBadge">⌛ Checking Camera Permissions...</div>
-                <button type="button" id="verifyCamBtn" onclick="window.requestCameraVerification()" class="btn btn-blue">📷 Allow & Verify Camera</button>
-                <div class="blocked" id="cameraBlockedNotice">
-                    <strong>🚫 NO CAMERA = NO EXAM</strong>
-                    <p style="margin:4px 0;">AI proctoring requires continuous camera verification. Please set Camera to <strong>ALLOW</strong> in your browser settings and reload.</p>
+                <div class="status" id="cameraStatusBadge">📷 Camera verification required for AI proctoring</div>
+                <button type="button" id="verifyCamBtn" onclick="window.requestCameraVerification()" class="btn btn-blue" style="margin-top:6px;">📷 Allow &amp; Verify Camera</button>
+                <div class="blocked" id="cameraBlockedNotice" style="display:none;">
+                    <strong>🚫 Camera Access Blocked</strong>
+                    <p style="margin:4px 0;">Please allow camera access in your browser settings to proceed with the exam.</p>
                 </div>
             </div>
 
-            <button id="joinBtn" class="btn btn-green" disabled style="opacity:0.4;cursor:not-allowed;">Join Exam Room</button>
-            <p id="joinError"></p>
+            <button id="joinBtn" class="btn btn-green">Join Exam Room</button>
+            <p id="joinError" style="display:none;color:#dc2626;font-size:13px;font-weight:600;margin-top:10px;background:#fef2f2;border:1px solid #fecaca;padding:8px 12px;border-radius:8px;"></p>
         </div>
     </div>
 </div>
@@ -309,18 +314,17 @@
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
             stream.getTracks().forEach(track => track.stop());
             isCameraVerified = true;
-            if (statusBadge) statusBadge.innerHTML = '<span style="color:#16a34a;font-weight:bold;">✅ Camera Verified & Ready</span>';
+            if (statusBadge) statusBadge.innerHTML = '<span style="color:#16a34a;font-weight:bold;">✅ Camera Verified &amp; Ready</span>';
             if (blockedNotice) blockedNotice.style.display = 'none';
             if (verifyBtn) verifyBtn.style.display = 'none';
             if (joinBtn) { joinBtn.disabled = false; joinBtn.style.opacity = '1'; joinBtn.style.cursor = 'pointer'; }
             return true;
         } catch (err) {
             isCameraVerified = false;
-            if (statusBadge) statusBadge.innerHTML = '<span style="color:#dc2626;font-weight:bold;">❌ Camera Required: Access Blocked</span>';
-            if (blockedNotice) blockedNotice.style.display = 'block';
+            if (statusBadge) statusBadge.innerHTML = '<span style="color:#64748b;font-weight:600;">📷 Camera access required before starting exam</span>';
             if (verifyBtn) verifyBtn.style.display = 'inline-block';
-            if (joinBtn) { joinBtn.disabled = true; joinBtn.style.opacity = '0.4'; joinBtn.style.cursor = 'not-allowed'; }
-            if (promptUser) alert("CRITICAL: No Camera = No Exam. Please allow Camera access and reload.");
+            if (joinBtn) { joinBtn.disabled = false; joinBtn.style.opacity = '1'; joinBtn.style.cursor = 'pointer'; }
+            if (promptUser) alert("Please allow camera access when your browser prompts to begin proctoring.");
             return false;
         }
     }
@@ -398,12 +402,33 @@
         const dept = document.getElementById('stuDept').value.trim();
         const sub = document.getElementById('stuSub').value.trim();
         const err = document.getElementById('joinError');
-        if (!name || !roll || !sub) { err.innerText = "Please provide Name, Roll Number, and Subject."; err.style.display = 'block'; return; }
+        const btn = document.getElementById('joinBtn');
+
+        if (!name || !roll || !sub) {
+            err.innerText = "Please provide Name, Roll Number, and Subject.";
+            err.style.display = 'block';
+            return;
+        }
         err.style.display = 'none';
-        studentData = { name, rollNo: roll, regNo: reg, className: cls, division: div, dept, subject: sub, collegeId: roll };
+
+        if (!isCameraVerified) {
+            const camOk = await checkCameraPermission(true);
+            if (!camOk) return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = "Connecting to exam room…";
+
+        studentData = { name, rollNo: roll, regNo: reg || roll, className: cls, division: div, dept, subject: sub, collegeId: roll };
         try {
-            const res = await fetch('/api/join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(studentData) });
-            const data = await res.json();
+            const res = await fetch('/api/join', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(studentData)
+            });
+            let data = {};
+            try { data = await res.json(); } catch(jsonErr) {}
             if (res.ok) {
                 examDeadline = data.deadline;
                 document.getElementById('displayName').innerText = `${studentData.name} (${studentData.rollNo})`;
@@ -413,10 +438,25 @@
                 document.getElementById('studentDisplay').innerText = `${studentData.name} (${studentData.subject})`;
                 document.getElementById('rollDisplay').innerText = `Roll: ${studentData.rollNo}`;
                 document.getElementById('login-screen').style.display = 'none';
-                if (data.examActive) { launchExamSequence(); }
-                else { document.getElementById('waiting-screen').style.display = 'block'; startWaitingRoomPolling(); }
-            } else { err.innerText = data.error || "Could not join exam."; err.style.display = 'block'; }
-        } catch(e) { err.innerText = "Error connecting to exam server."; err.style.display = 'block'; }
+                if (data.examActive) {
+                    launchExamSequence();
+                } else {
+                    document.getElementById('waiting-screen').style.display = 'block';
+                    startWaitingRoomPolling();
+                }
+            } else {
+                btn.disabled = false;
+                btn.innerText = "Join Exam Room";
+                err.innerText = data.error || `Could not join exam (Server returned ${res.status}).`;
+                err.style.display = 'block';
+            }
+        } catch(e) {
+            btn.disabled = false;
+            btn.innerText = "Join Exam Room";
+            console.error("Join exam error:", e);
+            err.innerText = "Connection error: " + (e.message || "Failed to reach server. Please check your network connection.");
+            err.style.display = 'block';
+        }
     };
 
     function startWaitingRoomPolling() {

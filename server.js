@@ -28,6 +28,14 @@ let globalExam = null;
 for (const dir of [questionsDir, uploadsDir, snapshotsDir]) fs.mkdirSync(dir, { recursive: true });
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    if (req.method === 'OPTIONS') return res.sendStatus(200);
+    next();
+});
 
 function readJSON(file, fallback = []) {
     if (!fs.existsSync(file)) return fallback;
@@ -55,7 +63,7 @@ function cookie(req, name) {
     return found ? found.slice(name.length + 1) : '';
 }
 function setCookie(res, name, value, maxAge) {
-    res.cookie(name, value, { httpOnly: true, sameSite: 'strict', secure: process.env.NODE_ENV === 'production', maxAge, path: '/' });
+    res.cookie(name, value, { httpOnly: true, sameSite: 'lax', secure: false, maxAge, path: '/' });
 }
 function currentStaff(req) {
     const session = sessions.get(cookie(req, 'staff_session'));
@@ -496,16 +504,36 @@ app.post('/api/delete-question', staff('HOD', 'FACULTY'), ownSubject, (req, res)
 });
 
 app.post('/api/join', (req, res) => {
-    const { rollNo, subject, name, className, division, dept, regNo, collegeId } = req.body;
-    if (typeof rollNo !== 'string' || !/^[A-Za-z0-9_-]{1,32}$/.test(rollNo) || !validSubject(subject) || !name)
+    const rawRoll = String(req.body.rollNo || '').trim();
+    const rawSub = String(req.body.subject || '').trim();
+    const rawName = String(req.body.name || '').trim();
+    const { className, division, dept, regNo, collegeId } = req.body;
+
+    let cleanSub = rawSub;
+    const knownSubs = ['DSA', 'AI', 'DBMS', 'Web Technology'];
+    const matched = knownSubs.find(s => s.toLowerCase() === rawSub.toLowerCase());
+    if (matched) cleanSub = matched;
+
+    if (!rawRoll || !cleanSub || !rawName || !/^[A-Za-z0-9_ .\/-]{1,64}$/.test(rawRoll) || !validSubject(cleanSub))
         return res.status(400).json({ error: 'Valid name, roll number and subject required' });
+
     const key = token();
-    const participant = { roll: rollNo, subject, name, className, division, dept, regNo, collegeId: collegeId || rollNo,
-        status: activeExam(subject) ? 'in_exam' : 'waiting', expires: Date.now() + SESSION_MS };
+    const participant = {
+        roll: rawRoll,
+        subject: cleanSub,
+        name: rawName,
+        className: String(className || 'SY').trim(),
+        division: String(division || 'A').trim(),
+        dept: String(dept || 'Computer Engineering').trim(),
+        regNo: String(regNo || rawRoll).trim(),
+        collegeId: String(collegeId || rawRoll).trim(),
+        status: activeExam(cleanSub) ? 'in_exam' : 'waiting',
+        expires: Date.now() + SESSION_MS
+    };
     studentSessions.set(key, participant);
-    activeStudents.set(subject + ':' + rollNo, participant);
+    activeStudents.set(cleanSub + ':' + rawRoll.toUpperCase(), participant);
     setCookie(res, 'student_session', key, SESSION_MS);
-    res.json({ success: true, examActive: !!activeExam(subject), deadline: activeExam(subject)?.deadline || null });
+    res.json({ success: true, examActive: !!activeExam(cleanSub), deadline: activeExam(cleanSub)?.deadline || null });
 });
 app.get('/api/check-status', (req, res) => {
     const participant = currentStudent(req);
