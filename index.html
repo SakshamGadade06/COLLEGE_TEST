@@ -452,7 +452,7 @@
             </div>
 
             <label class="card-label" for="staffId" style="font-size:12px;font-weight:700;color:#334155;display:block;margin-top:4px;">Staff ID</label>
-            <input type="text" id="staffId" class="input-field" placeholder="e.g. FAC001 / HOD001" autocomplete="username">
+            <input type="text" id="staffId" class="input-field" placeholder="e.g. FAC001 / HOD001" autocomplete="username" oninput="window.autoDetectRoleFromId()">
 
             <label class="card-label" for="staffPass" style="font-size:12px;font-weight:700;color:#334155;display:block;margin-top:6px;">Password</label>
             <input type="password" id="staffPass" class="input-field" placeholder="Enter your portal password" autocomplete="current-password">
@@ -815,12 +815,24 @@
     window.setRole = (role, btn) => {
         currentRole = role;
         document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
-        if (btn) btn.classList.add('selected');
+        const targetBtn = btn || (role === 'HOD' ? document.getElementById('roleHOD') : role === 'CLASS_TEACHER' ? document.getElementById('roleCT') : document.getElementById('roleFaculty'));
+        if (targetBtn) targetBtn.classList.add('selected');
         const idInput = document.getElementById('staffId');
-        if (idInput) {
+        if (idInput && !idInput.value) {
             if (role === 'HOD') idInput.placeholder = 'e.g. HOD001';
             else if (role === 'CLASS_TEACHER') idInput.placeholder = 'e.g. CLASSBAIML';
             else idInput.placeholder = 'e.g. FAC001';
+        }
+    };
+
+    window.autoDetectRoleFromId = () => {
+        const val = (document.getElementById('staffId')?.value || '').trim().toUpperCase();
+        if (val.startsWith('HOD')) {
+            window.setRole('HOD');
+        } else if (val.startsWith('CLASS') || val.startsWith('CT')) {
+            window.setRole('CLASS_TEACHER');
+        } else if (val.startsWith('FAC')) {
+            window.setRole('FACULTY');
         }
     };
 
@@ -850,17 +862,22 @@
             const result = await res.json();
             if (res.ok && result.success) {
                 currentUser = result.user;
+                const userRole = currentUser.role || currentRole;
                 const loginScreen = document.getElementById('login-screen');
-                loginScreen.classList.remove('active');
-                if (currentRole === 'HOD') {
-                    document.getElementById('hod-dash').classList.add('active');
-                    initHodDashboard();
-                } else if (currentRole === 'CLASS_TEACHER') {
-                    document.getElementById('ct-dash').classList.add('active');
-                    if (typeof initCtDashboard === 'function') initCtDashboard();
-                } else if (currentRole === 'FACULTY') {
-                    document.getElementById('fac-dash').classList.add('active');
-                    initFacultyDashboard();
+                if (loginScreen) loginScreen.classList.remove('active');
+
+                if (userRole === 'HOD') {
+                    const hodDash = document.getElementById('hod-dash');
+                    if (hodDash) hodDash.classList.add('active');
+                    try { initHodDashboard(); } catch(err) { console.error('HOD init error:', err); }
+                } else if (userRole === 'CLASS_TEACHER') {
+                    const ctDash = document.getElementById('ct-dash');
+                    if (ctDash) ctDash.classList.add('active');
+                    try { initCtDashboard(); } catch(err) { console.error('CT init error:', err); }
+                } else {
+                    const facDash = document.getElementById('fac-dash');
+                    if (facDash) facDash.classList.add('active');
+                    try { initFacultyDashboard(); } catch(err) { console.error('Faculty init error:', err); }
                 }
             } else {
                 throw new Error(result.error || 'Invalid Credentials or Role');
@@ -989,13 +1006,29 @@
         if (tcs) tcs.classList.add('active');
     };
 
+    window.initCtDashboard = () => {
+        if (currentUser) {
+            const n = document.getElementById('ct-profile-name');
+            const d = document.getElementById('ct-profile-div');
+            if (n) n.innerText = currentUser.name || "Class Teacher";
+            if (d) d.innerText = "Division: " + (currentUser.className || "SY-AIML B");
+        }
+        if (typeof searchStudents === 'function') searchStudents('CT');
+    };
+
     // ============ FACULTY ============
     function initFacultyDashboard() {
-        document.getElementById('fac-subject-display').innerText = currentUser?.subject || '...';
-        document.getElementById('fac-profile-subject').innerText = currentUser?.subject || '...';
-        document.getElementById('fac-profile-name').innerText = currentUser?.name || '...';
-        document.getElementById('fac-subject-display').innerText = currentUser?.subject || '...';
-        document.getElementById('exam-control-sub').innerText = currentUser?.subject || '...';
+        if (currentUser) {
+            const s1 = document.getElementById('fac-subject-display');
+            const s2 = document.getElementById('fac-profile-subject');
+            const n = document.getElementById('fac-profile-name');
+            const e1 = document.getElementById('exam-control-sub');
+            const sub = currentUser.subject || 'DSA';
+            if (s1) s1.innerText = sub;
+            if (s2) s2.innerText = sub;
+            if (e1) e1.innerText = sub;
+            if (n) n.innerText = currentUser.name || 'Faculty Member';
+        }
         loadFacultyQuestions();
         pollWaitingRoom();
         if (facultyPollInterval) clearInterval(facultyPollInterval);

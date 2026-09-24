@@ -163,9 +163,20 @@ app.post('/api/login', (req, res) => {
     const cleanId = String(id || '').trim();
     const cleanPass = String(password || '').trim();
     const users = readJSON(usersFile);
-    const found = users.find(u => u.id.toLowerCase() === cleanId.toLowerCase() && u.role === role);
-    if (!found || !cleanPass || !verifyPassword(cleanPass, found.passwordHash || found.password))
-        return res.status(401).json({ error: 'Invalid credentials or role' });
+    // 1. Try finding user matching ID and specified role (case-insensitive ID)
+    let found = users.find(u => u.id.toLowerCase() === cleanId.toLowerCase() && (!role || u.role === role));
+    // 2. If not found under specified role, check if ID exists under any role (auto-detect)
+    if (!found) {
+        found = users.find(u => u.id.toLowerCase() === cleanId.toLowerCase());
+    }
+    // 3. Verify password (try exact, lowercase, and uppercase)
+    const isPassValid = found && cleanPass && (
+        verifyPassword(cleanPass, found.passwordHash || found.password) ||
+        verifyPassword(cleanPass.toUpperCase(), found.passwordHash || found.password) ||
+        verifyPassword(cleanPass.toLowerCase(), found.passwordHash || found.password)
+    );
+    if (!found || !isPassValid)
+        return res.status(401).json({ error: 'Invalid Staff ID or Password' });
     const key = token();
     sessions.set(key, { user: publicUser(found), expires: Date.now() + SESSION_MS });
     setCookie(res, 'staff_session', key, SESSION_MS);
