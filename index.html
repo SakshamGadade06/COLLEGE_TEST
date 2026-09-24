@@ -898,19 +898,34 @@
                 </div>
 
                 <div class="card" style="margin-top:20px;">
-                    <h3>Upload Questions</h3>
-                    <p style="margin-bottom:16px;">Upload question images with correct answer options. Anti-OCR watermarks applied automatically.</p>
+                    <h3>Upload Question &amp; Set Marks</h3>
+                    <p style="margin-bottom:16px;color:#64748b;font-size:13px;">Upload question images with correct answer option and allocate marks weightage for each question.</p>
                     <div class="form-group">
+                        <label class="card-label" for="qImg" style="font-size:12px;font-weight:700;color:#334155;display:block;margin-bottom:6px;">Question Image</label>
                         <input type="file" id="qImg" accept="image/*" class="input-field" required>
                     </div>
-                    <div class="form-group">
-                        <input type="text" id="qCorrect" class="input-field" placeholder="Correct Option (A, B, C, or D)" maxlength="1">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                        <div class="form-group">
+                            <label class="card-label" for="qCorrect" style="font-size:12px;font-weight:700;color:#334155;display:block;margin-bottom:6px;">Correct Option</label>
+                            <input type="text" id="qCorrect" class="input-field" placeholder="Correct Option (A, B, C, or D)" maxlength="1">
+                        </div>
+                        <div class="form-group">
+                            <label class="card-label" for="qMarks" style="font-size:12px;font-weight:700;color:#334155;display:block;margin-bottom:6px;">Marks for this Question</label>
+                            <input type="number" id="qMarks" class="input-field" placeholder="Marks (e.g. 1, 2, 4, 5)" min="1" max="100" value="1">
+                        </div>
                     </div>
-                    <button onclick="uploadQuestion()" class="btn btn-blue">Upload Question</button>
+                    <button onclick="uploadQuestion()" class="btn btn-blue" style="margin-top:8px;">Upload Question</button>
                 </div>
 
                 <div class="card">
-                    <h3 style="margin-bottom:12px;">Current Questions</h3>
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+                        <div>
+                            <h3 style="margin-bottom:2px;">Current Questions</h3>
+                            <p style="color:#64748b;font-size:13px;margin:0;">Manage questions, options, and per-question mark allocations.</p>
+                        </div>
+                        <div id="qTotalMarksBadge" style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;padding:6px 14px;border-radius:8px;font-size:12.5px;font-weight:700;">
+                        </div>
+                    </div>
                     <div id="question-list">
                         <p style="color:#94a3b8;font-size:13px;">No questions uploaded yet.</p>
                     </div>
@@ -1562,36 +1577,93 @@
             const res = await fetch(`/api/get-questions?subject=${encodeURIComponent(currentUser.subject)}`);
             const questions = await res.json();
             const c = document.getElementById('question-list');
+            const totalBadge = document.getElementById('qTotalMarksBadge');
             if (!c) return;
-            if (!questions.length) { c.innerHTML = '<p style="color:#94a3b8;font-size:13px;">No questions uploaded yet for this subject.</p>'; return; }
-            c.innerHTML = questions.map((q, i) => `
-                <div class="question-card">
-                    <div>
-                        <strong>Question ${i+1}</strong><br>
-                        <small style="color:#64748b;">Correct Option: <strong style="color:#0f172a;">${q.correct}</strong></small>
+            if (!questions || !questions.length) {
+                c.innerHTML = '<p style="color:#94a3b8;font-size:13px;">No questions uploaded yet for this subject.</p>';
+                if (totalBadge) totalBadge.style.display = 'none';
+                return;
+            }
+            const totalMarks = questions.reduce((sum, q) => sum + (Number(q.marks) || 1), 0);
+            if (totalBadge) {
+                totalBadge.style.display = 'inline-flex';
+                totalBadge.style.alignItems = 'center';
+                totalBadge.innerHTML = `<svg class="icon-svg" style="width:14px;height:14px;margin-right:6px;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> ${questions.length} ${questions.length === 1 ? 'Question' : 'Questions'} &bull; ${totalMarks} Total Marks`;
+            }
+            c.innerHTML = questions.map((q, i) => {
+                const qMarks = q.marks !== undefined ? Number(q.marks) : 1;
+                return `
+                <div class="question-card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;background:#ffffff;border:1.5px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+                    <div style="flex:1;min-width:210px;">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                            <strong style="font-size:15px;color:#0f172a;">Question ${i+1}</strong>
+                            <span style="background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:700;">${qMarks} ${qMarks === 1 ? 'Mark' : 'Marks'}</span>
+                            <span style="font-size:12px;color:#64748b;">(Correct: <strong style="color:#166534;background:#dcfce7;padding:1px 6px;border-radius:4px;">${q.correct || '—'}</strong>)</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+                            <label for="markInput_${q.id}" style="font-size:12px;font-weight:700;color:#334155;">Marks Box:</label>
+                            <input type="number" id="markInput_${q.id}" class="input-field" value="${qMarks}" min="1" max="100" style="width:75px;padding:5px 8px;font-size:13px;font-weight:700;text-align:center;margin:0;" title="Marks for Question ${i+1}">
+                            <button type="button" onclick="updateQuestionMarks('${q.id}')" class="btn btn-blue btn-sm" style="width:auto;margin:0;padding:6px 12px;font-size:12px;" title="Save marks for this question">Save Marks</button>
+                        </div>
                     </div>
-                    <img src="${q.image}" alt="Q${i+1}">
-                    <button onclick="deleteQuestion('${q.id}')" class="btn btn-outline btn-sm" style="width:auto;margin:0;" title="Delete Question">
-                        <svg class="icon-svg" style="width:14px;height:14px;margin:0;" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                    </button>
+                    <div>
+                        <a href="${q.image}" target="_blank" title="View question image">
+                            <img src="${q.image}" alt="Q${i+1}" style="max-width:120px;max-height:85px;border-radius:8px;border:1px solid #e2e8f0;object-fit:contain;background:#f8fafc;">
+                        </a>
+                    </div>
+                    <div>
+                        <button type="button" onclick="deleteQuestion('${q.id}')" class="btn btn-outline btn-sm" style="width:auto;margin:0;color:#dc2626;border-color:#fecaca;" title="Delete Question">
+                            <svg class="icon-svg" style="width:14px;height:14px;margin:0;" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        </button>
+                    </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
         } catch(e) {}
     }
+
+    window.updateQuestionMarks = async (id) => {
+        const input = document.getElementById('markInput_' + id);
+        const marks = parseInt(input?.value) || 1;
+        if (marks < 1) { alert("Marks must be at least 1"); return; }
+        try {
+            const res = await fetch('/api/update-question-marks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ subject: currentUser.subject, id, marks })
+            });
+            const data = await res.json();
+            if (data.success) {
+                loadFacultyQuestions();
+            } else {
+                alert(data.error || "Failed to update question marks");
+            }
+        } catch(e) {
+            alert("Error updating question marks");
+        }
+    };
 
     window.uploadQuestion = async () => {
         const fileInput = document.getElementById('qImg');
         const correctInput = document.getElementById('qCorrect');
+        const marksInput = document.getElementById('qMarks');
         if (!fileInput.files?.length) { alert("Select a question image."); return; }
         if (!correctInput.value.trim()) { alert("Specify correct option (A–D)."); return; }
+        const marks = parseInt(marksInput?.value) || 1;
         const fd = new FormData();
         fd.append('questionImage', fileInput.files[0]);
         fd.append('correctOption', correctInput.value.trim().toUpperCase());
+        fd.append('marks', Math.max(1, marks));
         fd.append('subject', currentUser.subject);
         try {
             const res = await fetch('/api/upload-question', { method: 'POST', body: fd });
-            if (res.ok) { alert("Question uploaded successfully."); fileInput.value = ''; correctInput.value = ''; loadFacultyQuestions(); }
-            else alert("Failed to upload.");
+            if (res.ok) {
+                alert("Question uploaded successfully with marks weightage.");
+                fileInput.value = '';
+                correctInput.value = '';
+                if (marksInput) marksInput.value = '1';
+                loadFacultyQuestions();
+            } else alert("Failed to upload.");
         } catch(e) { alert("Error connecting."); }
     };
 

@@ -421,16 +421,34 @@ const storage = multer.diskStorage({
     filename: (_req, file, cb) => cb(null, token() + (file.mimetype === 'image/png' ? '.png' : '.jpg'))
 });
 const upload = multer({ storage, limits: { fileSize: 3 * 1024 * 1024 }, fileFilter: (_req, file, cb) =>
-    cb(null, ['image/png', 'image/jpeg'].includes(file.mimetype)) });
+    cb(null, ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'].includes(file.mimetype)) });
 app.post('/api/upload-question', staff('HOD', 'FACULTY'), upload.single('questionImage'), ownSubject, (req, res) => {
-    const { subject, correctOption } = req.body;
+    const { subject, correctOption, marks } = req.body;
     if (!validSubject(subject) || !req.file || !/^[A-D]$/i.test(correctOption || ''))
         return res.status(400).json({ error: 'Subject, image and correct option A–D required' });
+    const parsedMarks = Math.max(1, parseInt(marks) || 1);
     const questions = getQuestions(subject);
-    questions.push({ id: 'Q_' + token().slice(0, 12), image: '/uploads/questions/' + req.file.filename,
-        correct: correctOption.toUpperCase(), createdAt: new Date().toISOString() });
+    const newQ = {
+        id: 'Q_' + token().slice(0, 12),
+        image: '/uploads/questions/' + req.file.filename,
+        correct: correctOption.toUpperCase(),
+        marks: parsedMarks,
+        createdAt: new Date().toISOString()
+    };
+    questions.push(newQ);
     writeJSON(questionFile(subject), questions);
-    res.json({ success: true });
+    res.json({ success: true, question: newQ });
+});
+app.post('/api/update-question-marks', staff('HOD', 'FACULTY'), ownSubject, (req, res) => {
+    const { subject, id, marks } = req.body;
+    if (!validSubject(subject) || !id) return res.status(400).json({ error: 'Valid subject and question ID required' });
+    const parsedMarks = Math.max(1, parseInt(marks) || 1);
+    const questions = getQuestions(subject);
+    const target = questions.find(q => q.id === id);
+    if (!target) return res.status(404).json({ error: 'Question not found' });
+    target.marks = parsedMarks;
+    writeJSON(questionFile(subject), questions);
+    res.json({ success: true, id, marks: parsedMarks });
 });
 app.get('/api/get-questions', (req, res) => {
     const subject = req.query.subject;
@@ -440,7 +458,13 @@ app.get('/api/get-questions', (req, res) => {
         return res.status(403).json({ error: 'Paper unavailable' });
     if (user && user.role === 'FACULTY' && user.subject !== subject)
         return res.status(403).json({ error: 'This is not your subject' });
-    res.json(getQuestions(subject).map((q, index) => ({ id: q.id, index, image: q.image })));
+    res.json(getQuestions(subject).map((q, index) => ({
+        id: q.id,
+        index,
+        image: q.image,
+        marks: q.marks !== undefined ? Number(q.marks) : 1,
+        ...(user ? { correct: q.correct } : {})
+    })));
 });
 app.post('/api/delete-question', staff('HOD', 'FACULTY'), ownSubject, (req, res) => {
     const { subject, id } = req.body;
@@ -499,9 +523,13 @@ app.post('/api/submit-exam', student, (req, res) => {
         return res.status(409).json({ error: 'This exam has already been submitted' });
     const questions = getQuestions(s.subject);
     const answers = req.body.answers && typeof req.body.answers === 'object' ? req.body.answers : {};
-    const score = questions.reduce((sum, q, i) => sum + (String(answers[i] || answers[q.id] || '').toUpperCase() === q.correct ? 1 : 0), 0);
+    const totalMarks = questions.reduce((sum, q) => sum + (Number(q.marks) || 1), 0);
+    const score = questions.reduce((sum, q, i) => {
+        const isCorrect = String(answers[i] || answers[q.id] || '').toUpperCase() === q.correct;
+        return sum + (isCorrect ? (Number(q.marks) || 1) : 0);
+    }, 0);
     const submission = { collegeId: s.collegeId, rollNo: s.roll, name: s.name, subject: s.subject,
-        examId: exam.id, score: `${score}/${questions.length}`, rawScore: score, total: questions.length,
+        examId: exam.id, score: `${score}/${totalMarks}`, rawScore: score, total: totalMarks,
         answers, time: new Date().toISOString() };
     submissions.unshift(submission);
     writeJSON(submissionsFile, submissions);
