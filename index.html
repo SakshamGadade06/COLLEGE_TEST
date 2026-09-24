@@ -687,8 +687,7 @@
         <div class="dash-container">
             <div class="sidebar">
                 <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; font-weight: 700; margin-bottom: 8px;">Executive Navigation</div>
-                <div class="sidebar-item active-nav" id="hod-nav-overview" onclick="showHodTab('overview')">🏛️ Overview &amp; Campus</div>
-                <div class="sidebar-item" id="hod-nav-teachers" onclick="showHodTab('teachers')">👥 Manage Class Teachers</div>
+                <div class="sidebar-item active-nav" id="hod-nav-teachers" onclick="showHodTab('teachers')">👥 Manage Class Teachers</div>
                 <div class="sidebar-item" id="hod-nav-create-hod" onclick="showHodTab('create-hod')">👑 Create HOD Account</div>
                 <div class="sidebar-item" id="hod-nav-exams" onclick="showHodTab('exams')">📊 All Subject Exams</div>
                 <div class="sidebar-item" id="hod-nav-settings" onclick="showHodTab('settings')">⚙️ Academic Controls</div>
@@ -702,83 +701,8 @@
             </div>
 
             <div class="main-content">
-                <!-- TAB 1: OVERVIEW & REAL CAMPUS INFRASTRUCTURE SHOWCASE -->
-                <div id="hod-overview" class="tab-content">
-                    <div class="card" style="border-left: 4px solid #2563eb;">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px;">
-                            <div>
-                                <h3 style="margin: 0 0 6px 0; color: #0f2942; font-size: 18px;">
-                                    Executive Department Overview &bull; Academic Session 2025-26
-                                </h3>
-                                <p style="margin: 0; color: #475569; font-size: 13.5px; line-height: 1.5;">
-                                    Welcome to the Head of Department administrative suite. Monitor examination integrity, review faculty allocations, verify syllabus coverage, and examine candidate submissions in real time.
-                                </p>
-                            </div>
-                            <span class="badge badge-green" style="font-size: 12px; padding: 6px 12px;">Autonomous Session Active</span>
-                        </div>
-                    </div>
-
-                    <!-- Campus Infrastructure Gallery -->
-                    <div class="card">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-wrap: wrap; gap: 8px;">
-                            <h3 style="margin: 0; color: #0f2942; font-size: 17px;">🏛️ Official GH Raisoni Campus &amp; Research Infrastructure</h3>
-                            <span style="font-size: 12.5px; color: #64748b;">GHRCEM Wagholi, Pune Facilities</span>
-                        </div>
-                        <p style="color: #64748b; font-size: 13px; margin: 4px 0 16px 0;">World-class computing laboratories, interactive digital classrooms, and central knowledge centers powering our academic excellence.</p>
-                        
-                        <div class="campus-gallery-grid">
-                            <!-- Card 1: Campus -->
-                            <div class="campus-photo-card">
-                                <img src="https://rgicdn.s3.ap-south-1.amazonaws.com/raisoni/rgi/images/campus-infra/campus.webp" alt="GHRCEM Wagholi Campus" loading="lazy">
-                                <div class="photo-body">
-                                    <h4>Academic &amp; Research Complex</h4>
-                                    <p>State-of-the-art multi-acre campus located on Pune-Nagar Road, Wagholi. Houses department wings, research centers, and central administrative tower.</p>
-                                </div>
-                            </div>
-                            <!-- Card 2: AI Lab -->
-                            <div class="campus-photo-card">
-                                <img src="https://rgicdn.s3.ap-south-1.amazonaws.com/raisoni/rgi/images/campus-infra/lab.webp" alt="High Tech Labs" loading="lazy">
-                                <div class="photo-body">
-                                    <h4>Advanced AI &amp; Computing Labs</h4>
-                                    <p>High-performance computing workstations equipped with GPU acceleration, gigabit fiber network, and specialized AI/ML model deployment clusters.</p>
-                                </div>
-                            </div>
-                            <!-- Card 3: Library -->
-                            <div class="campus-photo-card">
-                                <img src="https://rgicdn.s3.ap-south-1.amazonaws.com/raisoni/rgi/images/campus-infra/library.webp" alt="Central Library" loading="lazy">
-                                <div class="photo-body">
-                                    <h4>Central Digital Library</h4>
-                                    <p>Extensive repository of 50,000+ volumes, IEEE Xplore, ScienceDirect, and ACM Digital Library subscriptions with round-the-clock research carrels.</p>
-                                </div>
-                            </div>
-                            <!-- Card 4: Classroom -->
-                            <div class="campus-photo-card">
-                                <img src="https://rgicdn.s3.ap-south-1.amazonaws.com/raisoni/rgi/images/campus-infra/classroom.webp" alt="Smart Classroom" loading="lazy">
-                                <div class="photo-body">
-                                    <h4>Smart Audio-Visual Classrooms</h4>
-                                    <p>Ergonomically designed tiered amphitheaters featuring interactive digital podiums, synchronized projectors, and automated lecture recording systems.</p>
-                                </div>
-                            </div>
-                            <!-- Card 5: Sports Complex -->
-                            <div class="campus-photo-card">
-                                <img src="https://rgicdn.s3.ap-south-1.amazonaws.com/raisoni/rgi/images/campus-infra/sport.webp" alt="Sports & Turf" loading="lazy">
-                                <div class="photo-body">
-                                    <h4>Sports Arena &amp; Synthetic Turf</h4>
-                                    <p>Multi-sport athletic complex with FIFA-standard synthetic turf, cricket pitch, badminton courts, and state-of-the-art student fitness centre.</p>
-                                </div>
-                            </div>
-                            <!-- Card 6: Raisonian Pride -->
-                            <div class="campus-photo-card" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; background: linear-gradient(135deg, #091a33, #1e3a8a); color: white; padding: 24px;">
-                                <img src="https://rgicdn.s3.ap-south-1.amazonaws.com/raisoni/rgi/images/identity/proudly-raisonian.webp" alt="Proudly Raisonian" style="height: 90px; width: auto; object-fit: contain; border: none; margin-bottom: 12px; background: transparent;">
-                                <h4 style="color: white; margin: 0 0 6px 0;">Proudly Raisonian</h4>
-                                <p style="color: #93c5fd; font-size: 12.5px; margin: 0;">Nurturing over 25+ years of academic innovation, industry partnerships, and engineering leaders.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB 2: MANAGE CLASS TEACHERS & FACULTY ROSTER -->
-                <div id="hod-teachers" class="tab-content" style="display:none">
+                <!-- TAB: MANAGE CLASS TEACHERS & FACULTY ROSTER -->
+                <div id="hod-teachers" class="tab-content">
                     <div style="display: grid; grid-template-columns: minmax(320px, 1fr) minmax(320px, 1.35fr); gap: 20px; align-items: start;">
                         <!-- Left: Create Class Teacher Card -->
                         <div class="card">
@@ -1097,7 +1021,7 @@
             loadHodStaffList();
             loadHodDirectoryList();
             loadHodSubmissionsCount();
-            showHodTab('overview');
+            showHodTab('teachers');
         };
 
         window.loadHodStaffList = async () => {

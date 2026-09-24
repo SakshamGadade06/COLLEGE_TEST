@@ -12,7 +12,7 @@ test('staff authorization, subject isolation and one submission', async () => {
     fs.writeFileSync(path.join(base, 'index.html'), 'Staff page');
     fs.writeFileSync(path.join(base, 'student.html'), 'Student page');
     // Dependency lookup comes from this repository through a temporary symlink.
-    fs.symlinkSync(path.join(__dirname, 'node_modules'), path.join(base, 'node_modules'), 'dir');
+    fs.symlinkSync(path.join(__dirname, 'node_modules'), path.join(base, 'node_modules'), process.platform === 'win32' ? 'junction' : 'dir');
     const { spawn } = require('node:child_process');
     const net = require('node:net');
     const probe = net.createServer().listen(0);
