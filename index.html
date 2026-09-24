@@ -17,18 +17,21 @@
         }
 
         /* === SCREEN MANAGEMENT === */
-        .screen { display: none; width: 100%; }
-        .screen.active { display: flex; }
-        #login-screen.active { flex-direction: column; min-height: 100vh; }
-        #hod-dash.active, #ct-dash.active, #fac-dash.active { flex-direction: column; min-height: 100vh; }
-
-        /* === LOGIN SCREEN === */
-        #login-screen.campus-login {
-            display: grid;
+        .screen { display: none !important; width: 100%; }
+        .screen.active { display: flex !important; }
+        #login-screen.screen.active {
+            display: grid !important;
             grid-template-columns: 1.4fr 1fr;
             min-height: 100vh;
         }
-        #login-screen.campus-login.active { display: grid; }
+        #login-screen:not(.active) {
+            display: none !important;
+        }
+        #hod-dash.active, #ct-dash.active, #fac-dash.active {
+            display: flex !important;
+            flex-direction: column;
+            min-height: 100vh;
+        }
 
         .campus-visual {
             position: relative;
@@ -388,7 +391,6 @@
         }
     </style>
     <link rel="stylesheet" href="/campus_scene.css">
-    <link rel="stylesheet" href="/portal_ui.css">
 </head>
 <body>
 
@@ -863,22 +865,44 @@
             if (res.ok && result.success) {
                 currentUser = result.user;
                 const userRole = currentUser.role || currentRole;
-                const loginScreen = document.getElementById('login-screen');
-                if (loginScreen) loginScreen.classList.remove('active');
 
+                // Completely hide all screens, especially the login screen
+                document.querySelectorAll('.screen').forEach(s => {
+                    s.classList.remove('active');
+                    s.style.display = 'none';
+                });
+
+                // Pause 3D background animation while in dashboard
+                if (window.campus3DInstance && typeof window.campus3DInstance.pause === 'function') {
+                    window.campus3DInstance.pause();
+                }
+
+                // Show only the appropriate destination dashboard
                 if (userRole === 'HOD') {
                     const hodDash = document.getElementById('hod-dash');
-                    if (hodDash) hodDash.classList.add('active');
+                    if (hodDash) {
+                        hodDash.classList.add('active');
+                        hodDash.style.display = 'flex';
+                    }
                     try { initHodDashboard(); } catch(err) { console.error('HOD init error:', err); }
                 } else if (userRole === 'CLASS_TEACHER') {
                     const ctDash = document.getElementById('ct-dash');
-                    if (ctDash) ctDash.classList.add('active');
+                    if (ctDash) {
+                        ctDash.classList.add('active');
+                        ctDash.style.display = 'flex';
+                    }
                     try { initCtDashboard(); } catch(err) { console.error('CT init error:', err); }
                 } else {
                     const facDash = document.getElementById('fac-dash');
-                    if (facDash) facDash.classList.add('active');
+                    if (facDash) {
+                        facDash.classList.add('active');
+                        facDash.style.display = 'flex';
+                    }
                     try { initFacultyDashboard(); } catch(err) { console.error('Faculty init error:', err); }
                 }
+
+                // Scroll to top of the dashboard page
+                window.scrollTo({ top: 0, behavior: 'instant' });
             } else {
                 throw new Error(result.error || 'Invalid Credentials or Role');
             }
@@ -1163,6 +1187,7 @@
     try {
         if (canvas) {
             campus3DInstance = createCampus3D(canvas);
+            window.campus3DInstance = campus3DInstance;
         }
     } catch (e) {
         console.error('3D Campus initialization failed:', e);
