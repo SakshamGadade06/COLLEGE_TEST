@@ -257,6 +257,7 @@
     <div class="waiting-card">
         <h1>Exam Waiting Room</h1>
         <div class="waiting-details">
+            <div><strong>Candidate:</strong> <span id="displayName">—</span></div>
             <div><strong>Subject:</strong> <span id="waitSubject">—</span></div>
             <div><strong>Roll No:</strong> <span id="waitRoll">—</span></div>
             <div><strong>Registration:</strong> <span id="waitReg">—</span></div>
@@ -431,17 +432,27 @@
             try { data = await res.json(); } catch(jsonErr) {}
             if (res.ok) {
                 examDeadline = data.deadline;
-                document.getElementById('displayName').innerText = `${studentData.name} (${studentData.rollNo})`;
-                document.getElementById('waitSubject').innerText = studentData.subject;
-                document.getElementById('waitRoll').innerText = studentData.rollNo;
-                document.getElementById('waitReg').innerText = studentData.regNo;
-                document.getElementById('studentDisplay').innerText = `${studentData.name} (${studentData.subject})`;
-                document.getElementById('rollDisplay').innerText = `Roll: ${studentData.rollNo}`;
-                document.getElementById('login-screen').style.display = 'none';
+                const dName = document.getElementById('displayName');
+                if (dName) dName.innerText = `${studentData.name} (${studentData.rollNo})`;
+                const wSub = document.getElementById('waitSubject');
+                if (wSub) wSub.innerText = studentData.subject;
+                const wRoll = document.getElementById('waitRoll');
+                if (wRoll) wRoll.innerText = studentData.rollNo;
+                const wReg = document.getElementById('waitReg');
+                if (wReg) wReg.innerText = studentData.regNo;
+                const sDisp = document.getElementById('studentDisplay');
+                if (sDisp) sDisp.innerText = `${studentData.name} (${studentData.subject})`;
+                const rDisp = document.getElementById('rollDisplay');
+                if (rDisp) rDisp.innerText = `Roll: ${studentData.rollNo}`;
+                
+                const loginScr = document.getElementById('login-screen');
+                if (loginScr) loginScr.style.display = 'none';
+
                 if (data.examActive) {
                     launchExamSequence();
                 } else {
-                    document.getElementById('waiting-screen').style.display = 'block';
+                    const waitScr = document.getElementById('waiting-screen');
+                    if (waitScr) waitScr.style.display = 'block';
                     startWaitingRoomPolling();
                 }
             } else {
