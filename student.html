@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Student Exam Portal - AI Proctored</title>
+    <title>Student Examination | GHRCEM</title>
     <style>
         * {
             box-sizing: border-box;
@@ -175,6 +175,7 @@
             border-bottom: 1px solid #cbd5e1; padding-bottom: 12px; margin-bottom: 18px;
         }
     </style>
+    <link rel="stylesheet" href="/portal_ui.css">
 </head>
 <body oncontextmenu="return false;">
 
@@ -209,61 +210,49 @@
 
     <!-- 1. STUDENT REGISTRATION & LOGIN SCREEN -->
     <div id="login-screen" class="screen">
-        <!-- GHRCEM Institutional Branding Header -->
-        <div style="background: linear-gradient(135deg, #091a33, #1e3a8a); color: white; padding: 18px 20px; border-radius: 14px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(15,23,42,0.2); border: 1.5px solid rgba(255,255,255,0.15); text-align: center;">
-            <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;">
-                <span style="background: #2563eb; color: #fff; font-size: 11px; font-weight: 900; padding: 3px 8px; border-radius: 6px; letter-spacing: 1px;">GHRCEM</span>
-                <span style="background: rgba(37,99,235,0.3); border: 1px solid rgba(147,197,253,0.4); color: #93c5fd; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.05em;">NAAC A+ ACCREDITED &bull; AUTONOMOUS</span>
-            </div>
-            <div style="font-size: 15.5px; font-weight: 900; margin: 4px 0 2px 0; color: #ffffff; letter-spacing: 0.5px; line-height: 1.35;">G H RAISONI COLLEGE OF ENGINEERING AND MANAGEMENT</div>
-            <div style="font-size: 12px; font-weight: 800; color: #fef08a; letter-spacing: 2px; margin-bottom: 6px;">WAGHOLI, PUNE</div>
-            <div style="font-size: 10.5px; color: #cbd5e1; font-weight: 600; border-top: 1px solid rgba(255,255,255,0.12); padding-top: 6px;">Approved by AICTE New Delhi &bull; Affiliated to Savitribai Phule Pune University (SPPU)</div>
-        </div>
-
-        <h1 style="color: #0f172a; margin-bottom: 4px; font-size: 24px;">Student Exam Portal</h1>
-        <p style="color: #64748b; margin-bottom: 18px; font-size: 13.5px;">AI Proctored Examination • Anti-Cheat Secured</p>
-        
+        <div class="student-brand"><span class="student-brand-mark">GH</span><span>G H Raisoni College of Engineering and Management<small>Wagholi, Pune · Examination portal</small></span></div>
+        <div class="student-heading"><div class="section-kicker">For students</div><h1>Student examination</h1><p>Enter your details as they appear in college records. Verify your camera before joining the exam room.</p></div>
         <div class="card">
             <div class="input-group">
                 <label>Full Name</label>
-                <input type="text" id="stuName" class="input-field" placeholder="e.g. Rahul Sharma" value="Rahul Sharma" required>
+                <input type="text" id="stuName" class="input-field" placeholder="e.g. Rahul Sharma" required>
             </div>
             <div style="display: flex; gap: 10px;">
                 <div class="input-group" style="flex: 1;">
                     <label>Roll Number</label>
-                    <input type="text" id="stuRoll" class="input-field" placeholder="e.g. ROLL101" value="ROLL101" required>
+                    <input type="text" id="stuRoll" class="input-field" placeholder="e.g. ROLL101" required>
                 </div>
                 <div class="input-group" style="flex: 1;">
                     <label>Registration No.</label>
-                    <input type="text" id="stuReg" class="input-field" placeholder="e.g. REG2026001" value="REG2026001" required>
+                    <input type="text" id="stuReg" class="input-field" placeholder="e.g. REG2026001" required>
                 </div>
             </div>
             <div style="display: flex; gap: 10px;">
                 <div class="input-group" style="flex: 1;">
                     <label>Class</label>
-                    <input type="text" id="stuClass" class="input-field" placeholder="e.g. SY" value="SY" required>
+                    <input type="text" id="stuClass" class="input-field" placeholder="e.g. SY" required>
                 </div>
                 <div class="input-group" style="flex: 1;">
                     <label>Division</label>
-                    <input type="text" id="stuDiv" class="input-field" placeholder="e.g. A" value="A" required>
+                    <input type="text" id="stuDiv" class="input-field" placeholder="e.g. A" required>
                 </div>
             </div>
             <div class="input-group">
                 <label>Department</label>
-                <input type="text" id="stuDept" class="input-field" placeholder="e.g. AIML / Computer Engineering" value="Computer Engineering" required>
+                <input type="text" id="stuDept" class="input-field" placeholder="e.g. AIML / Computer Engineering" required>
             </div>
             <div class="input-group">
                 <label>Examination Subject</label>
-                <input type="text" id="stuSub" class="input-field" placeholder="e.g. DSA" value="DSA" required>
+                <input type="text" id="stuSub" class="input-field" placeholder="e.g. DSA" required>
             </div>
 
             <!-- CAMERA GATEKEEPER BOX -->
             <div id="cameraGatekeeperBox" style="margin: 15px 0; background: #f8fafc; padding: 14px; border-radius: 10px; border: 1.5px dashed #cbd5e1;">
                 <p id="cameraStatusBadge" style="font-weight: 600; font-size: 13.5px; margin: 0 0 8px 0; color: #d97706;">⌛ Checking Camera Permissions...</p>
-                <button type="button" id="verifyCamBtn" onclick="window.requestCameraVerification()" class="btn btn-blue" style="margin: 0; font-size: 14px; padding: 10px 16px;">📷 Allow & Verify Camera</button>
+                <button type="button" id="verifyCamBtn" onclick="window.requestCameraVerification()" class="btn btn-blue" style="margin: 0; font-size: 14px; padding: 10px 16px;">Verify camera</button>
                 <div id="cameraBlockedNotice" style="display:none; background:#fee2e2; border:1.5px solid #ef4444; color:#991b1b; padding:10px; border-radius:8px; margin-top:10px; text-align:left; font-size:12.5px; line-height: 1.4;">
-                    <strong>🚫 NO CAMERA = NO EXAM</strong>
-                    <p style="margin:4px 0;">AI proctoring requires continuous camera verification. Please click the 🔒 Lock/Settings icon in your browser address bar, set Camera to <strong>ALLOW</strong>, and reload.</p>
+                    <strong>Camera access required</strong>
+                    <p style="margin:4px 0;">The exam requires camera access. Please click the 🔒 Lock/Settings icon in your browser address bar, set Camera to <strong>ALLOW</strong>, and reload.</p>
                 </div>
             </div>
 
@@ -272,14 +261,14 @@
         </div>
 
         <div style="margin-top: 25px; font-size: 13.5px; color: #64748b;">
-            Are you a Teacher / Faculty member? <br>
-            <a href="/staff" style="color: #2563eb; font-weight: 600; text-decoration: none;">Go to Staff & Faculty Portal &rarr;</a>
+            Staff member? <br>
+            <a href="/staff" style="color: #2563eb; font-weight: 600; text-decoration: none;">Open staff portal &rarr;</a>
         </div>
     </div>
 
     <!-- 2. WAITING ROOM (HOLDS STUDENT UNTIL FACULTY RELEASES EXAM) -->
     <div id="waiting-screen" class="screen">
-        <h1 style="color: #0f172a; margin-bottom: 6px;">Exam Waiting Room</h1>
+        <h1 style="color: #0f172a; margin-bottom: 6px;">Waiting for your exam</h1>
         <div class="card" style="border-top: 4px solid #f59e0b;">
             <p style="font-size: 18px; margin: 0 0 10px 0;"><strong>Welcome, <span id="displayName"></span>!</strong></p>
             
@@ -290,14 +279,14 @@
             </div>
 
             <div style="background: #fef3c7; border: 1.5px solid #f59e0b; border-radius: 10px; padding: 14px; margin-bottom: 18px; text-align: left;">
-                <div style="font-weight: 800; color: #b45309; font-size: 15px; margin-bottom: 4px;">🔒 EXAM IS CURRENTLY LOCKED BY FACULTY</div>
+                <div style="font-weight: 800; color: #b45309; font-size: 15px; margin-bottom: 4px;">Exam not yet released</div>
                 <p style="margin: 0; color: #92400e; font-size: 13px; line-height: 1.45;">
                     Your subject faculty has not yet released the exam. Please remain on this screen with your camera ready.<br>
-                    <strong>The moment your faculty clicks "RELEASE EXAM" on their panel, this page will instantly launch your test.</strong>
+                    <strong>This page will open the exam when your faculty releases it.</strong>
                 </p>
             </div>
 
-            <div class="loader">⌛ Waiting for faculty to release exam...</div>
+            <div class="loader">Waiting for faculty to release the exam…</div>
         </div>
     </div>
 

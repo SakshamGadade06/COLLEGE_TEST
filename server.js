@@ -121,7 +121,7 @@ bootstrap();
 // Serve only selected browser assets. Data files and snapshots are never public.
 app.get(['/', '/staff'], (req, res) => res.sendFile(path.join(ROOT, 'index.html')));
 app.get('/student', (req, res) => res.sendFile(path.join(ROOT, 'student.html')));
-for (const asset of ['campus_scene.css', 'campus_3d.js']) {
+for (const asset of ['campus_scene.css', 'campus_3d.js', 'portal_ui.css']) {
     app.get('/' + asset, (req, res) => res.sendFile(path.join(ROOT, asset)));
 }
 app.get('/uploads/questions/:file', (req, res) => {
