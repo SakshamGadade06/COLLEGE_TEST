@@ -3,11 +3,13 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const multer = require('multer');
+const xlsx = require('xlsx');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
 const usersFile = path.join(ROOT, 'users.json');
+const studentsFile = path.join(ROOT, 'students.json');
 const settingsFile = path.join(ROOT, 'exam_settings.json');
 const submissionsFile = path.join(ROOT, 'submissions.json');
 const questionsDir = path.join(ROOT, 'questions_by_subject');
@@ -219,6 +221,201 @@ app.get('/api/get-staff', staff('HOD', 'CLASS_TEACHER'), (req, res) => {
     res.json(readJSON(usersFile).map(publicUser));
 });
 
+// Excel & CSV Student Roster Upload
+const excelUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+
+app.post('/api/upload-students', staff('HOD', 'CLASS_TEACHER'), excelUpload.single('file'), (req, res) => {
+    let rawList = [];
+    if (req.file) {
+        try {
+            const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
+            const sheetName = workbook.SheetNames[0];
+            rawList = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
+        } catch (err) {
+            return res.status(400).json({ error: 'Failed to parse Excel file: ' + err.message });
+        }
+    } else if (Array.isArray(req.body.students)) {
+        rawList = req.body.students;
+    } else if (req.body.csvText) {
+        // Fallback CSV parser
+        const lines = req.body.csvText.split(/\r?\n/).filter(l => l.trim());
+        if (lines.length > 1) {
+            const headers = lines[0].split(',').map(h => h.trim().replace(/^["']|["']$/g, ''));
+            rawList = lines.slice(1).map(line => {
+                const cols = line.split(',').map(c => c.trim().replace(/^["']|["']$/g, ''));
+                const obj = {};
+                headers.forEach((h, i) => { obj[h] = cols[i] || ''; });
+                return obj;
+            });
+        }
+    } else {
+        return res.status(400).json({ error: 'No Excel file or student list provided' });
+    }
+
+    if (!rawList.length) return res.status(400).json({ error: 'The uploaded file contains no rows' });
+
+    const normalized = rawList.map(row => {
+        let rollNo = '', name = '', className = '', division = '', dept = '';
+        for (const [k, v] of Object.entries(row)) {
+            const cleanKey = k.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+            const val = String(v || '').trim();
+            if (['roll', 'rollno', 'prn', 'id', 'studentroll', 'rollnumber', 'seatno'].includes(cleanKey)) rollNo = val;
+            else if (['name', 'studentname', 'fullname', 'candidate', 'candidatename'].includes(cleanKey)) name = val;
+            else if (['class', 'classname', 'divisionclass', 'standard', 'year'].includes(cleanKey)) className = val;
+            else if (['div', 'division', 'sec', 'section'].includes(cleanKey)) division = val;
+            else if (['dept', 'department', 'branch', 'programme'].includes(cleanKey)) dept = val;
+        }
+        if (!className && req.staff.className) className = req.staff.className;
+        if (!division && className) {
+            const match = className.match(/\b([A-D])\b/i);
+            if (match) division = match[1].toUpperCase();
+        }
+        return {
+            rollNo: rollNo || String(row.rollNo || row.roll || ''),
+            name: name || String(row.name || ''),
+            className: className || req.staff.className || 'SY-AIML',
+            division: division || 'A',
+            dept: dept || 'Computer Engineering & AI'
+        };
+    }).filter(s => s.rollNo && s.name);
+
+    if (!normalized.length) return res.status(400).json({ error: 'No valid student records found (Roll No and Name are required)' });
+
+    const existing = readJSON(studentsFile, []);
+    let added = 0, updated = 0;
+    for (const student of normalized) {
+        const idx = existing.findIndex(s => s.rollNo.toUpperCase() === student.rollNo.toUpperCase());
+        if (idx >= 0) {
+            existing[idx] = { ...existing[idx], ...student };
+            updated++;
+        } else {
+            existing.push(student);
+            added++;
+        }
+    }
+    writeJSON(studentsFile, existing);
+    res.json({ success: true, added, updated, total: existing.length });
+});
+
+app.get('/api/get-students', staff('HOD', 'CLASS_TEACHER', 'FACULTY'), (req, res) => {
+    const students = readJSON(studentsFile, []);
+    const submissions = readJSON(submissionsFile, []);
+    const users = readJSON(usersFile, []);
+    
+    // Discover all available subjects
+    const subjectsSet = new Set(['DSA', 'AI', 'DBMS', 'Web Technology']);
+    users.filter(u => u.subject).forEach(u => subjectsSet.add(u.subject));
+    submissions.forEach(s => subjectsSet.add(s.subject));
+    const allKnownSubjects = Array.from(subjectsSet);
+
+    const divFilter = (req.query.division || req.query.className || '').trim().toUpperCase();
+    const isCT = req.staff.role === 'CLASS_TEACHER';
+    const ctClass = (req.staff.className || '').toUpperCase();
+
+    const enriched = students.filter(s => {
+        if (divFilter && divFilter !== 'ALL') {
+            return (s.division || '').toUpperCase() === divFilter || (s.className || '').toUpperCase().includes(divFilter);
+        }
+        if (isCT && ctClass && (!divFilter || divFilter === 'ALL')) {
+            // By default filter to this Class Teacher's class/division unless explicitly requesting all
+            const matchesClass = (s.className || '').toUpperCase() === ctClass;
+            const matchesDiv = s.division && ctClass.includes(s.division.toUpperCase());
+            return matchesClass || matchesDiv;
+        }
+        return true;
+    }).map(st => {
+        const studentSubs = submissions.filter(sub => sub.rollNo.toUpperCase() === st.rollNo.toUpperCase());
+        const givenSubjects = studentSubs.map(s => ({
+            subject: s.subject,
+            score: s.score,
+            rawScore: s.rawScore,
+            total: s.total,
+            time: s.time
+        }));
+        const givenSubjectNames = new Set(givenSubjects.map(g => g.subject.toUpperCase()));
+        const pendingSubjects = allKnownSubjects.filter(sub => !givenSubjectNames.has(sub.toUpperCase()));
+
+        return {
+            ...st,
+            hasGivenExam: givenSubjects.length > 0,
+            givenCount: givenSubjects.length,
+            pendingCount: pendingSubjects.length,
+            givenSubjects,
+            pendingSubjects
+        };
+    });
+
+    res.json({
+        students: enriched,
+        total: enriched.length,
+        totalGiven: enriched.filter(s => s.hasGivenExam).length,
+        totalNotGiven: enriched.filter(s => !s.hasGivenExam).length,
+        allSubjects: allKnownSubjects
+    });
+});
+
+app.get('/api/student-all-marks', staff('HOD', 'CLASS_TEACHER'), (req, res) => {
+    const rollNo = String(req.query.rollNo || '').trim().toUpperCase();
+    if (!rollNo) return res.status(400).json({ error: 'Roll number required' });
+
+    const students = readJSON(studentsFile, []);
+    const student = students.find(s => s.rollNo.toUpperCase() === rollNo) || { rollNo, name: 'Student ' + rollNo };
+    const submissions = readJSON(submissionsFile, []);
+    const users = readJSON(usersFile, []);
+
+    // Discover all available subjects & their assigned faculty
+    const subjectsSet = new Set(['DSA', 'AI', 'DBMS', 'Web Technology']);
+    users.filter(u => u.subject).forEach(u => subjectsSet.add(u.subject));
+    submissions.forEach(s => subjectsSet.add(s.subject));
+
+    const records = Array.from(subjectsSet).map(subj => {
+        const sub = submissions.find(s => s.rollNo.toUpperCase() === rollNo && s.subject.toUpperCase() === subj.toUpperCase());
+        const teacher = users.find(u => u.role === 'FACULTY' && u.subject && u.subject.toUpperCase() === subj.toUpperCase());
+        if (sub) {
+            const raw = sub.rawScore !== undefined ? sub.rawScore : (parseInt(sub.score) || 0);
+            const tot = sub.total || 20;
+            const pct = Math.round((raw / tot) * 100);
+            return {
+                subject: subj,
+                facultyName: teacher ? teacher.name : 'Department Faculty',
+                hasGiven: true,
+                status: 'Completed',
+                score: sub.score,
+                rawScore: raw,
+                total: tot,
+                percentage: pct,
+                time: sub.time
+            };
+        } else {
+            return {
+                subject: subj,
+                facultyName: teacher ? teacher.name : 'Department Faculty',
+                hasGiven: false,
+                status: 'Not Given / Absent',
+                score: '—',
+                rawScore: null,
+                total: 20,
+                percentage: null,
+                time: null
+            };
+        }
+    });
+
+    const givenRecords = records.filter(r => r.hasGiven);
+    const avgPct = givenRecords.length ? Math.round(givenRecords.reduce((sum, r) => sum + r.percentage, 0) / givenRecords.length) : 0;
+
+    res.json({
+        student,
+        marks: records,
+        stats: {
+            totalSubjects: records.length,
+            examsGiven: givenRecords.length,
+            examsPending: records.length - givenRecords.length,
+            averagePercentage: avgPct
+        }
+    });
+});
+
 const storage = multer.diskStorage({
     destination: (_req, _file, cb) => cb(null, uploadsDir),
     filename: (_req, file, cb) => cb(null, token() + (file.mimetype === 'image/png' ? '.png' : '.jpg'))
@@ -310,20 +507,33 @@ app.post('/api/submit-exam', student, (req, res) => {
     writeJSON(submissionsFile, submissions);
     s.status = 'submitted';
     const settings = readJSON(settingsFile, {});
-    const showMarks = settings.showMarks && settings.subjectMarks?.[s.subject] !== false;
+    const sub = s.subject;
+    const roll = (s.roll || '').toUpperCase();
+    const indSetting = settings.individualStudentMarks?.[sub]?.[roll];
+    const showMarks = indSetting !== undefined ? indSetting : (Boolean(settings.showMarks) && settings.subjectMarks?.[sub] !== false);
     res.json({ success: true, submission: showMarks ? submission : { rollNo: s.roll, time: submission.time } });
 });
-app.get('/api/get-settings', staff('HOD', 'FACULTY'), (req, res) => res.json(readJSON(settingsFile, {})));
+app.get('/api/get-settings', staff('HOD', 'FACULTY', 'CLASS_TEACHER'), (req, res) => res.json(readJSON(settingsFile, {})));
 app.post('/api/update-settings', staff('HOD', 'FACULTY'), (req, res) => {
-    if (req.staff.role === 'FACULTY' && req.body.subject !== req.staff.subject) return res.sendStatus(403);
+    if (req.staff.role === 'FACULTY' && req.body.subject && req.body.subject !== req.staff.subject) return res.sendStatus(403);
     const current = readJSON(settingsFile, {});
-    if (req.staff.role === 'HOD') current.showMarks = !!req.body.showMarks;
-    else {
-        current.subjectMarks = current.subjectMarks || {};
-        current.subjectMarks[req.staff.subject] = !!req.body.showMarks;
+    current.subjectMarks = current.subjectMarks || {};
+    current.individualStudentMarks = current.individualStudentMarks || {};
+
+    if (req.staff.role === 'HOD') {
+        if (req.body.showMarks !== undefined) current.showMarks = !!req.body.showMarks;
+    } else {
+        const sub = req.staff.subject;
+        if (req.body.showMarks !== undefined) {
+            current.subjectMarks[sub] = !!req.body.showMarks;
+        }
+        if (req.body.studentRoll) {
+            current.individualStudentMarks[sub] = current.individualStudentMarks[sub] || {};
+            current.individualStudentMarks[sub][req.body.studentRoll.toUpperCase()] = !!req.body.individualShow;
+        }
     }
     writeJSON(settingsFile, current);
-    res.json({ success: true });
+    res.json({ success: true, settings: current });
 });
 app.get('/api/get-submissions', staff('HOD', 'CLASS_TEACHER', 'FACULTY'), ownSubject, (req, res) => {
     const all = readJSON(submissionsFile);

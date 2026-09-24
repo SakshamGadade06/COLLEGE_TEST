@@ -391,6 +391,7 @@
         }
     </style>
     <link rel="stylesheet" href="/campus_scene.css">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -399,7 +400,7 @@
     <section class="campus-visual" aria-label="GHRCEM Campus Simulation">
         <div id="campus3dContainer" class="campus-3d-wrapper">
             <canvas id="scene3d"></canvas>
-            <div class="campus-3d-hint"><span>🏛️</span> Drag to rotate &amp; explore GHRCEM Wagholi in 3D</div>
+            <div class="campus-3d-hint"><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M3 21h18M5 21V10l7-5 7 5v11M9 21V12h6v9"/></svg></span> Drag to rotate &amp; explore GHRCEM Wagholi in 3D</div>
         </div>
 
         <div class="campus-brand-top">
@@ -417,7 +418,7 @@
         </div>
 
         <div class="campus-view-toggle">
-            <span style="font-size:11px;font-weight:700;color:#93c5fd;display:inline-flex;align-items:center;gap:6px;padding:4px 8px;">🌐 Live 3D Simulation</span>
+            <span style="font-size:11px;font-weight:700;color:#93c5fd;display:inline-flex;align-items:center;gap:6px;padding:4px 8px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Live 3D Simulation</span>
             <button type="button" class="campus-view-btn" id="btnReplay3D" onclick="window.replayCampus3D()" title="Replay Campus Architecture Animation">↺ Replay Tour</button>
         </div>
 
@@ -441,7 +442,7 @@
             <p class="login-intro">Sign in with your institutional staff / faculty credentials.</p>
 
             <div class="student-redirect">
-                <strong>🎓 Are you an Examinee / Student?</strong>
+                <strong><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> Are you an Examinee / Student?</strong>
                 <p>Students must join their scheduled examination room here.</p>
                 <a href="/student">Enter Student Exam Portal →</a>
             </div>
@@ -459,7 +460,7 @@
             <input type="password" id="staffPass" class="input-field" placeholder="Enter your portal password" autocomplete="current-password">
 
             <div class="login-credentials-tip" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;margin:12px 0 14px;font-size:11.5px;color:#475569;line-height:1.5;">
-                <div style="font-weight:700;color:#1e3a8a;margin-bottom:3px;">🔑 Institutional Quick Logins:</div>
+                <div style="font-weight:700;color:#1e3a8a;margin-bottom:3px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m21 3-9.5 9.5M15.5 7.5l3 3M18.5 4.5l3 3"/></svg> Institutional Quick Logins:</div>
                 <div><strong>Faculty:</strong> <code>FAC001</code> / <code>faculty</code> (Subject: DSA)</div>
                 <div><strong>Class Teacher:</strong> <code>CLASSBAIML</code> / <code>CLASSB2026</code> (SY-AIML B)</div>
                 <div><strong>HOD:</strong> <code>HOD001</code> / <code>admin</code> (Super Admin)</div>
@@ -492,26 +493,34 @@
                 <h4 id="hod-profile-name">Super Admin</h4>
                 <p>ID: <span id="hod-profile-id">HOD001</span></p>
             </div>
-            <div class="user-avatar">🎓</div>
+            <div class="user-avatar-initials">HOD</div>
             <button class="btn-logout" onclick="location.reload()">Sign Out</button>
         </div>
     </header>
 
     <div class="kpi-strip">
         <div class="kpi-card">
-            <div class="kpi-icon" style="background:#eff6ff;color:#2563eb;">🏛️</div>
+            <div class="kpi-icon" style="background:#eff6ff;color:#1e40af;">
+                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M3 21h18M3 10h18M5 10v11M9 10v11M15 10v11M19 10v11M12 2L2 7h20L12 2z"/></svg>
+            </div>
             <div><div class="kpi-value">GHRCEM</div><div class="kpi-label">Autonomous Campus</div></div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-icon" style="background:#f0fdf4;color:#16a34a;">👨‍🏫</div>
+            <div class="kpi-icon" style="background:#f0fdf4;color:#15803d;">
+                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
             <div><div class="kpi-value" id="hod-stat-faculty">—</div><div class="kpi-label">Active Faculty</div></div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-icon" style="background:#fef3c7;color:#d97706;">📝</div>
+            <div class="kpi-icon" style="background:#fef3c7;color:#b45309;">
+                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </div>
             <div><div class="kpi-value" id="hod-stat-submissions">—</div><div class="kpi-label">Submissions</div></div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-icon" style="background:#faf5ff;color:#7e22ce;">🛡️</div>
+            <div class="kpi-icon" style="background:#faf5ff;color:#6b21a8;">
+                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
             <div><div class="kpi-value">99.8%</div><div class="kpi-label">Proctoring Integrity</div></div>
         </div>
     </div>
@@ -520,14 +529,33 @@
         <nav class="sidebar">
             <div class="sidebar-brand">Navigation</div>
             <div class="sidebar-section">Management</div>
-            <div class="sidebar-item active" id="hod-nav-teachers" onclick="showHodTab('teachers')">👥 Manage Class Teachers</div>
-            <div class="sidebar-item" id="hod-nav-create-hod" onclick="showHodTab('create-hod')">👑 Create HOD Account</div>
+            <div class="sidebar-item active" id="hod-nav-teachers" onclick="showHodTab('teachers')">
+                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                Manage Class Teachers
+            </div>
+            <div class="sidebar-item" id="hod-nav-students" onclick="showHodTab('students')">
+                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+                Student Roster &amp; Marks
+            </div>
+            <div class="sidebar-item" id="hod-nav-create-hod" onclick="showHodTab('create-hod')">
+                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                Create HOD Account
+            </div>
             <div class="sidebar-section">Exams</div>
-            <div class="sidebar-item" id="hod-nav-exams" onclick="showHodTab('exams')">📊 All Subject Exams</div>
+            <div class="sidebar-item" id="hod-nav-exams" onclick="showHodTab('exams')">
+                <svg class="icon-svg" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                All Subject Exams
+            </div>
             <div class="sidebar-section">Settings</div>
-            <div class="sidebar-item" id="hod-nav-settings" onclick="showHodTab('settings')">⚙️ Academic Controls</div>
+            <div class="sidebar-item" id="hod-nav-settings" onclick="showHodTab('settings')">
+                <svg class="icon-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                Academic Controls
+            </div>
             <div class="sidebar-spacer"></div>
-            <div class="sidebar-item" style="color:#fca5a5;" onclick="location.reload()">🚪 Sign Out</div>
+            <div class="sidebar-item" style="color:#fca5a5;" onclick="location.reload()">
+                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Sign Out
+            </div>
             <div class="sidebar-footer">Institutional Portal v3.0</div>
         </nav>
 
@@ -559,7 +587,7 @@
                     <div class="card">
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
                             <div>
-                                <h3>👨‍🏫 Faculty &amp; Class Teachers</h3>
+                                <h3>Faculty &amp; Class Teachers</h3>
                                 <p>Active staff directory for this session.</p>
                             </div>
                             <button onclick="loadHodStaffList()" class="btn btn-outline btn-sm">↺ Refresh</button>
@@ -571,11 +599,57 @@
                 </div>
             </div>
 
+            <!-- TAB: STUDENT ROSTER & MARKS -->
+            <div id="hod-students" class="tab-content">
+                <div class="excel-upload-container">
+                    <div class="excel-upload-header">
+                        <div>
+                            <div class="excel-upload-title">
+                                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                                Upload Student Master Roster (Excel / CSV)
+                            </div>
+                            <div class="excel-upload-sub">Upload .xlsx, .xls, or .csv spreadsheets. Supported columns: Roll No, Name, Division, Department.</div>
+                        </div>
+                        <button type="button" onclick="downloadStudentTemplate()" class="btn btn-outline btn-sm">
+                            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Download Template
+                        </button>
+                    </div>
+                    <div class="excel-upload-form">
+                        <input type="file" id="hodStudentExcelFile" accept=".xlsx, .xls, .csv" class="excel-file-input">
+                        <button type="button" onclick="uploadStudentExcel('hodStudentExcelFile', 'HOD')" class="btn btn-blue btn-sm" style="padding:10px 20px;">Upload &amp; Process</button>
+                        <span id="hodUploadStatus" style="font-size:12.5px;color:#166534;font-weight:600;"></span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+                        <div>
+                            <h3>Student Master Directory &amp; Exam Progression</h3>
+                            <p style="margin:0;">Click any student name to inspect all-subject evaluation scores and transcripts.</p>
+                        </div>
+                        <div style="display:flex;gap:10px;align-items:center;">
+                            <select id="hod-div-filter" class="input-field" style="width:auto;margin:0;padding:8px 12px;font-size:13px;" onchange="loadStudentRoster('HOD')">
+                                <option value="ALL">All Divisions</option>
+                                <option value="A">Division A</option>
+                                <option value="B">Division B</option>
+                                <option value="C">Division C</option>
+                            </select>
+                            <button onclick="loadStudentRoster('HOD')" class="btn btn-outline btn-sm">↺ Refresh</button>
+                        </div>
+                    </div>
+                    <input type="text" id="hod-stu-search" class="search-bar" placeholder="Search by student name or roll number…" oninput="loadStudentRoster('HOD')">
+                    <div id="hod-student-roster-table">
+                        <div style="color:#64748b;font-size:13px;padding:24px;text-align:center;">Loading student records…</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- TAB: CREATE HOD -->
             <div id="hod-create-hod" class="tab-content">
                 <div class="two-col">
-                    <div class="card" style="border-top:3px solid #f59e0b;">
-                        <h3>👑 Create HOD Account</h3>
+                    <div class="card" style="border-top:3px solid #1e293b;">
+                        <h3>Create HOD Account</h3>
                         <p>Register a new Head of Department or Academic Administrator.</p>
                         <div class="form-group">
                             <label class="card-label" for="newHodId">Username / ID</label>
@@ -605,12 +679,12 @@
                             <label class="card-label" for="newHodTitle">Title</label>
                             <input type="text" id="newHodTitle" class="input-field" value="Head of Department">
                         </div>
-                        <button onclick="createHodAccount()" class="btn" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;">👑 Register HOD</button>
+                        <button onclick="createHodAccount()" class="btn btn-blue">Register HOD Account</button>
                     </div>
                     <div class="card">
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
                             <div>
-                                <h3>🏛️ Registered HODs</h3>
+                                <h3>Registered HODs</h3>
                                 <p>All verified administrators with HOD privileges.</p>
                             </div>
                             <button onclick="loadHodDirectoryList()" class="btn btn-outline btn-sm">↺ Refresh</button>
@@ -635,7 +709,7 @@
                 <div class="card">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
                         <div>
-                            <h3>📊 Subject Examination Records</h3>
+                            <h3>Subject Examination Records</h3>
                             <p>Review candidate performance across all subjects.</p>
                         </div>
                         <button onclick="viewSubjectMarks('HOD')" class="btn btn-outline btn-sm">↺ Refresh</button>
@@ -648,7 +722,7 @@
             <!-- TAB: SETTINGS -->
             <div id="hod-settings" class="tab-content">
                 <div class="card">
-                    <h3>⚙️ Academic Controls</h3>
+                    <h3>Academic Controls</h3>
                     <p>Configure global examination policies and compliance settings.</p>
                     <label class="toggle-row">
                         <input type="checkbox" id="global-marks-toggle" onchange="updateGlobalMarks()">
@@ -657,7 +731,7 @@
                     <p style="color:#94a3b8;font-size:12px;margin-top:8px;">When enabled, students immediately view their score upon submission.</p>
 
                     <div class="guide-box" style="margin-top:24px;">
-                        <h4>🛡️ University AI Proctoring Guidelines (Active)</h4>
+                        <h4>University AI Proctoring Guidelines (Active)</h4>
                         <ul>
                             <li><strong>Facial Tracking:</strong> Continuous MediaPipe Face Landmark proctoring active on candidate devices.</li>
                             <li><strong>Anti-OCR Canvas:</strong> Questions rendered with algorithmic watermarking to prevent OCR scanning.</li>
@@ -685,17 +759,21 @@
                 <h4 id="ct-profile-name">—</h4>
                 <p id="ct-profile-div">—</p>
             </div>
-            <div class="user-avatar">👤</div>
+            <div class="user-avatar-initials">CT</div>
             <button class="btn-logout" onclick="location.reload()">Sign Out</button>
         </div>
     </header>
     <div class="kpi-strip">
         <div class="kpi-card">
-            <div class="kpi-icon" style="background:#eff6ff;color:#2563eb;">👨‍🏫</div>
+            <div class="kpi-icon" style="background:#eff6ff;color:#1e40af;">
+                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
             <div><div class="kpi-value" id="ct-stat-faculty">—</div><div class="kpi-label">Assigned Faculty</div></div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-icon" style="background:#fef3c7;color:#d97706;">👥</div>
+            <div class="kpi-icon" style="background:#fef3c7;color:#b45309;">
+                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            </div>
             <div><div class="kpi-value" id="ct-stat-students">—</div><div class="kpi-label">Class Students</div></div>
         </div>
     </div>
@@ -703,10 +781,19 @@
         <nav class="sidebar">
             <div class="sidebar-brand">Navigation</div>
             <div class="sidebar-section">Management</div>
-            <div class="sidebar-item active" onclick="showCtTab('faculty')">Manage Faculty</div>
-            <div class="sidebar-item" onclick="showCtTab('students')">Class Student List</div>
+            <div class="sidebar-item active" id="ct-nav-faculty" onclick="showCtTab('faculty')">
+                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                Manage Faculty
+            </div>
+            <div class="sidebar-item" id="ct-nav-students" onclick="showCtTab('students')">
+                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+                Class Student List &amp; Exams
+            </div>
             <div class="sidebar-spacer"></div>
-            <div class="sidebar-item" style="color:#fca5a5;" onclick="location.reload()">🚪 Sign Out</div>
+            <div class="sidebar-item" style="color:#fca5a5;" onclick="location.reload()">
+                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Sign Out
+            </div>
         </nav>
         <div class="main-content">
             <div id="ct-faculty" class="tab-content active">
@@ -720,10 +807,39 @@
                 </div>
             </div>
             <div id="ct-students" class="tab-content">
+                <div class="excel-upload-container">
+                    <div class="excel-upload-header">
+                        <div>
+                            <div class="excel-upload-title">
+                                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                                Upload Class Student List (Excel / CSV)
+                            </div>
+                            <div class="excel-upload-sub">Upload your division student roster spreadsheet (.xlsx, .xls, .csv). Supported columns: Roll No, Name, Division.</div>
+                        </div>
+                        <button type="button" onclick="downloadStudentTemplate()" class="btn btn-outline btn-sm">
+                            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Download Template
+                        </button>
+                    </div>
+                    <div class="excel-upload-form">
+                        <input type="file" id="ctStudentExcelFile" accept=".xlsx, .xls, .csv" class="excel-file-input">
+                        <button type="button" onclick="uploadStudentExcel('ctStudentExcelFile', 'CT')" class="btn btn-blue btn-sm" style="padding:10px 20px;">Upload &amp; Process</button>
+                        <span id="ctUploadStatus" style="font-size:12.5px;color:#166534;font-weight:600;"></span>
+                    </div>
+                </div>
+
                 <div class="card">
-                    <h3>My Class Students</h3>
-                    <input type="text" id="ct-stu-search" class="search-bar" placeholder="Search by Name or Roll No…" oninput="searchStudents('CT')">
-                    <div id="ct-student-list"></div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+                        <div>
+                            <h3>My Division Student Roster &amp; Examination Status</h3>
+                            <p style="margin:0;">Inspect examination status. Click any student's name to view their complete all-subject scorecard.</p>
+                        </div>
+                        <button onclick="loadStudentRoster('CT')" class="btn btn-outline btn-sm">↺ Refresh</button>
+                    </div>
+                    <input type="text" id="ct-stu-search" class="search-bar" placeholder="Search by student name or roll number…" oninput="loadStudentRoster('CT')">
+                    <div id="ct-student-list">
+                        <div style="color:#64748b;font-size:13px;padding:24px;text-align:center;">Loading class records…</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -745,17 +861,26 @@
                 <h4 id="fac-profile-name">—</h4>
                 <p>Subject: <span id="fac-profile-subject">—</span></p>
             </div>
-            <div class="user-avatar">👤</div>
+            <div class="user-avatar-initials">FAC</div>
             <button class="btn-logout" onclick="location.reload()">Sign Out</button>
         </div>
     </header>
     <div class="dash-body">
         <nav class="sidebar">
             <div class="sidebar-brand">Navigation</div>
-            <div class="sidebar-item active" id="fac-nav-exam" onclick="showFacTab('exam')">📝 Exam Control</div>
-            <div class="sidebar-item" id="fac-nav-marks" onclick="showFacTab('marks')">📊 Results</div>
+            <div class="sidebar-item active" id="fac-nav-exam" onclick="showFacTab('exam')">
+                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Exam Control
+            </div>
+            <div class="sidebar-item" id="fac-nav-marks" onclick="showFacTab('marks')">
+                <svg class="icon-svg" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                Results &amp; Disclosure
+            </div>
             <div class="sidebar-spacer"></div>
-            <div class="sidebar-item" style="color:#fca5a5;" onclick="location.reload()">🚪 Sign Out</div>
+            <div class="sidebar-item" style="color:#fca5a5;" onclick="location.reload()">
+                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Sign Out
+            </div>
         </nav>
         <div class="main-content">
             <!-- EXAM CONTROL -->
@@ -765,10 +890,10 @@
                         <div>
                             <h3 style="font-size:17px;margin-bottom:4px;">Exam Master Release Switch</h3>
                             <p style="color:#64748b;font-size:13px;">Students cannot start until you release the exam.</p>
-                            <div id="faculty-exam-status-badge" style="margin-top:8px;font-weight:700;font-size:13px;color:#d97706;">🔒 EXAM LOCKED</div>
-                            <div id="faculty-student-counter" style="font-size:12px;color:#64748b;margin-top:4px;">Students: 0 waiting, 0 in exam</div>
+                            <div id="faculty-exam-status-badge" style="margin-top:8px;font-weight:700;font-size:13px;color:#d97706;">EXAM LOCKED — Students in Waiting Room</div>
+                            <div id="faculty-student-counter" style="font-size:12px;color:#64748b;margin-top:4px;">Candidates: 0 waiting, 0 in exam</div>
                         </div>
-                        <button id="facultyToggleExamBtn" onclick="toggleFacultyExam()" class="btn btn-green" style="width:auto;margin:0;padding:14px 28px;font-size:15px;">🚀 RELEASE EXAM</button>
+                        <button id="facultyToggleExamBtn" onclick="toggleFacultyExam()" class="btn btn-green" style="width:auto;margin:0;padding:14px 28px;font-size:15px;">Release Exam</button>
                     </div>
                 </div>
 
@@ -794,16 +919,71 @@
 
             <!-- RESULTS -->
             <div id="fac-marks" class="tab-content">
-                <div class="card">
-                    <h3>Student Results & Submissions</h3>
-                    <label class="toggle-row">
-                        <input type="checkbox" id="fac-marks-toggle" onchange="updateSubjectMarks()">
-                        <span>Allow students to see their score immediately</span>
+                <div class="faculty-disclosure-card">
+                    <div>
+                        <div class="faculty-disclosure-title">
+                            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            Individual Score Disclosure Policy
+                        </div>
+                        <div class="faculty-disclosure-sub">Tick this box if you want examinees to view their scores individually for <strong id="fac-disclosure-subject-name">—</strong> upon submission.</div>
+                    </div>
+                    <label class="toggle-row" style="margin:0;">
+                        <input type="checkbox" id="fac-marks-toggle" onchange="updateFacultySubjectMarks()">
+                        <span style="font-weight:700;color:#0f172a;">Disclose scores to candidates individually</span>
                     </label>
+                </div>
+
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+                        <div>
+                            <h3>Student Results &amp; Submissions</h3>
+                            <p style="margin:0;">Candidate answer sheets and scores for your subject.</p>
+                        </div>
+                        <button onclick="searchStudents('FAC')" class="btn btn-outline btn-sm">↺ Refresh</button>
+                    </div>
                     <input type="text" id="fac-stu-search" class="search-bar" placeholder="Search student by name or roll number…" oninput="searchStudents('FAC')">
                     <div id="fac-results-table"></div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== 5. ALL SUBJECTS SCORECARD MODAL ==================== -->
+<div id="studentMarksModal" class="report-modal-backdrop" onclick="if(event.target===this) closeStudentReport()">
+    <div class="report-modal">
+        <div class="report-modal-header">
+            <div>
+                <h3 id="modalStudentName">Student Scorecard</h3>
+                <p id="modalStudentSub">Roll No: — &bull; Division: — &bull; Department: —</p>
+            </div>
+            <button type="button" class="report-close-btn" onclick="closeStudentReport()">&times;</button>
+        </div>
+        <div class="report-modal-body">
+            <div class="report-kpi-grid">
+                <div class="report-kpi">
+                    <div class="val" id="modalKpiTotal">0</div>
+                    <div class="lbl">Total Subjects</div>
+                </div>
+                <div class="report-kpi">
+                    <div class="val" style="color:#16a34a;" id="modalKpiGiven">0</div>
+                    <div class="lbl">Exams Given</div>
+                </div>
+                <div class="report-kpi">
+                    <div class="val" style="color:#d97706;" id="modalKpiPending">0</div>
+                    <div class="lbl">Exams Pending</div>
+                </div>
+                <div class="report-kpi">
+                    <div class="val" style="color:#2563eb;" id="modalKpiAvg">0%</div>
+                    <div class="lbl">Average Score</div>
+                </div>
+            </div>
+            <h4 style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:12px;">Subject-wise Marks &amp; Exam Status</h4>
+            <div id="modalMarksTable"></div>
+        </div>
+        <div class="report-modal-footer">
+            <button type="button" onclick="window.print()" class="btn btn-outline btn-sm">Print / Save PDF</button>
+            <button type="button" onclick="closeStudentReport()" class="btn btn-blue btn-sm">Close Transcript</button>
         </div>
     </div>
 </div>
@@ -987,7 +1167,7 @@
             const staff = await res.json();
             const hods = staff.filter(s => s.role === 'HOD');
             if (!hods.length) { container.innerHTML = '<div style="color:#94a3b8;font-size:13px;padding:20px;text-align:center;">No HOD records.</div>'; return; }
-            container.innerHTML = hods.map(h => `<div class="staff-card" style="border-left:3px solid #f59e0b;"><span class="role-badge badge-amber">👑 Head of Dept</span><h4>${h.name || h.id}</h4><div class="staff-id">${h.id}</div><div class="staff-detail">Dept: ${h.dept || 'Computer Engineering & AI'}</div></div>`).join('');
+            container.innerHTML = hods.map(h => `<div class="staff-card" style="border-left:3px solid #1e293b;"><span class="role-badge badge-amber">Head of Dept</span><h4>${h.name || h.id}</h4><div class="staff-id">${h.id}</div><div class="staff-detail">Dept: ${h.dept || 'Computer Engineering & AI'}</div></div>`).join('');
         } catch(e) { container.innerHTML = '<div style="color:#dc2626;font-size:13px;">Failed to load.</div>'; }
     };
 
@@ -999,6 +1179,7 @@
         if (tc) tc.classList.add('active');
         if (nb) nb.classList.add('active');
         if (tab === 'teachers') loadHodStaffList();
+        if (tab === 'students') loadStudentRoster('HOD');
         if (tab === 'create-hod') loadHodDirectoryList();
         if (tab === 'exams') viewSubjectMarks('HOD');
     };
@@ -1025,8 +1206,12 @@
     // ============ CLASS TEACHER ============
     window.showCtTab = (tab) => {
         document.querySelectorAll('#ct-dash .tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('#ct-dash .sidebar .sidebar-item').forEach(b => b.classList.remove('active'));
         const tcs = document.getElementById(`ct-${tab}`);
+        const nb = document.getElementById(`ct-nav-${tab}`);
         if (tcs) tcs.classList.add('active');
+        if (nb) nb.classList.add('active');
+        if (tab === 'students') loadStudentRoster('CT');
     };
 
     window.initCtDashboard = () => {
@@ -1036,7 +1221,267 @@
             if (n) n.innerText = currentUser.name || "Class Teacher";
             if (d) d.innerText = "Division: " + (currentUser.className || "SY-AIML B");
         }
-        if (typeof searchStudents === 'function') searchStudents('CT');
+        loadStudentRoster('CT');
+    };
+
+    // ============ EXCEL SHEET UPLOAD & ROSTER MANAGEMENT ============
+    window.downloadStudentTemplate = () => {
+        const headers = ["Roll No", "Student Name", "Division", "Department"];
+        const rows = [
+            ["23AIML001", "Aarav Sharma", "A", "Computer Engineering & AI"],
+            ["23AIML002", "Ananya Patil", "A", "Computer Engineering & AI"],
+            ["23AIML003", "Rohan Deshmukh", "B", "Computer Engineering & AI"],
+            ["23AIML004", "Sakshi Joshi", "B", "Computer Engineering & AI"]
+        ];
+        if (window.XLSX) {
+            const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Student_List");
+            XLSX.writeFile(wb, "GHRCEM_Student_Roster_Template.xlsx");
+        } else {
+            const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "GHRCEM_Student_Roster_Template.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    };
+
+    window.uploadStudentExcel = async (inputId, role) => {
+        const input = document.getElementById(inputId);
+        const statusEl = document.getElementById(role === 'HOD' ? 'hodUploadStatus' : 'ctUploadStatus');
+        if (!input || !input.files || !input.files.length) {
+            alert("Please select an Excel (.xlsx, .xls) or CSV file to upload.");
+            return;
+        }
+        const file = input.files[0];
+        if (statusEl) {
+            statusEl.style.color = '#2563eb';
+            statusEl.innerText = 'Processing spreadsheet…';
+        }
+
+        const handleSuccess = (result) => {
+            if (statusEl) {
+                statusEl.style.color = '#166534';
+                statusEl.innerText = `Success: ${result.added || 0} added, ${result.updated || 0} updated (Total: ${result.total || 0})`;
+            }
+            input.value = '';
+            loadStudentRoster(role);
+        };
+
+        const handleError = (err) => {
+            if (statusEl) {
+                statusEl.style.color = '#dc2626';
+                statusEl.innerText = err || 'Upload failed.';
+            }
+            alert(err || 'Upload failed.');
+        };
+
+        if (window.XLSX) {
+            try {
+                const data = await file.arrayBuffer();
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheetName = workbook.SheetNames[0];
+                const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
+                if (!rows.length) {
+                    handleError('The selected spreadsheet contains no rows.');
+                    return;
+                }
+                const res = await fetch('/api/upload-students', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ students: rows })
+                });
+                const result = await res.json();
+                if (res.ok && result.success) {
+                    handleSuccess(result);
+                } else {
+                    handleError(result.error || 'Failed to import students.');
+                }
+                return;
+            } catch (e) {
+                console.warn('Client-side XLSX parse failed, using multipart upload fallback:', e);
+            }
+        }
+
+        try {
+            const fd = new FormData();
+            fd.append('file', file);
+            const res = await fetch('/api/upload-students', { method: 'POST', body: fd });
+            const result = await res.json();
+            if (res.ok && result.success) handleSuccess(result);
+            else handleError(result.error || 'Failed to import students.');
+        } catch (err) {
+            handleError('Error connecting to server.');
+        }
+    };
+
+    window.loadStudentRoster = async (role) => {
+        const isHod = role === 'HOD';
+        const container = document.getElementById(isHod ? 'hod-student-roster-table' : 'ct-student-list');
+        if (!container) return;
+
+        const divFilter = isHod ? (document.getElementById('hod-div-filter')?.value || 'ALL') : '';
+        const searchQuery = (document.getElementById(isHod ? 'hod-stu-search' : 'ct-stu-search')?.value || '').trim().toLowerCase();
+
+        try {
+            const url = `/api/get-students${divFilter && divFilter !== 'ALL' ? '?division=' + encodeURIComponent(divFilter) : ''}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            const students = (data.students || []).filter(s => {
+                if (!searchQuery) return true;
+                return (s.rollNo && s.rollNo.toLowerCase().includes(searchQuery)) ||
+                       (s.name && s.name.toLowerCase().includes(searchQuery)) ||
+                       (s.className && s.className.toLowerCase().includes(searchQuery));
+            });
+
+            if (!isHod) {
+                const stuCountEl = document.getElementById('ct-stat-students');
+                if (stuCountEl) stuCountEl.innerText = data.total || 0;
+            }
+
+            if (!students.length) {
+                container.innerHTML = `
+                    <div style="text-align:center;padding:36px;color:#64748b;">
+                        <div style="font-size:15px;font-weight:700;color:#0f172a;margin-bottom:4px;">No students found</div>
+                        <div style="font-size:13px;">Use the upload box above to import an Excel sheet of students.</div>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:130px;">Roll Number</th>
+                            <th style="min-width:180px;">Student Name</th>
+                            <th style="width:100px;">Division</th>
+                            <th style="min-width:320px;">Exam Progression &amp; Status</th>
+                            <th style="width:140px;text-align:right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            students.forEach(s => {
+                const givenChips = (s.givenSubjects || []).map(g => 
+                    `<span class="subject-chip"><strong>${g.subject}:</strong> ${g.score}</span>`
+                ).join(' ') || '<span style="color:#94a3b8;font-size:11px;">None</span>';
+
+                const pendingChips = (s.pendingSubjects || []).map(sub => 
+                    `<span class="subject-chip" style="background:#f8fafc;color:#64748b;">${sub}</span>`
+                ).join(' ') || '<span style="color:#16a34a;font-size:11px;font-weight:600;">All Complete</span>';
+
+                html += `
+                    <tr>
+                        <td><strong style="color:#0f172a;letter-spacing:0.02em;">${s.rollNo}</strong></td>
+                        <td>
+                            <a href="javascript:void(0)" onclick="openStudentReport('${s.rollNo}')" class="student-link" title="Click to view all subject marks">
+                                ${s.name}
+                                <svg class="icon-svg" style="width:12px;height:12px;margin:0;" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                            </a>
+                        </td>
+                        <td><span class="badge" style="display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;background:#e2e8f0;color:#334155;">${s.division || 'A'}</span></td>
+                        <td>
+                            <div class="student-status-box">
+                                <div class="status-row-given">
+                                    <span class="status-pill-given">Given (${s.givenCount || 0})</span>
+                                    ${givenChips}
+                                </div>
+                                <div class="status-row-pending">
+                                    <span class="status-pill-pending">Not Given (${s.pendingCount || 0})</span>
+                                    ${pendingChips}
+                                </div>
+                            </div>
+                        </td>
+                        <td style="text-align:right;">
+                            <button type="button" onclick="openStudentReport('${s.rollNo}')" class="btn btn-outline btn-sm" style="font-size:12px;padding:6px 12px;">
+                                All Marks
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        } catch(err) {
+            container.innerHTML = `<div style="color:#dc2626;font-size:13px;padding:20px;">Failed to load student roster.</div>`;
+        }
+    };
+
+    // ============ ALL SUBJECTS SCORECARD MODAL ============
+    window.openStudentReport = async (rollNo) => {
+        try {
+            const res = await fetch(`/api/student-all-marks?rollNo=${encodeURIComponent(rollNo)}`);
+            const data = await res.json();
+            if (!data || !data.student) return;
+
+            const st = data.student;
+            const stats = data.stats || {};
+            const marks = data.marks || [];
+
+            document.getElementById('modalStudentName').innerText = `${st.name} — Academic Scorecard`;
+            document.getElementById('modalStudentSub').innerText = `Roll No: ${st.rollNo}  •  Division: ${st.division || 'A'}  •  Class: ${st.className || 'SY-AIML'}  •  ${st.dept || 'Computer Engineering & AI'}`;
+
+            document.getElementById('modalKpiTotal').innerText = stats.totalSubjects || marks.length;
+            document.getElementById('modalKpiGiven').innerText = stats.examsGiven || 0;
+            document.getElementById('modalKpiPending').innerText = stats.examsPending || 0;
+            document.getElementById('modalKpiAvg').innerText = (stats.averagePercentage || 0) + '%';
+
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>In-Charge Faculty</th>
+                            <th>Exam Status</th>
+                            <th>Score</th>
+                            <th>Percentage</th>
+                            <th>Submission Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            marks.forEach(m => {
+                const statusBadge = m.hasGiven
+                    ? `<span class="status-pill-given">Completed</span>`
+                    : `<span class="status-pill-pending">Not Given / Absent</span>`;
+                
+                const timeStr = m.time ? new Date(m.time).toLocaleString() : '<span style="color:#94a3b8;">—</span>';
+                const scoreStr = m.hasGiven ? `<strong>${m.score}</strong>` : `<span style="color:#94a3b8;">—</span>`;
+                const pctStr = m.percentage !== null ? `<strong>${m.percentage}%</strong>` : `<span style="color:#94a3b8;">—</span>`;
+
+                html += `
+                    <tr>
+                        <td><strong style="color:#0f172a;">${m.subject}</strong></td>
+                        <td style="color:#475569;font-size:12.5px;">${m.facultyName || 'Faculty'}</td>
+                        <td>${statusBadge}</td>
+                        <td>${scoreStr}</td>
+                        <td>${pctStr}</td>
+                        <td style="color:#64748b;font-size:12px;">${timeStr}</td>
+                    </tr>
+                `;
+            });
+
+            html += `</tbody></table>`;
+            document.getElementById('modalMarksTable').innerHTML = html;
+
+            const modal = document.getElementById('studentMarksModal');
+            if (modal) modal.classList.add('active');
+        } catch (e) {
+            alert("Failed to load student scorecard.");
+        }
+    };
+
+    window.closeStudentReport = () => {
+        const modal = document.getElementById('studentMarksModal');
+        if (modal) modal.classList.remove('active');
     };
 
     // ============ FACULTY ============
@@ -1045,17 +1490,31 @@
             const s1 = document.getElementById('fac-subject-display');
             const s2 = document.getElementById('fac-profile-subject');
             const n = document.getElementById('fac-profile-name');
-            const e1 = document.getElementById('exam-control-sub');
+            const dname = document.getElementById('fac-disclosure-subject-name');
             const sub = currentUser.subject || 'DSA';
             if (s1) s1.innerText = sub;
             if (s2) s2.innerText = sub;
-            if (e1) e1.innerText = sub;
+            if (dname) dname.innerText = sub;
             if (n) n.innerText = currentUser.name || 'Faculty Member';
         }
         loadFacultyQuestions();
+        loadFacultyDisclosureSettings();
+        searchStudents('FAC');
         pollWaitingRoom();
         if (facultyPollInterval) clearInterval(facultyPollInterval);
         facultyPollInterval = setInterval(pollWaitingRoom, 3000);
+    }
+
+    async function loadFacultyDisclosureSettings() {
+        if (!currentUser?.subject) return;
+        try {
+            const res = await fetch('/api/get-settings');
+            const data = await res.json();
+            const toggle = document.getElementById('fac-marks-toggle');
+            if (toggle && data.subjectMarks) {
+                toggle.checked = data.subjectMarks[currentUser.subject] !== false;
+            }
+        } catch(e) {}
     }
 
     let facultyExamActive = false;
@@ -1077,16 +1536,16 @@
         const card = document.getElementById('releaseCard');
         if (!badge || !btn) return;
         if (facultyExamActive) {
-            badge.innerHTML = '<span style="color:#16a34a;">🟢 EXAM LIVE — Students can start now</span>';
-            btn.className = "btn btn-red"; btn.innerText = "🔒 LOCK EXAM";
+            badge.innerHTML = '<span style="color:#16a34a;font-weight:700;">EXAM LIVE — Candidates can start now</span>';
+            btn.className = "btn btn-red"; btn.innerText = "Lock Exam";
             if (card) { card.className = 'release-card live'; }
         } else {
-            badge.innerHTML = '<span style="color:#d97706;">🔒 EXAM LOCKED — Students in Waiting Room</span>';
-            btn.className = "btn btn-green"; btn.innerText = "🚀 RELEASE EXAM";
+            badge.innerHTML = '<span style="color:#d97706;font-weight:700;">EXAM LOCKED — Candidates in Waiting Room</span>';
+            btn.className = "btn btn-green"; btn.innerText = "Release Exam";
             if (card) { card.className = 'release-card locked'; }
         }
         const counter = document.getElementById('faculty-student-counter');
-        if (counter && data) counter.innerHTML = `👥 <strong>Students:</strong> <span style="color:#d97706;">${data.waiting} waiting</span> | <span style="color:#16a34a;">${data.in_exam} in exam</span>`;
+        if (counter && data) counter.innerHTML = `<strong>Candidates:</strong> <span style="color:#d97706;">${data.waiting} waiting</span> | <span style="color:#16a34a;">${data.in_exam} in exam</span>`;
     }
 
     window.toggleFacultyExam = async () => {
@@ -1105,7 +1564,18 @@
             const c = document.getElementById('question-list');
             if (!c) return;
             if (!questions.length) { c.innerHTML = '<p style="color:#94a3b8;font-size:13px;">No questions uploaded yet for this subject.</p>'; return; }
-            c.innerHTML = questions.map((q, i) => `<div class="question-card"><div><strong>Question ${i+1}</strong><br><small style="color:#94a3b8;">Correct: <strong>${q.correct}</strong></small></div><img src="${q.image}" alt="Q${i+1}"><button onclick="deleteQuestion('${q.id}')" class="btn btn-outline btn-sm" style="width:auto;margin:0;">🗑️</button></div>`).join('');
+            c.innerHTML = questions.map((q, i) => `
+                <div class="question-card">
+                    <div>
+                        <strong>Question ${i+1}</strong><br>
+                        <small style="color:#64748b;">Correct Option: <strong style="color:#0f172a;">${q.correct}</strong></small>
+                    </div>
+                    <img src="${q.image}" alt="Q${i+1}">
+                    <button onclick="deleteQuestion('${q.id}')" class="btn btn-outline btn-sm" style="width:auto;margin:0;" title="Delete Question">
+                        <svg class="icon-svg" style="width:14px;height:14px;margin:0;" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    </button>
+                </div>
+            `).join('');
         } catch(e) {}
     }
 
@@ -1120,7 +1590,7 @@
         fd.append('subject', currentUser.subject);
         try {
             const res = await fetch('/api/upload-question', { method: 'POST', body: fd });
-            if (res.ok) { alert("Question uploaded!"); fileInput.value = ''; correctInput.value = ''; loadFacultyQuestions(); }
+            if (res.ok) { alert("Question uploaded successfully."); fileInput.value = ''; correctInput.value = ''; loadFacultyQuestions(); }
             else alert("Failed to upload.");
         } catch(e) { alert("Error connecting."); }
     };
@@ -1133,26 +1603,81 @@
         } catch(e) {}
     };
 
-    // ============ SEARCH ============
+    // ============ SEARCH & MARKS DISCLOSURE ============
     window.searchStudents = async (role) => {
         const sub = (role === 'FAC') ? currentUser.subject : (document.getElementById('hod-sub-search')?.value || '');
         const query = (role === 'FAC') ? (document.getElementById('fac-stu-search')?.value || '') : (document.getElementById('ct-stu-search')?.value || '');
         try {
-            const res = await fetch(`/api/get-submissions?subject=${encodeURIComponent(sub)}`);
-            const data = await res.json();
+            const [subRes, setRes] = await Promise.all([
+                fetch(`/api/get-submissions?subject=${encodeURIComponent(sub)}`),
+                fetch('/api/get-settings')
+            ]);
+            const data = await subRes.json();
+            const settings = await setRes.json().catch(() => ({}));
             const filtered = data.filter(s => !query || (s.rollNo && s.rollNo.toLowerCase().includes(query.toLowerCase())) || (s.name && s.name.toLowerCase().includes(query.toLowerCase())));
-            let html = `<table><thead><tr><th>Roll No</th><th>Name</th><th>Subject</th><th>Score</th><th>Time</th></tr></thead><tbody>`;
-            if (!filtered.length) html += `<tr><td colspan="5" style="text-align:center;color:#94a3b8;">No submissions.</td></tr>`;
-            else filtered.forEach(s => { html += `<tr><td><strong>${s.rollNo}</strong></td><td>${s.name||'Student'}</td><td>${s.subject}</td><td><span style="display:inline-block;padding:3px 8px;border-radius:5px;font-size:11px;font-weight:700;background:#dcfce7;color:#166534;">${s.score}</span></td><td style="color:#64748b;font-size:12px;">${s.time}</td></tr>`; });
+            
+            let html = `<table><thead><tr><th>Roll No</th><th>Candidate Name</th><th>Subject</th><th>Score</th><th>Time</th>`;
+            if (role === 'FAC') html += `<th style="width:160px;text-align:center;">Individual Disclosure</th>`;
+            html += `</tr></thead><tbody>`;
+
+            if (!filtered.length) {
+                html += `<tr><td colspan="${role==='FAC'?6:5}" style="text-align:center;color:#94a3b8;padding:24px;">No submissions found.</td></tr>`;
+            } else {
+                filtered.forEach(s => {
+                    const roll = (s.rollNo || '').toUpperCase();
+                    const subSetting = settings.individualStudentMarks?.[sub]?.[roll];
+                    const isDisclosed = subSetting !== undefined ? subSetting : (settings.subjectMarks?.[sub] !== false);
+
+                    html += `<tr>
+                        <td><strong>${s.rollNo}</strong></td>
+                        <td>${s.name || 'Candidate'}</td>
+                        <td>${s.subject}</td>
+                        <td><span style="display:inline-block;padding:3px 8px;border-radius:5px;font-size:11px;font-weight:700;background:#dcfce7;color:#166534;">${s.score}</span></td>
+                        <td style="color:#64748b;font-size:12px;">${new Date(s.time).toLocaleString()}</td>`;
+                    
+                    if (role === 'FAC') {
+                        html += `<td style="text-align:center;">
+                            <label class="toggle-row" style="margin:0;justify-content:center;font-size:12px;cursor:pointer;">
+                                <input type="checkbox" onchange="toggleIndividualScore('${s.rollNo}', this.checked)" ${isDisclosed ? 'checked' : ''}>
+                                <span style="font-weight:600;color:#334155;">Show Score</span>
+                            </label>
+                        </td>`;
+                    }
+                    html += `</tr>`;
+                });
+            }
             html += '</tbody></table>';
             const target = document.getElementById(role === 'FAC' ? 'fac-results-table' : (role === 'CT' ? 'ct-student-list' : 'hod-results-table'));
             if (target) target.innerHTML = html;
         } catch(e) {}
     };
 
-    window.updateSubjectMarks = async () => {
-        const val = document.getElementById('fac-marks-toggle').checked;
-        await fetch('/api/update-settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subject: currentUser.subject, showMarks: val }) });
+    window.updateFacultySubjectMarks = async () => {
+        const val = document.getElementById('fac-marks-toggle')?.checked;
+        if (!currentUser?.subject) return;
+        try {
+            await fetch('/api/update-settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ subject: currentUser.subject, showMarks: val })
+            });
+            searchStudents('FAC');
+        } catch(e) {}
+    };
+
+    window.toggleIndividualScore = async (studentRoll, isChecked) => {
+        if (!currentUser?.subject) return;
+        try {
+            await fetch('/api/update-settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    subject: currentUser.subject,
+                    studentRoll,
+                    individualShow: isChecked
+                })
+            });
+        } catch(e) {}
     };
 
     window.createStaff = async (role) => {

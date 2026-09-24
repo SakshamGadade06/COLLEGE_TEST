@@ -260,3 +260,323 @@
     .campus-login-panel .login-card h2 { font-size: 20px; }
     .login-brand-header { flex-direction: column; align-items: flex-start; gap: 8px; }
 }
+
+/* ============================================================
+   INSTITUTIONAL CORPORATE THEME (NO EMOJIS, MONOCHROME ICONS)
+   ============================================================ */
+
+/* Monochrome SVG icon helper */
+.icon-svg {
+    display: inline-block;
+    width: 17px;
+    height: 17px;
+    stroke-width: 2;
+    stroke: currentColor;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vertical-align: -3px;
+    margin-right: 8px;
+    opacity: 0.85;
+}
+.kpi-card .icon-svg {
+    width: 22px;
+    height: 22px;
+    margin-right: 0;
+    opacity: 1;
+}
+.btn .icon-svg {
+    margin-right: 6px;
+    vertical-align: -2px;
+}
+
+/* Corporate User Monogram Initials Badge */
+.user-avatar-initials {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #1e293b;
+    color: #f8fafc;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    display: grid;
+    place-items: center;
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Excel Student List Upload Box */
+.excel-upload-container {
+    background: #f8fafc;
+    border: 2px dashed #cbd5e1;
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 24px;
+    transition: all 0.2s ease;
+}
+.excel-upload-container:hover, .excel-upload-container.dragover {
+    border-color: #2563eb;
+    background: #eff6ff;
+}
+.excel-upload-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.excel-upload-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.excel-upload-sub {
+    font-size: 12.5px;
+    color: #64748b;
+    margin-top: 2px;
+}
+.excel-upload-form {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.excel-file-input {
+    flex: 1;
+    min-width: 220px;
+    padding: 10px 14px;
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #334155;
+    cursor: pointer;
+}
+.excel-file-input::file-selector-button {
+    background: #1e293b;
+    color: #ffffff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: 12px;
+    transition: background 0.15s;
+}
+.excel-file-input::file-selector-button:hover {
+    background: #334155;
+}
+
+/* Two-Row Status Layout in front of Student */
+.student-status-box {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 4px 0;
+}
+.status-row-given {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.status-row-pending {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.status-pill-given {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+    white-space: nowrap;
+}
+.status-pill-pending {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    white-space: nowrap;
+}
+.subject-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 11px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #334155;
+    font-weight: 500;
+}
+.subject-chip strong {
+    color: #0f172a;
+    font-weight: 700;
+}
+
+/* Clickable Student Name Link */
+.student-link {
+    color: #1d4ed8;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.15s;
+}
+.student-link:hover {
+    color: #1e40af;
+    text-decoration: underline;
+}
+
+/* All Subjects Scorecard Modal */
+.report-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.report-modal-backdrop.active {
+    display: flex !important;
+}
+.report-modal {
+    background: #ffffff;
+    border-radius: 18px;
+    width: 100%;
+    max-width: 760px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+}
+.report-modal-header {
+    padding: 24px 28px 18px;
+    border-bottom: 1.5px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+.report-modal-header h3 {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+}
+.report-modal-header p {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: #64748b;
+}
+.report-close-btn {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: all 0.15s;
+}
+.report-close-btn:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+.report-modal-body {
+    padding: 24px 28px;
+    flex: 1;
+}
+.report-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+.report-kpi {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px 14px;
+}
+.report-kpi .val {
+    font-size: 20px;
+    font-weight: 800;
+    color: #0f172a;
+}
+.report-kpi .lbl {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 2px;
+}
+.report-modal-footer {
+    padding: 16px 28px;
+    border-top: 1.5px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    background: #f8fafc;
+    border-radius: 0 0 18px 18px;
+}
+
+/* Faculty Individual Score Disclosure Box */
+.faculty-disclosure-card {
+    background: #f8fafc;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+.faculty-disclosure-title {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #0f172a;
+}
+.faculty-disclosure-sub {
+    font-size: 12.5px;
+    color: #64748b;
+    margin-top: 2px;
+}
+

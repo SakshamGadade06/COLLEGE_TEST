@@ -1,0 +1,14 @@
+[
+  { "rollNo": "23AIML001", "name": "Aarav Sharma", "className": "SY-AIML A", "division": "A", "dept": "Computer Engineering & AI" },
+  { "rollNo": "23AIML002", "name": "Ananya Patil", "className": "SY-AIML A", "division": "A", "dept": "Computer Engineering & AI" },
+  { "rollNo": "23AIML003", "name": "Rohan Deshmukh", "className": "SY-AIML A", "division": "A", "dept": "Computer Engineering & AI" },
+  { "rollNo": "23AIML004", "name": "Sakshi Joshi", "className": "SY-AIML B", "division": "B", "dept": "Computer Engineering & AI" },
+  { "rollNo": "23AIML005", "name": "Aditya Kulkarni", "className": "SY-AIML B", "division": "B", "dept": "Computer Engineering & AI" },
+  { "rollNo": "23AIML006", "name": "Isha More", "className": "SY-AIML B", "division": "B", "dept": "Computer Engineering & AI" },
+  { "rollNo": "23AIML007", "name": "Pranav Shinde", "className": "SY-AIML B", "division": "B", "dept": "Computer Engineering & AI" },
+  { "rollNo": "23AIML008", "name": "Neha Gaikwad", "className": "SY-AIML B", "division": "B", "dept": "Computer Engineering & AI" },
+  { "rollNo": "23AIML009", "name": "Tanmay Jadhav", "className": "SY-AIML C", "division": "C", "dept": "Computer Engineering & AI" },
+  { "rollNo": "23AIML010", "name": "Pooja Wagh", "className": "SY-AIML C", "division": "C", "dept": "Computer Engineering & AI" },
+  { "rollNo": "23AIML011", "name": "Siddharth Pawar", "className": "SY-AIML C", "division": "C", "dept": "Computer Engineering & AI" },
+  { "rollNo": "23AIML012", "name": "Vaishnavi Mane", "className": "SY-AIML C", "division": "C", "dept": "Computer Engineering & AI" }
+]
