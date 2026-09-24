@@ -149,7 +149,7 @@
     transform: translateY(-1px);
 }
 
-/* === RIGHT LOGIN PANEL (CyberVidya Campus Theme) === */
+/* === RIGHT LOGIN PANEL === */
 .campus-login-panel {
     position: relative;
     z-index: 10;
@@ -158,9 +158,8 @@
     justify-content: center;
     align-items: center;
     padding: clamp(24px, 4vw, 48px);
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 58, 138, 0.80) 100%),
-                url('/cybervidya_bg.webp') center center / cover no-repeat;
-    box-shadow: -20px 0 50px rgba(0, 0, 0, 0.35);
+    background: #0b1322;
+    box-shadow: -20px 0 50px rgba(0, 0, 0, 0.4);
     overflow-y: auto;
 }
 
@@ -169,12 +168,12 @@
     max-width: 440px;
     margin: 0 auto;
     padding: 36px 32px;
-    background: rgba(255, 255, 255, 0.97);
+    background: rgba(255, 255, 255, 0.98);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.9);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .login-card h2 {
@@ -194,22 +193,53 @@
 .login-brand-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     gap: 12px;
     margin-bottom: 20px;
     padding-bottom: 16px;
     border-bottom: 1.5px solid #e2e8f0;
 }
 .login-college-logo {
-    height: 48px;
-    max-width: 220px;
+    height: 54px;
+    max-width: 320px;
     object-fit: contain;
 }
-.login-cybervidya-logo {
-    height: 32px;
-    max-width: 140px;
-    object-fit: contain;
-    border-radius: 6px;
+
+/* === FACULTY DASHBOARD - ORIGINAL CAMPUS PHOTO BACKGROUND (NO BLUE OVERLAY) === */
+#fac-dash.active {
+    display: flex !important;
+    flex-direction: column;
+    min-height: 100vh;
+    background: url('/cybervidya_bg.webp') center center / cover no-repeat fixed !important;
+    position: relative;
+}
+
+#fac-dash .dash-header {
+    background: rgba(15, 23, 42, 0.94) !important;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+#fac-dash .sidebar {
+    background: rgba(15, 23, 42, 0.92) !important;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#fac-dash .main-content {
+    background: transparent !important;
+}
+
+#fac-dash .card,
+#fac-dash .release-card {
+    background: rgba(255, 255, 255, 0.96) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.9) !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+    border-radius: 16px;
 }
 
 .campus-footer {
