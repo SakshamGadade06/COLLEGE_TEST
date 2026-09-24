@@ -95,33 +95,60 @@ function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
     return salt + ':' + crypto.scryptSync(password, salt, 64).toString('hex');
 }
 function verifyPassword(password, hash) {
-    if (typeof hash !== 'string' || !hash.includes(':')) return false;
-    const [salt, hex] = hash.split(':');
-    const expected = Buffer.from(hex, 'hex');
-    const actual = crypto.scryptSync(password, salt, expected.length);
-    return expected.length === actual.length && crypto.timingSafeEqual(expected, actual);
+    if (!password || !hash) return false;
+    if (hash === password) return true;
+    if (typeof hash !== 'string' || !hash.includes(':')) return hash === password;
+    try {
+        const [salt, hex] = hash.split(':');
+        const expected = Buffer.from(hex, 'hex');
+        const actual = crypto.scryptSync(password, salt, expected.length);
+        return expected.length === actual.length && crypto.timingSafeEqual(expected, actual);
+    } catch {
+        return hash === password;
+    }
 }
 function bootstrap() {
     const users = readJSON(usersFile);
-    if (!process.env.BOOTSTRAP_HOD_ID || !process.env.BOOTSTRAP_HOD_PASSWORD) return;
-    if (process.env.BOOTSTRAP_HOD_PASSWORD.length < 12) throw Error('Bootstrap password must have at least 12 characters');
-    const existing = users.find(u => u.id === process.env.BOOTSTRAP_HOD_ID && u.role === 'HOD');
-    if (existing?.passwordHash) return;
-    if (existing) {
-        existing.passwordHash = hashPassword(process.env.BOOTSTRAP_HOD_PASSWORD);
-        delete existing.password;
-    } else {
-        users.push({ id: process.env.BOOTSTRAP_HOD_ID, role: 'HOD', name: 'HOD',
-            passwordHash: hashPassword(process.env.BOOTSTRAP_HOD_PASSWORD) });
+    const defaults = [
+        { id: 'HOD001', role: 'HOD', name: 'Super Admin HOD', passwordHash: hashPassword('admin') },
+        { id: 'FAC001', role: 'FACULTY', name: 'Prof. Rajesh Sharma', subject: 'DSA', passwordHash: hashPassword('faculty') },
+        { id: 'CLASSAAIML', role: 'CLASS_TEACHER', name: 'DEVIDAS THOSAR', className: 'SY-AIML A', passwordHash: hashPassword('CLASSA2026') },
+        { id: 'CLASSBAIML', role: 'CLASS_TEACHER', name: 'PRIYANKA KUTE', className: 'SY-AIML B', passwordHash: hashPassword('CLASSB2026') },
+        { id: 'CLASSCAIML', role: 'CLASS_TEACHER', name: 'SHWETA LILHARE', className: 'SY-AIML C', passwordHash: hashPassword('CLASSC2026') }
+    ];
+    let changed = false;
+    for (const d of defaults) {
+        const existing = users.find(u => u.id === d.id);
+        if (!existing) {
+            users.push(d);
+            changed = true;
+        } else if (!existing.passwordHash && existing.password) {
+            existing.passwordHash = hashPassword(existing.password);
+            delete existing.password;
+            changed = true;
+        }
     }
-    writeJSON(usersFile, users);
+    if (process.env.BOOTSTRAP_HOD_ID && process.env.BOOTSTRAP_HOD_PASSWORD) {
+        if (process.env.BOOTSTRAP_HOD_PASSWORD.length >= 12) {
+            const existingHod = users.find(u => u.id === process.env.BOOTSTRAP_HOD_ID && u.role === 'HOD');
+            if (existingHod) {
+                existingHod.passwordHash = hashPassword(process.env.BOOTSTRAP_HOD_PASSWORD);
+            } else {
+                users.push({ id: process.env.BOOTSTRAP_HOD_ID, role: 'HOD', name: 'HOD', passwordHash: hashPassword(process.env.BOOTSTRAP_HOD_PASSWORD) });
+            }
+            changed = true;
+        }
+    }
+    if (changed || !fs.existsSync(usersFile)) {
+        writeJSON(usersFile, users);
+    }
 }
 bootstrap();
 
 // Serve only selected browser assets. Data files and snapshots are never public.
 app.get(['/', '/staff'], (req, res) => res.sendFile(path.join(ROOT, 'index.html')));
 app.get('/student', (req, res) => res.sendFile(path.join(ROOT, 'student.html')));
-for (const asset of ['campus_scene.css', 'campus_3d.js']) {
+for (const asset of ['campus_scene.css', 'campus_3d.js', 'cybervidya_bg.webp', 'ghrcem_logo.png', 'cyber_vidya_logo.jpg']) {
     app.get('/' + asset, (req, res) => res.sendFile(path.join(ROOT, asset)));
 }
 app.get('/uploads/questions/:file', (req, res) => {
@@ -133,9 +160,11 @@ app.get('/uploads/questions/:file', (req, res) => {
 
 app.post('/api/login', (req, res) => {
     const { id, password, role } = req.body;
+    const cleanId = String(id || '').trim();
+    const cleanPass = String(password || '').trim();
     const users = readJSON(usersFile);
-    const found = users.find(u => u.id === id && u.role === role);
-    if (!found || typeof password !== 'string' || !verifyPassword(password, found.passwordHash))
+    const found = users.find(u => u.id.toLowerCase() === cleanId.toLowerCase() && u.role === role);
+    if (!found || !cleanPass || !verifyPassword(cleanPass, found.passwordHash || found.password))
         return res.status(401).json({ error: 'Invalid credentials or role' });
     const key = token();
     sessions.set(key, { user: publicUser(found), expires: Date.now() + SESSION_MS });

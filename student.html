@@ -3,901 +3,541 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Student Exam Portal - AI Proctored</title>
+    <title>Student Exam Portal — GHRCEM</title>
     <style>
-        * {
-            box-sizing: border-box;
-            -webkit-touch-callout: none; /* Disables mobile long-press context menu / Lens */
-            -webkit-user-select: none;   /* Disables text highlight / selection */
-            user-select: none;
-        }
-
+        /* === RESET & BASE === */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 15px; -webkit-font-smoothing: antialiased; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            background: #f1f5f9;
-            color: #1e293b;
-            overflow-x: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f1f5f9; color: #1e293b; line-height: 1.6;
+            min-height: 100vh; overflow-x: hidden;
         }
+        .screen { display: none; width: 100%; }
+        .screen.active { display: flex; }
+        #login-screen.active { flex-direction: column; min-height: 100vh; }
+        #waiting-screen.active { flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        #exam-screen.active { display: block; }
 
-        .screen { padding: 30px 18px; max-width: 520px; margin: 0 auto; text-align: center; }
-        #exam-screen { display: none; padding: 20px; max-width: 650px; margin: 0 auto; padding-bottom: 120px; text-align: left; }
-        #waiting-screen { display: none; }
-
-        /* Card */
-        .card {
-            background: white;
-            padding: 26px 20px;
-            border-radius: 16px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
-            border: 1px solid #e2e8f0;
-            margin-top: 15px;
+        /* === LOGIN SCREEN === */
+        #login-screen {
+            background: linear-gradient(170deg, #0c1a2e 0%, #162d4a 50%, #1e4970 100%);
+            color: #fff;
+            justify-content: center; align-items: center; padding: 40px 20px;
         }
+        .login-wrapper { max-width: 480px; width: 100%; }
+        .login-header { text-align: center; margin-bottom: 32px; }
+        .login-header .college-mark {
+            display: inline-grid; place-items: center; width: 64px; height: 64px;
+            border-radius: 16px; background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2); font-size: 24px; font-weight: 900;
+            color: #fbbf24; margin-bottom: 16px;
+        }
+        .login-header h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 6px; }
+        .login-header .subtitle { font-size: 13px; color: #94a3b8; }
+        .login-header .badges { display: flex; justify-content: center; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+        .login-header .badges span { font-size: 9px; font-weight: 700; letter-spacing: 0.08em; padding: 3px 8px; border-radius: 4px; background: rgba(251,191,36,0.2); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
 
-        /* Inputs */
-        .input-group { text-align: left; margin-bottom: 12px; }
-        .input-group label { display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 4px; }
+        .login-card { background: #fff; border-radius: 18px; padding: 32px 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .login-card h2 { font-size: 22px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
+        .login-card .intro { color: #64748b; font-size: 14px; margin-bottom: 24px; }
+
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.04em; }
         .input-field {
-            width: 100%;
-            padding: 12px 14px;
-            border: 1.5px solid #cbd5e1;
-            border-radius: 8px;
-            font-size: 15px;
-            outline: none;
-            background: #fff;
-            box-sizing: border-box;
+            width: 100%; padding: 13px 15px; border: 1.5px solid #cbd5e1; border-radius: 10px;
+            font-size: 15px; outline: none; background: #fff; font-family: inherit; transition: border-color 0.2s;
         }
-        .input-field:focus { border-color: #2563eb; }
+        .input-field:focus { border-color: #475569; }
 
-        /* Buttons */
-        .btn {
-            padding: 14px 24px;
-            font-size: 16px;
-            cursor: pointer;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: all 0.2s;
-            width: 100%;
-            margin-top: 10px;
-        }
-        .btn-green { background: #16a34a; color: white; }
+        .two-row { display: flex; gap: 12px; }
+        .two-row .form-group { flex: 1; }
+
+        .student-redirect { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 20px; text-align: center; }
+        .student-redirect strong { color: #1e40af; font-size: 14px; }
+        .student-redirect p { color: #64748b; font-size: 13px; margin: 4px 0; }
+        .student-redirect a { display: inline-block; margin-top: 10px; background: #2563eb; color: #fff; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 13px; }
+
+        /* CAMERA GATEKEEPER */
+        .cam-gate { background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 12px; padding: 18px; margin: 16px 0; }
+        .cam-gate .status { font-weight: 600; font-size: 14px; margin-bottom: 10px; }
+        .cam-gate .status.ok { color: #16a34a; }
+        .cam-gate .status.err { color: #dc2626; }
+        .cam-gate .blocked { background: #fee2e2; border: 1px solid #ef4444; border-radius: 8px; padding: 10px; margin-top: 8px; font-size: 13px; color: #991b1b; display: none; }
+
+        /* BUTTONS */
+        .btn { padding: 14px 24px; font-size: 15px; cursor: pointer; border: none; border-radius: 10px; font-weight: 600; transition: all 0.2s; width: 100%; font-family: inherit; margin-top: 8px; }
+        .btn-blue { background: #1e293b; color: #fff; }
+        .btn-blue:hover { background: #334155; }
+        .btn-green { background: #16a34a; color: #fff; }
         .btn-green:hover { background: #15803d; }
-        .btn-blue { background: #2563eb; color: white; }
-        .btn-blue:hover { background: #1d4ed8; }
-        .btn-outline { background: transparent; border: 1.5px solid #2563eb; color: #2563eb; }
+        .btn-green:disabled { background: #94a3b8; cursor: not-allowed; }
 
-        /* Camera Box */
-        #camContainer {
-            position: fixed;
-            bottom: 12px;
-            right: 12px;
-            width: 120px;
-            height: 90px;
-            border: 3px solid #28a745;
-            border-radius: 10px;
-            z-index: 9999;
-            overflow: hidden;
-            background: #000;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            display: none;
-            transition: border-color 0.3s;
-        }
-        #camContainer.violating { border-color: #dc2626; }
-        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        /* EXAM ERROR */
+        #joinError { color: #dc2626; font-size: 13px; font-weight: 600; margin-top: 12px; display: none; }
 
-        /* MCQ Card */
-        .mcq-card {
-            background: white;
-            padding: 22px;
-            border-radius: 14px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            margin-bottom: 24px;
-            text-align: left;
-            border: 1px solid #e2e8f0;
-            position: relative;
-        }
-        .mcq-header {
-            font-size: 17px;
-            font-weight: bold;
-            color: #0f172a;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-        }
-        .img-wrapper {
-            position: relative;
-            width: 100%;
-            background: #f8fafc;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 10px;
-            margin: 12px 0;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-        }
-        .question-img {
-            max-width: 100%;
-            max-height: 420px;
-            object-fit: contain;
-            display: block;
-            pointer-events: none;
-            -webkit-user-drag: none;
-        }
-        .watermark-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            background: repeating-linear-gradient(-45deg, rgba(15,23,42,0.04) 0px, rgba(15,23,42,0.04) 1px, transparent 1px, transparent 14px);
-            display: flex; align-items: center; justify-content: center; z-index: 10;
-        }
-        .watermark-text {
-            color: rgba(30,41,59,0.16);
-            font-size: 15px;
-            font-weight: 800;
-            transform: rotate(-25deg);
-            text-align: center;
-            line-height: 2.2;
-            width: 150%;
-        }
-        .option {
-            display: block;
-            padding: 13px 18px;
-            margin: 8px 0;
-            background: #f8f9fa;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.15s;
-            font-weight: 500;
-        }
+        /* === WAITING ROOM === */
+        #waiting-screen { background: #f1f5f9; }
+        .waiting-card { background: #fff; border-radius: 18px; padding: 32px; max-width: 440px; width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
+        .waiting-card h1 { font-size: 22px; font-weight: 800; color: #0f172a; margin-bottom: 20px; text-align: center; }
+        .waiting-details { background: #f8fafc; border-radius: 12px; padding: 18px; margin-bottom: 20px; }
+        .waiting-details div { font-size: 14px; margin-bottom: 8px; color: #334155; }
+        .waiting-details div:last-child { margin-bottom: 0; }
+        .waiting-details strong { color: #0f172a; }
+        .waiting-locked { background: #fffbeb; border: 1.5px solid #f59e0b; border-radius: 12px; padding: 16px; margin-bottom: 20px; text-align: left; }
+        .waiting-locked h4 { color: #92400e; font-size: 15px; margin-bottom: 4px; }
+        .waiting-locked p { color: #78350f; font-size: 13px; line-height: 1.5; margin: 0; }
+        .waiting-loader { text-align: center; color: #d97706; font-weight: 600; font-size: 15px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        /* === EXAM SCREEN === */
+        #exam-screen { padding: 20px; max-width: 650px; margin: 0 auto; padding-bottom: 120px; }
+        .exam-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 14px; margin-bottom: 20px; flex-wrap: wrap; gap: 8px; }
+        .exam-header .student-info h2 { font-size: 16px; font-weight: 700; color: #0f172a; }
+        .exam-header .student-info p { font-size: 13px; color: #64748b; }
+        .exam-header .strike-badge { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 6px; background: #e2e8f0; color: #475569; }
+        .exam-header .timer { font-size: 18px; font-weight: 800; color: #dc2626; }
+
+        /* PROCTORING WARNING BANNER */
+        #warning-banner { position: fixed; top: 0; left: 0; width: 100%; background: #dc2626; color: #fff; padding: 10px; font-weight: 700; font-size: 13px; text-align: center; display: none; z-index: 100000; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+
+        /* QUESTION CARD */
+        .mcq-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px; margin-bottom: 20px; position: relative; overflow: hidden; }
+        .mcq-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+        .mcq-header h3 { font-size: 16px; font-weight: 700; color: #0f172a; }
+        .mcq-header .shield { font-size: 12px; color: #16a34a; font-weight: 600; }
+        .img-wrapper { position: relative; width: 100%; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; margin: 12px 0; overflow: hidden; display: flex; justify-content: center; }
+        .question-img { max-width: 100%; max-height: 400px; object-fit: contain; display: block; pointer-events: none; }
+        .watermark-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; align-items: center; justify-content: center; z-index: 10; }
+        .watermark-text { color: rgba(30,41,59,0.15); font-size: 14px; font-weight: 800; transform: rotate(-25deg); text-align: center; line-height: 2.2; width: 150%; }
+
+        /* OPTIONS */
+        .option { display: block; padding: 14px 18px; margin: 8px 0; background: #f8f9fa; border: 1.5px solid #e2e8f0; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-weight: 500; font-size: 15px; font-family: inherit; }
         .option:hover { background: #e2e8f0; }
-        .option.selected { background: #2563eb; color: white; font-weight: bold; border-color: #1d4ed8; }
+        .option.selected { background: #1e293b; color: #fff; font-weight: 600; border-color: #334155; }
 
-        .loader {
-            display: inline-block;
-            margin-top: 15px;
-            font-size: 15px;
-            font-weight: bold;
-            color: #d97706;
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        /* SUBMIT BUTTON */
+        .submit-btn { background: #16a34a; color: #fff; padding: 16px 24px; font-size: 17px; border-radius: 12px; }
+        .submit-btn:hover { background: #15803d; }
 
-        #warning-banner {
-            position: fixed; top: 0; left: 0; width: 100%;
-            background: #dc2626; color: white; padding: 12px;
-            display: none; z-index: 100000; font-weight: bold;
-            text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        /* VIOLATION MODAL */
+        #violationModal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(9,13,22,0.94); z-index: 100000000; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+        .violation-modal-card { background: #1e293b; border: 2.5px solid #ef4444; border-radius: 18px; padding: 26px 20px; max-width: 440px; width: 92%; text-align: center; box-shadow: 0 12px 35px rgba(0,0,0,0.7); }
+        .violation-modal-card .viol-icon { font-size: 46px; margin-bottom: 6px; }
+        .violation-modal-card h2 { color: #f87171; font-size: 20px; font-weight: 800; margin-bottom: 14px; }
+        .violation-reason { background: #450a0a; border: 1.5px solid #ef4444; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; color: #fca5a5; font-size: 13.5px; }
+        .violation-reason .label { font-size: 11px; color: #f87171; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+        .strike-meter { display: flex; justify-content: center; gap: 8px; margin-bottom: 14px; }
+        .strike-meter span { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+        .strike-used { background: #ef4444; color: #fff; }
+        .strike-current { background: #dc2626; color: #fff; border: 2px solid #fecaca; }
+        .strike-remaining { background: #334155; color: #94a3b8; }
+        .violation-disclaimer { color: #cbd5e1; font-size: 12.5px; line-height: 1.5; margin-bottom: 18px; background: rgba(0,0,0,0.3); padding: 10px 12px; border-radius: 8px; text-align: left; border-left: 3px solid #ef4444; }
+        #acknowledgeViolationBtn { background: #dc2626; color: #fff; border: none; padding: 15px 20px; font-size: 15px; font-weight: 700; border-radius: 10px; cursor: pointer; width: 100%; font-family: inherit; }
+
+        /* CAMERA BOX */
+        #camContainer { position: fixed; bottom: 12px; right: 12px; width: 120px; height: 90px; border: 3px solid #22c55e; border-radius: 10px; z-index: 9999; overflow: hidden; background: #000; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: none; }
+        #camContainer.violating { border-color: #dc2626; }
+        #camContainer video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+
+        /* RESPONSIVE */
+        @media (max-width: 540px) {
+            .login-header h1 { font-size: 20px; }
+            .login-card { padding: 24px 18px; }
+            .waiting-card { padding: 24px; }
+            .exam-header { flex-direction: column; align-items: flex-start; }
+            .two-row { flex-direction: column; gap: 0; }
         }
-        .header-meta {
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid #cbd5e1; padding-bottom: 12px; margin-bottom: 18px;
-        }
+
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; } }
     </style>
 </head>
 <body oncontextmenu="return false;">
 
-    <div id="warning-banner">WARNING: Violation Detected!</div>
+<!-- WARNING BANNER -->
+<div id="warning-banner">WARNING: Violation Detected!</div>
 
-    <!-- PERSISTENT VIOLATION DISCLAIMER MODAL -->
-    <div id="violationModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(9,13,22,0.94); z-index:100000000; flex-direction:column; justify-content:center; align-items:center; padding:20px; box-sizing:border-box;">
-        <div style="background:#1e293b; border:2.5px solid #ef4444; border-radius:18px; padding:26px 20px; max-width:440px; width:92%; text-align:center; box-shadow:0 12px 35px rgba(0,0,0,0.7);">
-            <div style="font-size:46px; margin-bottom:6px;">🚨</div>
-            <h2 style="color:#f87171; margin:0 0 10px 0; font-size:20px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase;">Security Violation Warning</h2>
-            
-            <div style="background:#450a0a; border:1.5px solid #ef4444; border-radius:10px; padding:12px 14px; margin-bottom:14px; color:#fca5a5; font-size:13.5px; text-align:left;">
-                <div style="font-size:11px; color:#f87171; text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">Detected Violation:</div>
-                <div id="violationReasonText" style="margin-top:4px; color:#ffffff; font-weight:700; font-size:14.5px; word-break:break-word;"></div>
-            </div>
-
-            <div style="margin-bottom:14px;">
-                <div style="font-size:11px; color:#94a3b8; text-transform:uppercase; font-weight:700; margin-bottom:8px; letter-spacing:0.5px;">Proctoring Strike Penalty:</div>
-                <div id="violationStrikeMeter" style="display:flex; justify-content:center; gap:8px;"></div>
-            </div>
-
-            <div style="color:#cbd5e1; font-size:12.5px; line-height:1.45; margin:0 0 18px 0; background:rgba(0,0,0,0.3); padding:10px 12px; border-radius:8px; text-align:left; border-left:3px solid #ef4444;">
-                ⚠️ <strong>PROCTORING DISCLAIMER:</strong><br>
-                Opening external apps (such as Google), pulling down the notification bar, or switching tabs is strictly forbidden. A webcam snapshot and timestamp have been sent to the teacher's dashboard. Reaching 3 strikes results in immediate automatic exam submission.
-            </div>
-
-            <button type="button" id="acknowledgeViolationBtn" onclick="window.dismissViolationModal()" style="background:#dc2626; color:white; border:none; padding:15px 20px; font-size:15px; font-weight:700; border-radius:10px; cursor:pointer; width:100%; box-shadow:0 4px 15px rgba(220,38,38,0.4);">
-                📲 Tap to Re-Enter Fullscreen & Resume Exam
-            </button>
+<!-- VIOLATION MODAL -->
+<div id="violationModal">
+    <div class="violation-modal-card">
+        <div class="viol-icon">🚨</div>
+        <h2>Security Violation Warning</h2>
+        <div class="violation-reason">
+            <div class="label">Detected Violation:</div>
+            <div id="violationReasonText"></div>
         </div>
+        <div class="strike-meter" id="violationStrikeMeter"></div>
+        <div class="violation-disclaimer">
+            ⚠️ <strong>PROCTORING DISCLAIMER:</strong><br>
+            Opening external apps, pulling down notifications, or switching tabs is forbidden. A snapshot has been sent to faculty. 3 strikes auto-submit the exam.
+        </div>
+        <button type="button" id="acknowledgeViolationBtn" onclick="window.dismissViolationModal()">📲 Tap to Resume Exam</button>
     </div>
+</div>
 
-    <!-- 1. STUDENT REGISTRATION & LOGIN SCREEN -->
-    <div id="login-screen" class="screen">
-        <!-- GHRCEM Institutional Branding Header -->
-        <div style="background: linear-gradient(135deg, #091a33, #1e3a8a); color: white; padding: 18px 20px; border-radius: 14px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(15,23,42,0.2); border: 1.5px solid rgba(255,255,255,0.15); text-align: center;">
-            <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;">
-                <span style="background: #2563eb; color: #fff; font-size: 11px; font-weight: 900; padding: 3px 8px; border-radius: 6px; letter-spacing: 1px;">GHRCEM</span>
-                <span style="background: rgba(37,99,235,0.3); border: 1px solid rgba(147,197,253,0.4); color: #93c5fd; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.05em;">NAAC A+ ACCREDITED &bull; AUTONOMOUS</span>
+<!-- ==================== 1. STUDENT LOGIN ==================== -->
+<div id="login-screen" class="screen active">
+    <div class="login-wrapper">
+        <div class="login-header">
+            <div class="college-mark">GH</div>
+            <h1>Student Examination Portal</h1>
+            <p class="subtitle">AI Proctored Exam • Anti-Cheat Secured</p>
+            <div class="badges">
+                <span>NAAC A+ ACCREDITED</span>
+                <span>AUTONOMOUS</span>
+                <span>SPPU AFFILIATED</span>
             </div>
-            <div style="font-size: 15.5px; font-weight: 900; margin: 4px 0 2px 0; color: #ffffff; letter-spacing: 0.5px; line-height: 1.35;">G H RAISONI COLLEGE OF ENGINEERING AND MANAGEMENT</div>
-            <div style="font-size: 12px; font-weight: 800; color: #fef08a; letter-spacing: 2px; margin-bottom: 6px;">WAGHOLI, PUNE</div>
-            <div style="font-size: 10.5px; color: #cbd5e1; font-weight: 600; border-top: 1px solid rgba(255,255,255,0.12); padding-top: 6px;">Approved by AICTE New Delhi &bull; Affiliated to Savitribai Phule Pune University (SPPU)</div>
         </div>
+        <div class="login-card">
+            <h2>Welcome, Student</h2>
+            <p class="intro">Enter your details to join the examination room.</p>
 
-        <h1 style="color: #0f172a; margin-bottom: 4px; font-size: 24px;">Student Exam Portal</h1>
-        <p style="color: #64748b; margin-bottom: 18px; font-size: 13.5px;">AI Proctored Examination • Anti-Cheat Secured</p>
-        
-        <div class="card">
-            <div class="input-group">
-                <label>Full Name</label>
-                <input type="text" id="stuName" class="input-field" placeholder="e.g. Rahul Sharma" value="Rahul Sharma" required>
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <div class="input-group" style="flex: 1;">
-                    <label>Roll Number</label>
-                    <input type="text" id="stuRoll" class="input-field" placeholder="e.g. ROLL101" value="ROLL101" required>
-                </div>
-                <div class="input-group" style="flex: 1;">
-                    <label>Registration No.</label>
-                    <input type="text" id="stuReg" class="input-field" placeholder="e.g. REG2026001" value="REG2026001" required>
-                </div>
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <div class="input-group" style="flex: 1;">
-                    <label>Class</label>
-                    <input type="text" id="stuClass" class="input-field" placeholder="e.g. SY" value="SY" required>
-                </div>
-                <div class="input-group" style="flex: 1;">
-                    <label>Division</label>
-                    <input type="text" id="stuDiv" class="input-field" placeholder="e.g. A" value="A" required>
-                </div>
-            </div>
-            <div class="input-group">
-                <label>Department</label>
-                <input type="text" id="stuDept" class="input-field" placeholder="e.g. AIML / Computer Engineering" value="Computer Engineering" required>
-            </div>
-            <div class="input-group">
-                <label>Examination Subject</label>
-                <input type="text" id="stuSub" class="input-field" placeholder="e.g. DSA" value="DSA" required>
+            <div class="student-redirect">
+                <strong>🎓 Need help?</strong>
+                <p>Students must use this portal. Faculty should use the Staff Portal.</p>
+                <a href="/staff">Go to Staff & Faculty Portal →</a>
             </div>
 
-            <!-- CAMERA GATEKEEPER BOX -->
-            <div id="cameraGatekeeperBox" style="margin: 15px 0; background: #f8fafc; padding: 14px; border-radius: 10px; border: 1.5px dashed #cbd5e1;">
-                <p id="cameraStatusBadge" style="font-weight: 600; font-size: 13.5px; margin: 0 0 8px 0; color: #d97706;">⌛ Checking Camera Permissions...</p>
-                <button type="button" id="verifyCamBtn" onclick="window.requestCameraVerification()" class="btn btn-blue" style="margin: 0; font-size: 14px; padding: 10px 16px;">📷 Allow & Verify Camera</button>
-                <div id="cameraBlockedNotice" style="display:none; background:#fee2e2; border:1.5px solid #ef4444; color:#991b1b; padding:10px; border-radius:8px; margin-top:10px; text-align:left; font-size:12.5px; line-height: 1.4;">
+            <div class="two-row">
+                <div class="form-group">
+                    <label for="stuName">Full Name</label>
+                    <input type="text" id="stuName" class="input-field" placeholder="e.g. Rahul Sharma" value="Rahul Sharma">
+                </div>
+                <div class="form-group">
+                    <label for="stuRoll">Roll Number</label>
+                    <input type="text" id="stuRoll" class="input-field" placeholder="e.g. ROLL101" value="ROLL101">
+                </div>
+            </div>
+            <div class="two-row">
+                <div class="form-group">
+                    <label for="stuReg">Registration No.</label>
+                    <input type="text" id="stuReg" class="input-field" placeholder="e.g. REG2026001" value="REG2026001">
+                </div>
+                <div class="form-group">
+                    <label for="stuClass">Class</label>
+                    <input type="text" id="stuClass" class="input-field" placeholder="e.g. SY" value="SY">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="stuDiv">Division</label>
+                <input type="text" id="stuDiv" class="input-field" placeholder="e.g. A" value="A">
+            </div>
+            <div class="form-group">
+                <label for="stuDept">Department</label>
+                <input type="text" id="stuDept" class="input-field" placeholder="e.g. AIML / Computer Engineering" value="Computer Engineering">
+            </div>
+            <div class="form-group">
+                <label for="stuSub">Examination Subject</label>
+                <input type="text" id="stuSub" class="input-field" placeholder="e.g. DSA" value="DSA">
+            </div>
+
+            <div class="cam-gate">
+                <div class="status" id="cameraStatusBadge">⌛ Checking Camera Permissions...</div>
+                <button type="button" id="verifyCamBtn" onclick="window.requestCameraVerification()" class="btn btn-blue">📷 Allow & Verify Camera</button>
+                <div class="blocked" id="cameraBlockedNotice">
                     <strong>🚫 NO CAMERA = NO EXAM</strong>
-                    <p style="margin:4px 0;">AI proctoring requires continuous camera verification. Please click the 🔒 Lock/Settings icon in your browser address bar, set Camera to <strong>ALLOW</strong>, and reload.</p>
+                    <p style="margin:4px 0;">AI proctoring requires continuous camera verification. Please set Camera to <strong>ALLOW</strong> in your browser settings and reload.</p>
                 </div>
             </div>
 
-            <button id="joinBtn" class="btn btn-green" disabled style="opacity: 0.4; cursor: not-allowed;">Join Exam Room</button>
-            <p id="joinError" style="color: #dc2626; display: none; margin-top: 10px; font-size: 13px; font-weight: 600;"></p>
-        </div>
-
-        <div style="margin-top: 25px; font-size: 13.5px; color: #64748b;">
-            Are you a Teacher / Faculty member? <br>
-            <a href="/staff" style="color: #2563eb; font-weight: 600; text-decoration: none;">Go to Staff & Faculty Portal &rarr;</a>
+            <button id="joinBtn" class="btn btn-green" disabled style="opacity:0.4;cursor:not-allowed;">Join Exam Room</button>
+            <p id="joinError"></p>
         </div>
     </div>
+</div>
 
-    <!-- 2. WAITING ROOM (HOLDS STUDENT UNTIL FACULTY RELEASES EXAM) -->
-    <div id="waiting-screen" class="screen">
-        <h1 style="color: #0f172a; margin-bottom: 6px;">Exam Waiting Room</h1>
-        <div class="card" style="border-top: 4px solid #f59e0b;">
-            <p style="font-size: 18px; margin: 0 0 10px 0;"><strong>Welcome, <span id="displayName"></span>!</strong></p>
-            
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 18px; text-align: left; font-size: 14px;">
-                <div><strong>Subject:</strong> <span id="waitSubject" style="color:#2563eb; font-weight:bold;">...</span></div>
-                <div><strong>Roll No:</strong> <span id="waitRoll">...</span></div>
-                <div><strong>Registration No:</strong> <span id="waitReg">...</span></div>
-            </div>
-
-            <div style="background: #fef3c7; border: 1.5px solid #f59e0b; border-radius: 10px; padding: 14px; margin-bottom: 18px; text-align: left;">
-                <div style="font-weight: 800; color: #b45309; font-size: 15px; margin-bottom: 4px;">🔒 EXAM IS CURRENTLY LOCKED BY FACULTY</div>
-                <p style="margin: 0; color: #92400e; font-size: 13px; line-height: 1.45;">
-                    Your subject faculty has not yet released the exam. Please remain on this screen with your camera ready.<br>
-                    <strong>The moment your faculty clicks "RELEASE EXAM" on their panel, this page will instantly launch your test.</strong>
-                </p>
-            </div>
-
-            <div class="loader">⌛ Waiting for faculty to release exam...</div>
+<!-- ==================== 2. WAITING ROOM ==================== -->
+<div id="waiting-screen" class="screen">
+    <div class="waiting-card">
+        <h1>Exam Waiting Room</h1>
+        <div class="waiting-details">
+            <div><strong>Subject:</strong> <span id="waitSubject">—</span></div>
+            <div><strong>Roll No:</strong> <span id="waitRoll">—</span></div>
+            <div><strong>Registration:</strong> <span id="waitReg">—</span></div>
         </div>
-    </div>
-
-    <!-- 3. PROCTORED EXAM SCREEN -->
-    <div id="exam-screen">
-        <div class="header-meta">
-            <div>
-                <span id="studentDisplay" style="font-weight: bold; font-size: 16px; color: #0f172a;"></span>
-                <span id="rollDisplay" style="margin-left: 8px; color: #64748b; font-size: 14px;"></span>
-                <span id="strikeBadge" style="margin-left: 8px; font-weight: bold; font-size: 12px; padding: 4px 8px; border-radius: 6px; background: #e2e8f0; color: #475569;">🛡️ Strikes: 0/3</span>
-            </div>
-            <div id="timer" style="font-weight: bold; color: #dc2626; font-size: 15px;">Time: 15:00</div>
+        <div class="waiting-locked">
+            <h4>🔒 EXAM IS CURRENTLY LOCKED BY FACULTY</h4>
+            <p>Your subject faculty has not yet released the exam. Please remain on this screen with your camera ready. The moment they release it, this page will instantly launch your test.</p>
         </div>
-
-        <!-- DYNAMIC QUESTIONS WITH ANTI-OCR SHIELD -->
-        <div id="question-container"></div>
-
-        <button onclick="window.submitExam()" class="btn btn-green" style="max-width: 100%; margin-top: 25px; padding: 16px; font-size: 17px;">Submit Final Exam</button>
+        <div class="waiting-loader">⌛ Waiting for faculty to release exam…</div>
     </div>
+</div>
 
-    <!-- PROCTORING WEBCAM -->
-    <div id="camContainer">
-        <video id="video" autoplay playsinline muted></video>
+<!-- ==================== 3. PROCTORED EXAM ==================== -->
+<div id="exam-screen">
+    <div class="exam-header">
+        <div class="student-info">
+            <h2 id="studentDisplay">—</h2>
+            <p id="rollDisplay">—</p>
+            <span class="strike-badge" id="strikeBadge">🛡️ Strikes: 0/3</span>
+        </div>
+        <div class="timer" id="timer">Time: 15:00</div>
     </div>
+    <div id="question-container"></div>
+    <button onclick="window.submitExam()" class="btn submit-btn" style="margin-top:25px;">Submit Final Exam</button>
+</div>
 
-    <!-- MediaPipe Vision Module -->
-    <script type="module">
-        import { FilesetResolver, FaceLandmarker } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0";
+<!-- PROCTORING WEBCAM -->
+<div id="camContainer">
+    <video id="video" autoplay playsinline muted></video>
+</div>
 
-        let studentData = {};
-        let cheatCount = 0;
-        let faceLandmarker = null;
-        let isExamStarted = false;
-        let pollInterval = null;
-        let examDeadline = null;
-        let timerInterval = null;
-        let isCameraVerified = false;
-        const studentAnswers = {};
+<!-- MediaPipe Vision -->
+<script type="module">
+    import { FilesetResolver, FaceLandmarker } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0";
 
-        // ==========================================
-        // 1. CAMERA GATEKEEPER: NO CAMERA = NO EXAM
-        // ==========================================
-        async function checkCameraPermission(promptUser = false) {
-            const statusBadge = document.getElementById('cameraStatusBadge');
-            const blockedNotice = document.getElementById('cameraBlockedNotice');
-            const joinBtn = document.getElementById('joinBtn');
-            const verifyBtn = document.getElementById('verifyCamBtn');
+    let studentData = {};
+    let cheatCount = 0;
+    let faceLandmarker = null;
+    let isExamStarted = false;
+    let pollInterval = null;
+    let examDeadline = null;
+    let timerInterval = null;
+    let isCameraVerified = false;
+    const studentAnswers = {};
+    let lastViolationTimestamp = 0;
+    let pendingViolation = null;
 
+    // ======= CAMERA GATEKEEPER =======
+    async function checkCameraPermission(promptUser = false) {
+        const statusBadge = document.getElementById('cameraStatusBadge');
+        const blockedNotice = document.getElementById('cameraBlockedNotice');
+        const joinBtn = document.getElementById('joinBtn');
+        const verifyBtn = document.getElementById('verifyCamBtn');
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+            stream.getTracks().forEach(track => track.stop());
+            isCameraVerified = true;
+            if (statusBadge) statusBadge.innerHTML = '<span style="color:#16a34a;font-weight:bold;">✅ Camera Verified & Ready</span>';
+            if (blockedNotice) blockedNotice.style.display = 'none';
+            if (verifyBtn) verifyBtn.style.display = 'none';
+            if (joinBtn) { joinBtn.disabled = false; joinBtn.style.opacity = '1'; joinBtn.style.cursor = 'pointer'; }
+            return true;
+        } catch (err) {
+            isCameraVerified = false;
+            if (statusBadge) statusBadge.innerHTML = '<span style="color:#dc2626;font-weight:bold;">❌ Camera Required: Access Blocked</span>';
+            if (blockedNotice) blockedNotice.style.display = 'block';
+            if (verifyBtn) verifyBtn.style.display = 'inline-block';
+            if (joinBtn) { joinBtn.disabled = true; joinBtn.style.opacity = '0.4'; joinBtn.style.cursor = 'not-allowed'; }
+            if (promptUser) alert("CRITICAL: No Camera = No Exam. Please allow Camera access and reload.");
+            return false;
+        }
+    }
+
+    window.checkCameraPermission = checkCameraPermission;
+    window.requestCameraVerification = () => checkCameraPermission(true);
+
+    window.addEventListener('load', () => { checkCameraPermission(false); });
+
+    // ======= AUDIO ALERT =======
+    function playAlertSound() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator(); const gain = ctx.createGain();
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(480, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.25);
+            gain.gain.setValueAtTime(0.35, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+            osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.35);
+        } catch(e) {}
+    }
+
+    // ======= VIOLATION MODAL =======
+    window.showViolationModal = function(reason, strike) {
+        const modal = document.getElementById('violationModal');
+        const reasonEl = document.getElementById('violationReasonText');
+        const meterEl = document.getElementById('violationStrikeMeter');
+        if (reasonEl) reasonEl.innerText = reason;
+        if (meterEl) {
+            let html = '';
+            for (let i = 1; i <= 3; i++) {
+                if (i < strike) html += `<span class="strike-used">Strike ${i} ✕</span>`;
+                else if (i === strike) html += `<span class="strike-current">Strike ${i} ⚠️</span>`;
+                else html += `<span class="strike-remaining">Strike ${i} ○</span>`;
+            }
+            meterEl.innerHTML = html;
+        }
+        modal.style.display = 'flex';
+    };
+
+    window.dismissViolationModal = function() {
+        const modal = document.getElementById('violationModal');
+        if (modal) modal.style.display = 'none';
+        pendingViolation = null;
+        if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
+    };
+
+    // ======= PROCTORING LISTENERS =======
+    window.addEventListener('blur', () => { if (isExamStarted) handleViolation("Focus lost: Switched to external app or split-screen"); });
+    window.addEventListener("focus", () => { if (isExamStarted && pendingViolation) showViolationModal(pendingViolation.reason, pendingViolation.strike); });
+    document.addEventListener("visibilitychange", () => { if (!isExamStarted) return; if (document.hidden) handleViolation("Tab hidden: App switched"); else if (pendingViolation) showViolationModal(pendingViolation.reason, pendingViolation.strike); });
+    document.addEventListener("fullscreenchange", () => { if (isExamStarted && !document.fullscreenElement) handleViolation("Fullscreen exited"); });
+    window.addEventListener('resize', () => {
+        if (isExamStarted) {
+            const sw = window.screen.width, ww = window.innerWidth;
+            if (ww < sw * 0.65) handleViolation("Split-screen detected");
+        }
+    });
+    let touchStartY = 0;
+    window.addEventListener('touchstart', (e) => { if (isExamStarted && e.touches.length > 0) { touchStartY = e.touches[0].clientY; if (touchStartY <= 60) handleViolation("Notification bar touch detected"); } }, { passive: true });
+    window.addEventListener('touchmove', (e) => { if (isExamStarted && e.touches.length > 0) { const cy = e.touches[0].clientY; if (touchStartY <= 75 && cy - touchStartY > 20) handleViolation("Notification drawer pull detected"); else if (cy <= 50) handleViolation("Top status bar swipe"); } }, { passive: true });
+    window.addEventListener("keydown", (e) => {
+        if (e.key === "PrintScreen") { e.preventDefault(); navigator.clipboard?.writeText("Protected"); handleViolation("Screenshot Attempt"); return false; }
+        if (e.ctrlKey || e.metaKey) { if (['c','v','u','s','p','a'].includes(e.key.toLowerCase())) { e.preventDefault(); return false; } }
+        if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ['i','j','c'].includes(e.key.toLowerCase()))) { e.preventDefault(); return false; }
+    });
+
+    // ======= JOIN FLOW =======
+    document.getElementById('joinBtn').onclick = async () => {
+        const name = document.getElementById('stuName').value.trim();
+        const roll = document.getElementById('stuRoll').value.trim();
+        const reg = document.getElementById('stuReg').value.trim();
+        const cls = document.getElementById('stuClass').value.trim();
+        const div = document.getElementById('stuDiv').value.trim();
+        const dept = document.getElementById('stuDept').value.trim();
+        const sub = document.getElementById('stuSub').value.trim();
+        const err = document.getElementById('joinError');
+        if (!name || !roll || !sub) { err.innerText = "Please provide Name, Roll Number, and Subject."; err.style.display = 'block'; return; }
+        err.style.display = 'none';
+        studentData = { name, rollNo: roll, regNo: reg, className: cls, division: div, dept, subject: sub, collegeId: roll };
+        try {
+            const res = await fetch('/api/join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(studentData) });
+            const data = await res.json();
+            if (res.ok) {
+                examDeadline = data.deadline;
+                document.getElementById('displayName').innerText = `${studentData.name} (${studentData.rollNo})`;
+                document.getElementById('waitSubject').innerText = studentData.subject;
+                document.getElementById('waitRoll').innerText = studentData.rollNo;
+                document.getElementById('waitReg').innerText = studentData.regNo;
+                document.getElementById('studentDisplay').innerText = `${studentData.name} (${studentData.subject})`;
+                document.getElementById('rollDisplay').innerText = `Roll: ${studentData.rollNo}`;
+                document.getElementById('login-screen').style.display = 'none';
+                if (data.examActive) { launchExamSequence(); }
+                else { document.getElementById('waiting-screen').style.display = 'block'; startWaitingRoomPolling(); }
+            } else { err.innerText = data.error || "Could not join exam."; err.style.display = 'block'; }
+        } catch(e) { err.innerText = "Error connecting to exam server."; err.style.display = 'block'; }
+    };
+
+    function startWaitingRoomPolling() {
+        if (pollInterval) clearInterval(pollInterval);
+        pollInterval = setInterval(async () => {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: "user" },
-                    audio: false
-                });
-
-                // Immediately stop test tracks so the indicator turns off
-                stream.getTracks().forEach(track => track.stop());
-
-                isCameraVerified = true;
-                if (statusBadge) statusBadge.innerHTML = `<span style="color:#16a34a; font-weight:bold;">✅ Camera Verified & Ready</span>`;
-                if (blockedNotice) blockedNotice.style.display = 'none';
-                if (verifyBtn) verifyBtn.style.display = 'none';
-
-                if (joinBtn) {
-                    joinBtn.disabled = false;
-                    joinBtn.style.opacity = '1';
-                    joinBtn.style.cursor = 'pointer';
-                }
-                return true;
-            } catch (err) {
-                isCameraVerified = false;
-                if (statusBadge) statusBadge.innerHTML = `<span style="color:#dc2626; font-weight:bold;">❌ Camera Required: Access Blocked or Denied</span>`;
-                if (blockedNotice) blockedNotice.style.display = 'block';
-                if (verifyBtn) verifyBtn.style.display = 'inline-block';
-
-                if (joinBtn) {
-                    joinBtn.disabled = true;
-                    joinBtn.style.opacity = '0.4';
-                    joinBtn.style.cursor = 'not-allowed';
-                }
-
-                if (promptUser) {
-                    alert("CRITICAL REQUIREMENT:\nNo Camera = No Exam.\n\nPlease click the Lock/Settings icon in your browser address bar, set Camera to ALLOW, and reload.");
-                }
-                return false;
-            }
-        }
-
-        window.checkCameraPermission = checkCameraPermission;
-        window.requestCameraVerification = () => checkCameraPermission(true);
-
-        window.addEventListener('load', () => {
-            checkCameraPermission(false);
-        });
-
-        // ==========================================
-        // 2. AUDIO & VIBRATION ALERT FEEDBACK
-        // ==========================================
-        function playAlertSound() {
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(480, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.25);
-                gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.35);
-            } catch(e) {}
-        }
-
-        // ==========================================
-        // 3. PERSISTENT VIOLATION MODAL
-        // ==========================================
-        let pendingViolation = null;
-        let lastViolationTimestamp = 0;
-
-        function showViolationModal(reason, strike) {
-            const modal = document.getElementById('violationModal');
-            const reasonEl = document.getElementById('violationReasonText');
-            const meterEl = document.getElementById('violationStrikeMeter');
-            if (!modal) return;
-
-            if (reasonEl) reasonEl.innerText = reason;
-            if (meterEl) {
-                let html = '';
-                for (let i = 1; i <= 3; i++) {
-                    if (i < strike) {
-                        html += `<span style="background:#ef4444; color:white; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:bold;">Strike ${i} ✕</span>`;
-                    } else if (i === strike) {
-                        html += `<span style="background:#dc2626; color:white; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:bold; border:2px solid #fecaca;">Strike ${i} ⚠️</span>`;
-                    } else {
-                        html += `<span style="background:#334155; color:#94a3b8; padding:4px 10px; border-radius:6px; font-size:12px;">Strike ${i} ○</span>`;
-                    }
-                }
-                meterEl.innerHTML = html;
-            }
-            modal.style.display = 'flex';
-        }
-
-        window.dismissViolationModal = function() {
-            const modal = document.getElementById('violationModal');
-            if (modal) modal.style.display = 'none';
-            pendingViolation = null;
-
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen().catch(() => {});
-            }
-        };
-
-        // ==========================================
-        // 4. PROCTORING EVENT LISTENERS
-        // ==========================================
-        window.addEventListener('blur', () => {
-            if (isExamStarted) {
-                handleViolation("Focus lost: Switched to Google, external app, or split-screen");
-            }
-        });
-
-        window.addEventListener("focus", () => {
-            if (!isExamStarted) return;
-            if (pendingViolation) {
-                showViolationModal(pendingViolation.reason, pendingViolation.strike);
-            }
-        });
-
-        document.addEventListener("visibilitychange", () => {
-            if (!isExamStarted) return;
-            if (document.hidden) {
-                handleViolation("App switched or Google opened (Tab hidden)");
-            } else {
-                if (pendingViolation) {
-                    showViolationModal(pendingViolation.reason, pendingViolation.strike);
-                }
-            }
-        });
-
-        document.addEventListener("fullscreenchange", () => {
-            if (isExamStarted && !document.fullscreenElement) {
-                handleViolation("Fullscreen exited: Notification drawer pulled or app switched");
-            }
-        });
-
-        window.addEventListener('resize', () => {
-            if (isExamStarted) {
-                const screenWidth = window.screen.width;
-                const windowWidth = window.innerWidth;
-                if (windowWidth < screenWidth * 0.65) {
-                    handleViolation("Split-screen detected: Window size reduced to view external app");
-                }
-            }
-        });
-
-        let touchStartY = 0;
-        window.addEventListener('touchstart', (e) => {
-            if (isExamStarted && e.touches.length > 0) {
-                touchStartY = e.touches[0].clientY;
-                if (touchStartY <= 60) {
-                    handleViolation("Notification drawer / Status bar touch detected");
-                }
-            }
-        }, { passive: true });
-
-        window.addEventListener('touchmove', (e) => {
-            if (isExamStarted && e.touches.length > 0) {
-                const currentY = e.touches[0].clientY;
-                if (touchStartY <= 75 && currentY - touchStartY > 20) {
-                    handleViolation("Notification drawer pull-down gesture detected");
-                } else if (currentY <= 50) {
-                    handleViolation("Top status bar swipe detected");
-                }
-            }
-        }, { passive: true });
-
-        window.addEventListener("keydown", (e) => {
-            if (e.key === "PrintScreen") {
-                e.preventDefault();
-                navigator.clipboard?.writeText("Protected");
-                handleViolation("Screenshot Attempt (PrintScreen)");
-                return false;
-            }
-            if (e.ctrlKey || e.metaKey) {
-                if (['c', 'v', 'u', 's', 'p', 'a'].includes(e.key.toLowerCase())) {
-                    e.preventDefault();
-                    return false;
-                }
-            }
-            if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ['i', 'j', 'c'].includes(e.key.toLowerCase()))) {
-                e.preventDefault();
-                return false;
-            }
-        });
-
-        // ==========================================
-        // 5. STUDENT JOIN FLOW
-        // ==========================================
-        document.getElementById('joinBtn').onclick = async () => {
-            const stuName = document.getElementById('stuName').value.trim();
-            const stuRoll = document.getElementById('stuRoll').value.trim();
-            const stuReg = document.getElementById('stuReg').value.trim();
-            const stuClass = document.getElementById('stuClass').value.trim();
-            const stuDiv = document.getElementById('stuDiv').value.trim();
-            const stuDept = document.getElementById('stuDept').value.trim();
-            const stuSub = document.getElementById('stuSub').value.trim();
-            const joinError = document.getElementById('joinError');
-
-            if (!stuName || !stuRoll || !stuSub) {
-                joinError.innerText = "Please provide Name, Roll Number, and Subject.";
-                joinError.style.display = 'block';
-                return;
-            }
-            joinError.style.display = 'none';
-
-            studentData = {
-                name: stuName,
-                rollNo: stuRoll,
-                regNo: stuReg,
-                className: stuClass,
-                division: stuDiv,
-                dept: stuDept,
-                subject: stuSub,
-                collegeId: stuRoll
-            };
-
-            try {
-                const response = await fetch('/api/join', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(studentData)
-                });
-
-                const data = await response.json();
-                if (response.ok) {
-                    examDeadline = data.deadline;
-                    document.getElementById('displayName').innerText = `${studentData.name} (${studentData.rollNo})`;
-                    document.getElementById('waitSubject').innerText = studentData.subject;
-                    document.getElementById('waitRoll').innerText = studentData.rollNo;
-                    document.getElementById('waitReg').innerText = studentData.regNo;
-
-                    document.getElementById('studentDisplay').innerText = `${studentData.name} (${studentData.subject})`;
-                    document.getElementById('rollDisplay').innerText = `Roll: ${studentData.rollNo}`;
-
-                    document.getElementById('login-screen').style.display = 'none';
-
-                    // ONLY start if faculty already released the exam for this subject!
-                    if (data.examActive) {
-                        launchExamSequence();
-                    } else {
-                        document.getElementById('waiting-screen').style.display = 'block';
-                        startWaitingRoomPolling();
-                    }
-                } else {
-                    joinError.innerText = data.error || "Could not join exam.";
-                    joinError.style.display = 'block';
-                }
-            } catch(e) {
-                joinError.innerText = "Error connecting to exam server.";
-                joinError.style.display = 'block';
-            }
-        };
-
-        // Polling until faculty releases the exam
-        function startWaitingRoomPolling() {
-            if (pollInterval) clearInterval(pollInterval);
-            pollInterval = setInterval(async () => {
-                try {
-                    const response = await fetch(`/api/check-status?subject=${encodeURIComponent(studentData.subject)}&rollNo=${encodeURIComponent(studentData.rollNo)}`);
-                    const data = await response.json();
-                    if (data.active) {
-                        examDeadline = data.deadline;
-                        clearInterval(pollInterval);
-                        pollInterval = null;
-                        launchExamSequence();
-                    }
-                } catch(e) {}
-            }, 2500);
-        }
-
-        async function launchExamSequence() {
-            if (!isCameraVerified) {
-                const verified = await checkCameraPermission(true);
-                if (!verified) {
-                    alert("ACCESS DENIED: You cannot view questions without active camera verification.");
-                    return;
-                }
-            }
-
-            let stream;
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
-                    audio: false
-                });
-            } catch (err) {
-                alert("CRITICAL ERROR: Camera access revoked or unavailable! Entrance blocked.");
-                window.location.reload();
-                return;
-            }
-
-            const video = document.getElementById('video');
-            video.srcObject = stream;
-            try { await video.play(); } catch(e) {}
-            document.getElementById('camContainer').style.display = 'block';
-
-            // Fail-safe: camera disconnected
-            stream.getVideoTracks().forEach(track => {
-                track.onended = () => {
-                    handleViolation("CRITICAL: Camera disconnected or revoked! Exam terminated.");
-                    setTimeout(() => { window.submitExam(); }, 2000);
-                };
-            });
-
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('waiting-screen').style.display = 'none';
-            document.getElementById('exam-screen').style.display = 'block';
-            isExamStarted = true;
-            if (examDeadline) {
-                const displayTime = () => {
-                    const remaining = Math.max(0, Math.ceil((examDeadline - Date.now()) / 1000));
-                    document.getElementById('timer').innerText =
-                        `Time: ${String(Math.floor(remaining / 60)).padStart(2, '0')}:${String(remaining % 60).padStart(2, '0')}`;
-                    if (remaining <= 2 && isExamStarted) window.submitExam();
-                };
-                displayTime();
-                timerInterval = setInterval(displayTime, 1000);
-            }
-
-            await loadQuestions();
-
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen().catch(() => {});
-            }
-
-            await initAI();
-            startMonitoring();
-            takeSnapshot();
-        }
-
-        async function loadQuestions() {
-            const container = document.getElementById('question-container');
-            try {
-                const response = await fetch(`/api/get-questions?subject=${encodeURIComponent(studentData.subject)}`);
-                const questions = await response.json();
-                container.innerHTML = "";
-
-                if (!questions || questions.length === 0) {
-                    container.innerHTML = `
-                        <div class="mcq-card" style="text-align: center; padding: 40px 20px;">
-                            <h3 style="color: #64748b;">No Questions Found for ${studentData.subject}</h3>
-                            <p style="color: #94a3b8; font-size: 14px;">Your faculty has not uploaded questions yet for this subject.</p>
-                        </div>`;
-                    return;
-                }
-
-                const watermarkContent = `${studentData.rollNo} • ${studentData.subject} • PROCTORED\n`.repeat(6);
-
-                questions.forEach((q, index) => {
-                    const card = document.createElement('div');
-                    card.className = 'mcq-card';
-                    const imgSource = q.image.startsWith('/') ? q.image : '/' + q.image;
-
-                    card.innerHTML = `
-                        <div class="mcq-header">
-                            <span>Question ${index + 1}</span>
-                            <span style="font-size: 12px; color: #16a34a; font-weight: 600;">🔒 Anti-Lens Protected</span>
-                        </div>
-                        <div class="img-wrapper">
-                            <img src="${imgSource}" class="question-img" alt="Question ${index + 1}">
-                            <div class="watermark-overlay">
-                                <div class="watermark-text">${watermarkContent}</div>
-                            </div>
-                        </div>
-                        <div class="option" onclick="window.ans(${index}, 'A', this)">Option A</div>
-                        <div class="option" onclick="window.ans(${index}, 'B', this)">Option B</div>
-                        <div class="option" onclick="window.ans(${index}, 'C', this)">Option C</div>
-                        <div class="option" onclick="window.ans(${index}, 'D', this)">Option D</div>
-                    `;
-                    container.appendChild(card);
-                });
-            } catch (err) {
-                console.error("Failed to load questions:", err);
-            }
-        }
-
-        window.ans = function(qIndex, option, el) {
-            studentAnswers[qIndex] = option;
-            if (el) {
-                const parent = el.parentElement;
-                parent.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
-                el.classList.add('selected');
-            }
-        };
-
-        async function initAI() {
-            try {
-                const vision = await FilesetResolver.forVisionTasks(
-                    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm"
-                );
-                faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
-                    baseOptions: {
-                        modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker.task",
-                        delegate: "GPU"
-                    },
-                    runningMode: "VIDEO",
-                    numFaces: 1
-                });
-            } catch(e) {}
-        }
-
-        function startMonitoring() {
-            setInterval(async () => {
-                if (!isExamStarted || !faceLandmarker) return;
-                const video = document.getElementById('video');
-                if (video.readyState < 2) return;
-
-                try {
-                    const results = faceLandmarker.detectForVideo(video, performance.now());
-                    if (!results.faceLandmarks || results.faceLandmarks.length === 0) {
-                        handleViolation("Face Not Detected");
-                    } else {
-                        const nose = results.faceLandmarks[0][1];
-                        const left = results.faceLandmarks[0][234];
-                        const right = results.faceLandmarks[0][454];
-                        const forehead = results.faceLandmarks[0][10];
-                        const chin = results.faceLandmarks[0][152];
-
-                        // 1. Horizontal Turn (Yaw)
-                        const centerX = (left.x + right.x) / 2;
-                        if (Math.abs(nose.x - centerX) > 0.055) {
-                            handleViolation("Looking Away from Screen (Head Turned)");
-                        } else {
-                            // 2. Vertical Tilt (Pitch)
-                            const faceHeight = chin.y - forehead.y;
-                            if (faceHeight > 0.1) {
-                                const verticalRatio = (nose.y - forehead.y) / faceHeight;
-                                if (verticalRatio > 0.70) {
-                                    handleViolation("Looking Down (Possible hidden device/notes)");
-                                } else if (verticalRatio < 0.30) {
-                                    handleViolation("Looking Up (Notification area peek)");
-                                }
-                            }
-                        }
-                    }
-                } catch(e) {}
-            }, 3000);
-
-            setInterval(takeSnapshot, 60000);
-        }
-
-        async function handleViolation(reason) {
-            if (!isExamStarted) return;
-            const now = Date.now();
-            if (now - lastViolationTimestamp < 2500) return;
-            lastViolationTimestamp = now;
-            cheatCount++;
-
-            playAlertSound();
-            if (navigator.vibrate) navigator.vibrate([300, 150, 300]);
-
-            const strikeBadge = document.getElementById('strikeBadge');
-            if (strikeBadge) {
-                if (cheatCount === 1) {
-                    strikeBadge.style.background = '#fef3c7';
-                    strikeBadge.style.color = '#b45309';
-                    strikeBadge.innerHTML = '⚠️ Strikes: 1/3 (Warning)';
-                } else if (cheatCount === 2) {
-                    strikeBadge.style.background = '#fee2e2';
-                    strikeBadge.style.color = '#dc2626';
-                    strikeBadge.innerHTML = '🚨 Strikes: 2/3 (FINAL WARNING)';
-                } else if (cheatCount >= 3) {
-                    strikeBadge.style.background = '#991b1b';
-                    strikeBadge.style.color = '#ffffff';
-                    strikeBadge.innerHTML = '🚫 Strikes: 3/3 (LOCKED)';
-                }
-            }
-
-            const banner = document.getElementById('warning-banner');
-            const camBox = document.getElementById('camContainer');
-            if (camBox) camBox.classList.add('violating');
-            if (banner) {
-                banner.style.display = 'block';
-                banner.innerText = `VIOLATION: ${reason} (Strike ${cheatCount}/3)`;
-            }
-
-            pendingViolation = { reason, strike: cheatCount };
-            showViolationModal(reason, cheatCount);
-            takeSnapshot();
-
-            try {
-                await fetch('/api/log-cheat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        studentId: studentData.collegeId, 
-                        rollNo: studentData.rollNo, 
-                        reason, 
-                        strike: cheatCount 
-                    })
-                });
-            } catch (e) {}
-
-            if (cheatCount >= 3) {
-                setTimeout(() => {
-                    alert("3 EXAM VIOLATIONS REACHED!\nYour exam is locked and has been automatically submitted to the proctor.");
-                    window.submitExam();
-                }, 800);
-            }
-
-            setTimeout(() => { 
-                if (banner) banner.style.display = 'none'; 
-                if (camBox) camBox.classList.remove('violating');
-            }, 5000);
-        }
-
-        function takeSnapshot() {
-            const video = document.getElementById('video');
-            if (!video || !video.videoWidth) return;
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            const data = canvas.toDataURL('image/jpeg', 0.6);
-
-            fetch('/api/upload-snapshot', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ studentId: `${studentData.rollNo}_${studentData.subject}`, image: data })
-            }).catch(() => {});
-        }
-
-        window.submitExam = async function() {
-            if (!isExamStarted) return;
-            isExamStarted = false;
-            if (timerInterval) clearInterval(timerInterval);
-            try {
-                const res = await fetch('/api/submit-exam', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        collegeId: studentData.collegeId, 
-                        rollNo: studentData.rollNo, 
-                        name: studentData.name,
-                        subject: studentData.subject,
-                        answers: studentAnswers 
-                    })
-                });
+                const res = await fetch(`/api/check-status?subject=${encodeURIComponent(studentData.subject)}&rollNo=${encodeURIComponent(studentData.rollNo)}`);
                 const data = await res.json();
-                if (!res.ok) throw new Error(data.error || 'Submission failed');
-                alert(data.submission.score
-                    ? `Exam submitted successfully! Score: ${data.submission.score}`
-                    : 'Exam submitted successfully.');
-            } catch (err) {
-                alert(err.message + '. Please contact your faculty.');
-                return;
-            }
-            window.location.reload();
-        };
-    </script>
+                if (data.active) { examDeadline = data.deadline; clearInterval(pollInterval); pollInterval = null; launchExamSequence(); }
+            } catch(e) {}
+        }, 2500);
+    }
+
+    async function launchExamSequence() {
+        if (!isCameraVerified) { const v = await checkCameraPermission(true); if (!v) { alert("ACCESS DENIED: Camera required."); return; } }
+        let stream;
+        try { stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }, audio: false }); }
+        catch (err) { alert("CRITICAL: Camera access revoked. Exam terminated."); window.location.reload(); return; }
+        const video = document.getElementById('video');
+        video.srcObject = stream;
+        try { await video.play(); } catch(e) {}
+        document.getElementById('camContainer').style.display = 'block';
+        stream.getVideoTracks().forEach(track => { track.onended = () => { handleViolation("Camera disconnected!"); setTimeout(() => window.submitExam(), 2000); }; });
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('waiting-screen').style.display = 'none';
+        document.getElementById('exam-screen').style.display = 'block';
+        isExamStarted = true;
+        if (examDeadline) {
+            const displayTime = () => { const r = Math.max(0, Math.ceil((examDeadline - Date.now()) / 1000)); document.getElementById('timer').innerText = `Time: ${String(Math.floor(r/60)).padStart(2,'0')}:${String(r%60).padStart(2,'0')}`; if (r <= 2 && isExamStarted) window.submitExam(); };
+            displayTime(); timerInterval = setInterval(displayTime, 1000);
+        }
+        await loadQuestions();
+        if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
+        await initAI(); startMonitoring(); takeSnapshot();
+    }
+
+    async function loadQuestions() {
+        const container = document.getElementById('question-container');
+        try {
+            const res = await fetch(`/api/get-questions?subject=${encodeURIComponent(studentData.subject)}`);
+            const questions = await res.json();
+            container.innerHTML = "";
+            if (!questions || !questions.length) { container.innerHTML = '<div class="mcq-card" style="text-align:center;padding:40px;"><h3 style="color:#64748b;">No Questions Found</h3><p style="color:#94a3b8;font-size:14px;">Your faculty has not uploaded questions yet.</p></div>'; return; }
+            const watermark = `${studentData.rollNo} • ${studentData.subject} • PROCTORED\n`.repeat(6);
+            questions.forEach((q, idx) => {
+                const card = document.createElement('div'); card.className = 'mcq-card';
+                const imgSrc = q.image.startsWith('/') ? q.image : '/' + q.image;
+                card.innerHTML = `<div class="mcq-header"><h3>Question ${idx + 1}</h3><span class="shield">🔒 Anti-OCR Protected</span></div><div class="img-wrapper"><img src="${imgSrc}" class="question-img" alt="Q${idx+1}"><div class="watermark-overlay"><div class="watermark-text">${watermark}</div></div></div><div class="option" onclick="window.ans(${idx},'A',this)">Option A</div><div class="option" onclick="window.ans(${idx},'B',this)">Option B</div><div class="option" onclick="window.ans(${idx},'C',this)">Option C</div><div class="option" onclick="window.ans(${idx},'D',this)">Option D</div>`;
+                container.appendChild(card);
+            });
+        } catch(err) { console.error("Failed to load questions:", err); }
+    }
+
+    window.ans = function(qIndex, option, el) { studentAnswers[qIndex] = option; if (el) { el.parentElement.querySelectorAll('.option').forEach(o => o.classList.remove('selected')); el.classList.add('selected'); } };
+
+    async function initAI() {
+        try {
+            const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm");
+            faceLandmarker = await FaceLandmarker.createFromOptions(vision, { baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker.task", delegate: "GPU" }, runningMode: "VIDEO", numFaces: 1 });
+        } catch(e) {}
+    }
+
+    function startMonitoring() {
+        setInterval(async () => {
+            if (!isExamStarted || !faceLandmarker) return;
+            const video = document.getElementById('video'); if (video.readyState < 2) return;
+            try {
+                const results = faceLandmarker.detectForVideo(video, performance.now());
+                if (!results.faceLandmarks || !results.faceLandmarks.length) { handleViolation("Face Not Detected"); }
+                else {
+                    const nose = results.faceLandmarks[0][1]; const left = results.faceLandmarks[0][234]; const right = results.faceLandmarks[0][454]; const forehead = results.faceLandmarks[0][10]; const chin = results.faceLandmarks[0][152];
+                    const centerX = (left.x + right.x) / 2;
+                    if (Math.abs(nose.x - centerX) > 0.055) { handleViolation("Looking Away from Screen"); }
+                    else { const fh = chin.y - forehead.y; if (fh > 0.1) { const vr = (nose.y - forehead.y) / fh; if (vr > 0.70) handleViolation("Looking Down (hidden device)"); else if (vr < 0.30) handleViolation("Looking Up (notification peek)"); } }
+                }
+            } catch(e) {}
+        }, 3000);
+        setInterval(takeSnapshot, 60000);
+    }
+
+    async function handleViolation(reason) {
+        if (!isExamStarted) return;
+        const now = Date.now(); if (now - lastViolationTimestamp < 2500) return; lastViolationTimestamp = now;
+        cheatCount++; playAlertSound(); if (navigator.vibrate) navigator.vibrate([300,150,300]);
+        const badge = document.getElementById('strikeBadge');
+        if (badge) {
+            if (cheatCount === 1) { badge.style.background = '#fef3c7'; badge.style.color = '#b45309'; badge.innerHTML = '⚠️ Strikes: 1/3 (Warning)'; }
+            else if (cheatCount === 2) { badge.style.background = '#fee2e2'; badge.style.color = '#dc2626'; badge.innerHTML = '🚨 Strikes: 2/3 (FINAL WARNING)'; }
+            else if (cheatCount >= 3) { badge.style.background = '#991b1b'; badge.style.color = '#fff'; badge.innerHTML = '🚫 Strikes: 3/3 (LOCKED)'; }
+        }
+        const banner = document.getElementById('warning-banner');
+        const camBox = document.getElementById('camContainer');
+        if (camBox) camBox.classList.add('violating');
+        if (banner) { banner.style.display = 'block'; banner.innerText = `VIOLATION: ${reason} (Strike ${cheatCount}/3)`; }
+        pendingViolation = { reason, strike: cheatCount };
+        showViolationModal(reason, cheatCount); takeSnapshot();
+        try { await fetch('/api/log-cheat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ studentId: studentData.collegeId, rollNo: studentData.rollNo, reason, strike: cheatCount }) }); } catch(e) {}
+        if (cheatCount >= 3) { setTimeout(() => { alert("3 VIOLATIONS REACHED!\nExam locked and auto-submitted."); window.submitExam(); }, 800); }
+        setTimeout(() => { if (banner) banner.style.display = 'none'; if (camBox) camBox.classList.remove('violating'); }, 5000);
+    }
+
+    function takeSnapshot() {
+        const video = document.getElementById('video'); if (!video || !video.videoWidth) return;
+        const canvas = document.createElement('canvas'); canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        const data = canvas.toDataURL('image/jpeg', 0.6);
+        fetch('/api/upload-snapshot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ studentId: `${studentData.rollNo}_${studentData.subject}`, image: data }) }).catch(() => {});
+    }
+
+    window.submitExam = async function() {
+        if (!isExamStarted) return;
+        isExamStarted = false;
+        if (timerInterval) clearInterval(timerInterval);
+        try {
+            const res = await fetch('/api/submit-exam', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ collegeId: studentData.collegeId, rollNo: studentData.rollNo, name: studentData.name, subject: studentData.subject, answers: studentAnswers }) });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Submission failed');
+            alert(data.submission.score ? `Exam submitted! Score: ${data.submission.score}` : 'Exam submitted successfully.');
+        } catch(err) { alert(err.message + '. Please contact your faculty.'); return; }
+        window.location.reload();
+    };
+</script>
+
 </body>
 </html>

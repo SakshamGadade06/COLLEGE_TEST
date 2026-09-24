@@ -3,1506 +3,1149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>College Staff Portal - Exam Management</title>
+    <title>GHRCEM — Examination & Administration Portal</title>
     <style>
-        * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #f1f5f9; color: #1e293b; }
-        .screen { padding: 40px 20px; max-width: 900px; margin: 0 auto; text-align: center; display: none; }
-        .active { display: block; }
-        
-        /* Login Styles */
-        .login-card { background: white; padding: 32px 24px; border-radius: 18px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); max-width: 440px; margin: 0 auto; border: 1px solid #e2e8f0; }
-        .role-selector { display: flex; gap: 8px; justify-content: center; margin-bottom: 22px; flex-wrap: wrap; }
-        .role-btn { padding: 10px 16px; border: 1.5px solid #cbd5e1; border-radius: 8px; background: white; cursor: pointer; font-weight: 600; font-size: 13.5px; transition: all 0.2s; }
-        .role-btn.selected { background: #2563eb; color: white; border-color: #2563eb; }
-        .input-field { width: 100%; padding: 12px 14px; margin: 8px 0; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; background: #fff; font-size: 14.5px; box-sizing: border-box; }
-        .input-field:focus { border-color: #2563eb; }
-        .btn { padding: 13px 24px; font-size: 15px; cursor: pointer; border: none; border-radius: 8px; font-weight: 600; transition: all 0.2s; width: 100%; margin-top: 10px; }
-        .btn-green { background: #16a34a; color: white; }
-        .btn-green:hover { background: #15803d; }
-        .btn-blue { background: #2563eb; color: white; }
-        .btn-blue:hover { background: #1d4ed8; }
-        .btn-red { background: #dc2626; color: white; }
-        .btn-red:hover { background: #b91c1c; }
-
-        /* Dashboard Styles */
-        .dash-container { display: grid; grid-template-columns: 240px 1fr; gap: 20px; text-align: left; max-width: 1200px; margin: 0 auto; }
-        @media (max-width: 768px) {
-            .dash-container { grid-template-columns: 1fr; }
-        }
-        .sidebar { background: #1e293b; color: white; padding: 20px; border-radius: 12px; height: fit-content; position: sticky; top: 20px; }
-        .sidebar h3 { margin-top: 0; font-size: 17px; padding-bottom: 10px; border-bottom: 1px solid #334155; }
-        .sidebar-item { padding: 12px; cursor: pointer; border-radius: 6px; margin-bottom: 6px; font-size: 14px; font-weight: 500; transition: background 0.2s; }
-        .sidebar-item:hover { background: #334155; }
-        .sidebar-item.active-nav { background: #2563eb; font-weight: 600; }
-        .main-content { padding: 0 10px; }
-        .card { background: white; padding: 22px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-        th, td { padding: 12px 14px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 14px; }
-        th { background: #f8fafc; color: #64748b; font-weight: 600; }
-        
-        .search-bar { width: 100%; padding: 11px 14px; margin-bottom: 15px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
-        .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; }
-        .badge-green { background: #dcfce7; color: #15803d; }
-        .badge-amber { background: #fef3c7; color: #b45309; }
-        .badge-blue { background: #dbeafe; color: #1d4ed8; }
-        .badge-purple { background: #f3e8ff; color: #7e22ce; }
-
-        /* Institutional Header & HOD Executive Suite */
-        #hod-dash.screen {
-            max-width: 1380px;
-            padding: 20px 20px 60px 20px;
-            text-align: left;
-            margin: 0 auto;
-        }
-        .inst-header {
-            background: linear-gradient(135deg, #091a33 0%, #0f2942 50%, #1e3a8a 100%);
-            color: #ffffff;
-            border-radius: 16px;
-            padding: 20px 28px;
-            margin-bottom: 22px;
-            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.22);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        .inst-brand-box {
-            display: flex;
-            align-items: center;
-            gap: 18px;
-            flex-wrap: wrap;
-        }
-        .inst-logo-wrap {
-            background: #ffffff;
-            padding: 8px 14px;
-            border-radius: 12px;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .inst-logo-img {
-            height: 48px;
-            width: auto;
-            object-fit: contain;
-            display: block;
-        }
-        .inst-text h1 {
-            font-size: 19px;
-            font-weight: 800;
-            letter-spacing: 0.03em;
-            margin: 0 0 3px 0;
-            color: #ffffff;
-            text-transform: uppercase;
-        }
-        .inst-text .inst-sub {
-            font-size: 13px;
-            color: #cbd5e1;
-            font-weight: 500;
-            margin: 0 0 6px 0;
-        }
-        .inst-accreditations {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .inst-badge-img {
-            height: 26px;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 2px 7px;
-            border-radius: 5px;
-            object-fit: contain;
-        }
-        .hod-profile-card {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(8px);
-            padding: 12px 18px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-        .hod-avatar {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            color: white;
-            box-shadow: 0 2px 8px rgba(217, 119, 6, 0.4);
-            flex-shrink: 0;
-        }
-        .hod-info h4 {
-            margin: 0 0 2px 0;
-            font-size: 14px;
-            color: #ffffff;
-            font-weight: 700;
-        }
-        .hod-info p {
-            margin: 0;
-            font-size: 12px;
-            color: #93c5fd;
-            font-weight: 500;
-        }
-        .hod-logout-btn {
-            background: rgba(239, 68, 68, 0.2);
-            color: #fca5a5;
-            border: 1px solid rgba(239, 68, 68, 0.4);
-            border-radius: 8px;
-            padding: 6px 12px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .hod-logout-btn:hover {
-            background: #ef4444;
-            color: #ffffff;
+        /* === RESET & BASE === */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 15px; -webkit-font-smoothing: antialiased; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+            line-height: 1.6;
+            min-height: 100vh;
         }
 
-        /* Stats Grid */
-        .hod-stats-grid {
+        /* === SCREEN MANAGEMENT === */
+        .screen { display: none; width: 100%; }
+        .screen.active { display: flex; }
+        #login-screen.active { flex-direction: column; min-height: 100vh; }
+        #hod-dash.active, #ct-dash.active, #fac-dash.active { flex-direction: column; min-height: 100vh; }
+
+        /* === LOGIN SCREEN === */
+        #login-screen.campus-login {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
-            margin-bottom: 22px;
+            grid-template-columns: 1.4fr 1fr;
+            min-height: 100vh;
         }
-        .stat-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 18px 20px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-        }
-        .stat-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            flex-shrink: 0;
-        }
-        .stat-num {
-            font-size: 22px;
-            font-weight: 800;
-            color: #0f172a;
-            line-height: 1.2;
-        }
-        .stat-label {
-            font-size: 12.5px;
-            color: #64748b;
-            font-weight: 600;
-            margin-top: 2px;
-        }
+        #login-screen.campus-login.active { display: grid; }
 
-        /* Campus Showcase Grid */
-        .campus-gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 18px;
-            margin-top: 14px;
-        }
-        .campus-photo-card {
-            background: #ffffff;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
+        .campus-visual {
+            position: relative;
+            min-height: 100%;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            transition: all 0.25s ease;
-        }
-        .campus-photo-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 24px rgba(0,0,0,0.12);
-        }
-        .campus-photo-card img {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-            display: block;
-            border-bottom: 1px solid #f1f5f9;
-        }
-        .campus-photo-card .photo-body {
-            padding: 14px 16px;
-        }
-        .campus-photo-card h4 {
-            margin: 0 0 6px 0;
-            font-size: 15px;
-            font-weight: 700;
-            color: #0f2942;
-        }
-        .campus-photo-card p {
-            margin: 0;
-            font-size: 12.5px;
-            color: #64748b;
-            line-height: 1.45;
-        }
-
-        /* Faculty & Class Teacher Roster Grid */
-        .staff-roster-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 14px;
-            margin-top: 14px;
-        }
-        .staff-card {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 14px 16px;
+            background: linear-gradient(170deg, #0c1a2e 0%, #0f2844 30%, #16365c 60%, #1e4970 100%);
+            color: #fff;
+            padding: 40px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+        }
+        .campus-visual::before {
+            content: "";
+            position: absolute;
+            top: -5%; right: -5%;
+            width: 500px; height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(251,191,36,0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .campus-brand-top {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            z-index: 10;
+        }
+        .campus-logo-mark {
+            width: 52px; height: 52px;
+            display: grid; place-items: center;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.12);
+            border: 1.5px solid rgba(255,255,255,0.25);
+            font-size: 18px; font-weight: 900;
+            letter-spacing: 0.02em;
+            color: #fbbf24;
+        }
+        .campus-brand-text { display: flex; flex-direction: column; }
+        .campus-brand-text .college-name {
+            font-size: 15px; font-weight: 800; letter-spacing: 0.04em; color: #fff;
+        }
+        .campus-brand-text .college-sub {
+            font-size: 11px; color: #94a3b8; font-weight: 500;
+        }
+        .campus-brand-text .badge-row {
+            display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;
+        }
+        .campus-brand-text .badge-row span {
+            font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
+            padding: 3px 8px; border-radius: 4px;
+            background: rgba(251,191,36,0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(251,191,36,0.3);
+        }
+
+        .campus-view-toggle {
+            display: inline-flex; gap: 4px;
+            background: rgba(15,23,42,0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 100px; padding: 4px;
+            z-index: 25;
+        }
+        .campus-view-btn {
+            background: transparent; border: none;
+            color: #94a3b8; font-size: 11px; font-weight: 600;
+            padding: 8px 16px; border-radius: 100px;
+            cursor: pointer; transition: all 0.3s;
+            font-family: inherit;
+        }
+        .campus-view-btn:hover { color: #fff; }
+        .campus-view-btn.active {
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+        }
+
+        .campus-copy {
+            z-index: 10; max-width: 520px;
+            background: rgba(15,23,42,0.5);
+            backdrop-filter: blur(12px);
+            padding: 28px; border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .campus-copy h1 {
+            font-size: 28px; font-weight: 800;
+            letter-spacing: -0.02em; line-height: 1.2;
+            margin-bottom: 10px;
+        }
+        .campus-copy p {
+            font-size: 13px; color: #94a3b8; line-height: 1.6; margin-bottom: 12px;
+        }
+        .campus-copy .eyebrow {
+            font-size: 10px; font-weight: 800; letter-spacing: 0.18em;
+            text-transform: uppercase; color: #fbbf24;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .campus-copy .eyebrow::before {
+            content: ""; width: 6px; height: 6px;
+            border-radius: 50%; background: #fbbf24; display: block;
+        }
+        .campus-copy .tag-line {
+            font-size: 11px; color: #64748b; margin-top: 6px;
+        }
+        .campus-footer {
+            z-index: 10; font-size: 11px; color: #64748b;
+            text-align: center; padding: 15px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+
+        /* === RIGHT LOGIN PANEL === */
+        .campus-login-panel {
+            display: flex; flex-direction: column;
+            justify-content: center; padding: 40px;
+            background: #fff;
+        }
+        .login-card {
+            max-width: 420px; margin: 0 auto; width: 100%;
+        }
+        .login-card h2 {
+            font-size: 26px; font-weight: 800;
+            color: #0f172a; margin-bottom: 6px; letter-spacing: -0.02em;
+        }
+        .login-card .login-intro {
+            color: #64748b; font-size: 14px; margin-bottom: 28px;
+        }
+
+        .student-redirect {
+            background: #f8fafc; border: 1px solid #e2e8f0;
+            border-radius: 10px; padding: 16px; margin-bottom: 24px;
+        }
+        .student-redirect strong { color: #1e40af; font-size: 14px; }
+        .student-redirect p { color: #64748b; font-size: 13px; margin: 4px 0; }
+        .student-redirect a {
+            display: inline-block; margin-top: 10px;
+            background: #2563eb; color: #fff; padding: 8px 16px;
+            border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 13px;
+        }
+        .student-redirect a:hover { background: #1d4ed8; }
+
+        .role-selector { display: flex; gap: 8px; margin-bottom: 24px; }
+        .role-btn {
+            flex: 1; padding: 12px 8px; border: 1.5px solid #cbd5e1;
+            border-radius: 10px; background: #fff; cursor: pointer;
+            font-weight: 600; font-size: 13px; text-align: center;
+            transition: all 0.2s; color: #475569; font-family: inherit;
+        }
+        .role-btn:hover { border-color: #94a3b8; }
+        .role-btn.selected { background: #1e293b; color: #fff; border-color: #1e293b; }
+
+        .input-field {
+            width: 100%; padding: 13px 15px; margin: 8px 0;
+            border: 1.5px solid #cbd5e1; border-radius: 10px;
+            font-size: 14.5px; outline: none; background: #fff;
+            font-family: inherit; transition: border-color 0.2s;
+        }
+        .input-field:focus { border-color: #475569; }
+
+        .btn {
+            padding: 14px 24px; font-size: 15px; cursor: pointer;
+            border: none; border-radius: 10px; font-weight: 600;
+            transition: all 0.2s; width: 100%; font-family: inherit; margin-top: 12px;
+        }
+        .btn-blue { background: #1e293b; color: #fff; }
+        .btn-blue:hover { background: #334155; }
+
+        #loginError { color: #dc2626; font-size: 13px; font-weight: 600; margin-top: 14px; display: none; }
+
+        /* === DASHBOARD SHELL === */
+        .dash-header {
+            background: linear-gradient(135deg, #0c1a2e, #162d4a);
+            color: #fff; padding: 20px 32px;
+            display: flex; justify-content: space-between;
+            align-items: center; flex-wrap: wrap; gap: 16px;
+        }
+        .dash-header .brand {
+            display: flex; align-items: center; gap: 14px;
+        }
+        .dash-header .brand img { height: 36px; border-radius: 8px; }
+        .dash-header .brand-info h1 { font-size: 16px; font-weight: 700; letter-spacing: 0.02em; }
+        .dash-header .brand-info p { font-size: 11px; color: #94a3b8; }
+        .dash-header .accreditations { display: flex; gap: 6px; }
+        .dash-header .accreditations img { height: 24px; opacity: 0.9; }
+        .dash-header .user-info {
+            display: flex; align-items: center; gap: 12px;
+        }
+        .dash-header .user-avatar {
+            width: 38px; height: 38px; border-radius: 50%;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            display: grid; place-items: center; font-size: 16px;
+        }
+        .dash-header .user-details h4 { font-size: 13px; font-weight: 600; }
+        .dash-header .user-details p { font-size: 11px; color: #93c5fd; }
+        .dash-header .btn-logout {
+            background: rgba(239,68,68,0.15); color: #fca5a5;
+            border: 1px solid rgba(239,68,68,0.3); border-radius: 8px;
+            padding: 6px 14px; font-size: 12px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s; font-family: inherit;
+        }
+        .dash-header .btn-logout:hover { background: #ef4444; color: #fff; }
+
+        /* KPI Strip */
+        .kpi-strip {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px; padding: 24px 32px; background: #fff;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .kpi-card {
+            display: flex; align-items: center; gap: 14px;
+            padding: 16px; border-radius: 12px;
+            background: #f8fafc; border: 1px solid #e2e8f0;
+        }
+        .kpi-icon {
+            width: 44px; height: 44px; border-radius: 10px;
+            display: grid; place-items: center; font-size: 20px; flex-shrink: 0;
+        }
+        .kpi-value { font-size: 20px; font-weight: 800; color: #0f172a; line-height: 1.2; }
+        .kpi-label { font-size: 11px; color: #64748b; font-weight: 600; margin-top: 2px; }
+
+        /* DASHBOARD BODY */
+        .dash-body { display: flex; flex: 1; }
+        .sidebar {
+            width: 240px; background: #1e293b; color: #fff;
+            padding: 20px 0; flex-shrink: 0;
+            display: flex; flex-direction: column;
+        }
+        .sidebar-brand {
+            padding: 0 20px 20px; font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.1em; color: #64748b;
+            border-bottom: 1px solid #334155; margin-bottom: 12px;
+        }
+        .sidebar-item {
+            padding: 12px 20px; cursor: pointer; font-size: 14px;
+            font-weight: 500; color: #94a3b8; transition: all 0.15s;
+            border-left: 3px solid transparent; margin: 2px 8px;
+            border-radius: 0 6px 6px 0; font-family: inherit;
+        }
+        .sidebar-item:hover { background: #334155; color: #fff; }
+        .sidebar-item.active { background: #334155; color: #fff; border-left-color: #fbbf24; font-weight: 600; }
+        .sidebar-section { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #475569; padding: 16px 20px 8px; }
+        .sidebar-spacer { flex: 1; }
+        .sidebar-footer { padding: 16px 20px; font-size: 11px; color: #475569; border-top: 1px solid #334155; }
+
+        .main-content { flex: 1; padding: 28px 32px; overflow-y: auto; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* CARDS */
+        .card {
+            background: #fff; border: 1px solid #e2e8f0;
+            border-radius: 14px; padding: 24px; margin-bottom: 20px;
+        }
+        .card h3 { font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+        .card p { color: #64748b; font-size: 13px; margin-bottom: 16px; }
+        .card-label {
+            display: block; font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.06em;
+            color: #64748b; margin-bottom: 6px; margin-top: 14px;
+        }
+
+        /* TWO-COLUMN LAYOUT */
+        .two-col { display: grid; grid-template-columns: 1fr 1.4fr; gap: 20px; }
+        @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+        /* STAFF ROSTER */
+        .staff-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+        .staff-card {
+            background: #f8fafc; border: 1px solid #e2e8f0;
+            border-radius: 10px; padding: 16px;
             transition: all 0.2s;
         }
-        .staff-card:hover {
-            border-color: #93c5fd;
-            background: #ffffff;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+        .staff-card:hover { border-color: #cbd5e1; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .staff-card .role-badge {
+            display: inline-block; padding: 3px 8px; border-radius: 5px;
+            font-size: 11px; font-weight: 700;
+        }
+        .badge-amber { background: #fef3c7; color: #92400e; }
+        .badge-blue { background: #dbeafe; color: #1e40af; }
+        .badge-purple { background: #f3e8ff; color: #6b21a8; }
+        .badge-green { background: #dcfce7; color: #166534; }
+        .staff-card h4 { font-size: 14px; font-weight: 700; color: #0f172a; margin: 8px 0 2px; }
+        .staff-card .staff-id { font-size: 12px; color: #94a3b8; }
+        .staff-card .staff-detail { font-size: 12px; color: #475569; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0; }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; display: inline-block; margin-right: 4px; }
+
+        /* TABLES */
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+        th, td { padding: 10px 14px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 13px; }
+        th { background: #f8fafc; color: #64748b; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+        tr:hover td { background: #f8fafc; }
+        .search-bar {
+            width: 100%; padding: 11px 15px; margin-bottom: 16px;
+            border: 1.5px solid #cbd5e1; border-radius: 10px;
+            font-size: 14px; font-family: inherit; outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-bar:focus { border-color: #475569; }
+
+        /* TOGGLE SWITCH */
+        .toggle-row { display: flex; align-items: center; gap: 12px; cursor: pointer; margin: 12px 0; }
+        .toggle-row input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #1e293b; }
+        .toggle-row span { font-size: 14px; color: #334155; }
+
+        /* FORM */
+        .form-group { margin-bottom: 16px; }
+
+        /* BUTTONS */
+        .btn-sm { padding: 8px 16px; font-size: 13px; width: auto; margin: 0; margin-top: 0; }
+        .btn-green { background: #16a34a; color: #fff; }
+        .btn-green:hover { background: #15803d; }
+        .btn-red { background: #dc2626; color: #fff; }
+        .btn-red:hover { background: #b91c1c; }
+        .btn-outline { background: transparent; border: 1.5px solid #cbd5e1; color: #475569; }
+        .btn-outline:hover { background: #f1f5f9; }
+
+        /* EXAM RELEASE */
+        .release-card {
+            border: 2px solid #cbd5e1; border-radius: 14px; padding: 24px;
+            background: #fafbfc;
+        }
+        .release-card.live { border-color: #22c55e; background: #f0fdf4; }
+        .release-card.locked { border-color: #f59e0b; background: #fffbeb; }
+
+        /* EXAM QUESTIONS */
+        .question-card {
+            background: #f8fafc; border: 1px solid #e2e8f0;
+            border-radius: 10px; padding: 16px; margin-bottom: 12px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .question-card img { max-width: 100px; max-height: 80px; border-radius: 6px; object-fit: contain; }
+
+        /* PROCTORING GUIDE */
+        .guide-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 18px; margin-top: 16px; }
+        .guide-box h4 { color: #166534; font-size: 14px; margin-bottom: 8px; }
+        .guide-box ul { padding-left: 18px; font-size: 13px; color: #15803d; line-height: 1.8; }
+
+        /* RESPONSIVE */
+        @media (max-width: 960px) {
+            #login-screen.campus-login { grid-template-columns: 1fr; }
+            .campus-visual { min-height: 300px; }
+            .sidebar { width: 60px; }
+            .sidebar-item span, .sidebar-brand, .sidebar-section { display: none; }
+            .sidebar-item { padding: 14px 0; text-align: center; border-left: none; border-radius: 6px; margin: 4px; }
+            .sidebar-item.active { border-left: none; border-bottom: 3px solid #fbbf24; }
+            .main-content { padding: 20px; }
+            .kpi-strip { padding: 16px 20px; }
+        }
+        @media (max-width: 540px) {
+            .campus-visual { padding: 20px; }
+            .campus-copy h1 { font-size: 22px; }
+            .dash-header { padding: 16px; }
+            .kpi-strip { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
         }
     </style>
     <link rel="stylesheet" href="/campus_scene.css">
 </head>
 <body>
 
-    <!-- 1. STAFF LOGIN SCREEN -->
-    <div id="login-screen" class="screen active campus-login">
-        <section class="campus-visual" aria-label="Illustration of GH Raisoni College of Engineering and Management Wagholi Pune">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; z-index: 15; flex-wrap: wrap; gap: 12px;">
-                <div class="campus-brand">
-                    <span class="campus-mark">GH</span>
-                    <div>
-                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                            <span style="font-size: 14px; font-weight: 900; letter-spacing: 0.1em;">GHRCEM &middot; PUNE</span>
-                            <span style="background: rgba(37, 99, 235, 0.25); border: 1px solid rgba(147, 197, 253, 0.4); color: #93c5fd; font-size: 9px; padding: 2px 7px; border-radius: 4px; font-weight: 700; letter-spacing: 0.05em;">NAAC A+ &middot; AUTONOMOUS</span>
-                        </div>
-                        <span class="campus-brand-sub">G H Raisoni College of Engineering &amp; Management, Wagholi</span>
-                    </div>
-                </div>
+<!-- ==================== 1. LOGIN SCREEN ==================== -->
+<div id="login-screen" class="screen active campus-login">
+    <section class="campus-visual" aria-label="GHRCEM Campus Simulation">
+        <div id="campus3dContainer" class="campus-3d-wrapper">
+            <canvas id="scene3d"></canvas>
+            <div class="campus-3d-hint"><span>🏛️</span> Drag to rotate &amp; explore GHRCEM Wagholi in 3D</div>
+        </div>
 
-                <!-- VIEW TOGGLE BUTTON: 3D Campus Tour vs 2D Campus Artwork -->
-                <div class="campus-view-toggle">
-                    <button type="button" class="campus-view-btn active" id="btn3DView" onclick="window.switchCampusMode('3d')">
-                        <span>🌐</span> 3D Tour
-                    </button>
-                    <button type="button" class="campus-view-btn" id="btnReplay3D" onclick="window.replayCampus3D()" title="Replay Campus Construction &amp; Gate Swoop" style="padding: 7px 11px;">
-                        <span>↺</span> Replay
-                    </button>
-                    <button type="button" class="campus-view-btn" id="btn2DView" onclick="window.switchCampusMode('2d')">
-                        <span>🎨</span> 2D Art
-                    </button>
+        <div class="campus-brand-top">
+            <img src="/ghrcem_logo.png" alt="GHRCEM Pune" style="height:52px;background:#ffffff;padding:4px 8px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.25);">
+            <div class="campus-brand-text">
+                <div class="college-name">GHRCEM · WAGHOLI, PUNE</div>
+                <div class="college-sub">G H Raisoni College of Engineering and Management</div>
+                <div class="badge-row">
+                    <span>NAAC A++</span>
+                    <span>NBA</span>
+                    <span>AICTE</span>
+                    <span>AUTONOMOUS</span>
                 </div>
             </div>
+        </div>
 
-            <!-- 1. PROCEDURAL 3D THREE.JS CAMPUS CANVAS -->
-            <div id="campus3dContainer" class="campus-3d-wrapper">
-                <canvas id="scene3d"></canvas>
-                <div class="campus-3d-hint">
-                    <span>🖱️</span> Drag to rotate &amp; explore GHRCEM Wagholi in 3D
-                </div>
-            </div>
+        <div class="campus-view-toggle">
+            <span style="font-size:11px;font-weight:700;color:#93c5fd;display:inline-flex;align-items:center;gap:6px;padding:4px 8px;">🌐 Live 3D Simulation</span>
+            <button type="button" class="campus-view-btn" id="btnReplay3D" onclick="window.replayCampus3D()" title="Replay Campus Architecture Animation">↺ Replay Tour</button>
+        </div>
 
-            <!-- 2. ANIMATED 2D CAMPUS ART CANVAS -->
-            <div id="campus2dContainer" class="campus-art-wrapper" style="display: none;" aria-hidden="true">
-                <svg class="campus-svg-canvas" viewBox="0 0 1000 650" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <!-- Sky Gradient -->
-                        <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stop-color="#0a1e38" />
-                            <stop offset="35%" stop-color="#15365e" />
-                            <stop offset="70%" stop-color="#2a588b" />
-                            <stop offset="100%" stop-color="#6097cb" />
-                        </linearGradient>
+        <div class="campus-copy">
+            <div class="eyebrow">Autonomous Examination &amp; Evaluation System</div>
+            <h1>G H Raisoni College of Engineering &amp; Management</h1>
+            <p>Official Digital Campus Portal powered by CyberVidya ERP. Real-time examination management, AI proctoring surveillance, and academic administration for Wagholi, Pune.</p>
+            <div class="tag-line">Approved by AICTE, New Delhi &bull; Affiliated to Savitribai Phule Pune University (SPPU)</div>
+        </div>
 
-                        <!-- Sun Gradient -->
-                        <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" stop-color="#fffbeb" stop-opacity="1" />
-                            <stop offset="30%" stop-color="#fde047" stop-opacity="0.8" />
-                            <stop offset="60%" stop-color="#f59e0b" stop-opacity="0.3" />
-                            <stop offset="100%" stop-color="#f59e0b" stop-opacity="0" />
-                        </radialGradient>
+        <div class="campus-footer" style="margin:0;max-width:none;border-top:none;padding:0;color:#64748b;">GHRCEM Wagholi Pune &middot; CyberVidya Examination System &middot; Pune - 412207</div>
+    </section>
 
-                        <!-- Glass Reflection Gradient -->
-                        <linearGradient id="glassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#bfdbfe" stop-opacity="0.85" />
-                            <stop offset="45%" stop-color="#93c5fd" stop-opacity="0.6" />
-                            <stop offset="50%" stop-color="#ffffff" stop-opacity="0.9" />
-                            <stop offset="55%" stop-color="#60a5fa" stop-opacity="0.5" />
-                            <stop offset="100%" stop-color="#1e40af" stop-opacity="0.75" />
-                        </linearGradient>
-
-                        <!-- Building Concrete Gradient -->
-                        <linearGradient id="buildingGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stop-color="#ffffff" />
-                            <stop offset="60%" stop-color="#f1f5f9" />
-                            <stop offset="100%" stop-color="#cbd5e1" />
-                        </linearGradient>
-
-                        <!-- Marquee Gold Gradient -->
-                        <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stop-color="#f59e0b" />
-                            <stop offset="50%" stop-color="#fef08a" />
-                            <stop offset="100%" stop-color="#f59e0b" />
-                        </linearGradient>
-
-                        <!-- Lawn Gradient -->
-                        <linearGradient id="lawnGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stop-color="#22c55e" />
-                            <stop offset="40%" stop-color="#16a34a" />
-                            <stop offset="100%" stop-color="#14532d" />
-                        </linearGradient>
-
-                        <!-- Palm Trunk Gradient -->
-                        <linearGradient id="trunkGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stop-color="#78350f" />
-                            <stop offset="50%" stop-color="#b45309" />
-                            <stop offset="100%" stop-color="#451a03" />
-                        </linearGradient>
-                    </defs>
-
-                    <!-- SKY & SUN -->
-                    <rect width="1000" height="650" fill="url(#skyGrad)" />
-                    <circle cx="820" cy="140" r="90" fill="url(#sunGlow)" />
-
-                    <!-- CLOUDS (ANIMATED AT 3 SPEEDS) -->
-                    <g class="anim-cloud-slow" opacity="0.6">
-                        <path d="M50 110 Q70 85 105 90 Q135 75 165 95 Q195 90 205 110 Q215 125 195 135 L60 135 Q40 125 50 110 Z" fill="#ffffff" filter="blur(1px)" />
-                        <path d="M520 80 Q545 55 580 60 Q615 45 645 65 Q675 60 685 80 Q700 95 675 105 L530 105 Q510 95 520 80 Z" fill="#ffffff" filter="blur(1px)" />
-                    </g>
-                    <g class="anim-cloud-med" opacity="0.5">
-                        <path d="M280 150 Q305 130 335 135 Q365 120 395 140 Q420 135 435 150 Q445 165 425 175 L290 175 Q270 165 280 150 Z" fill="#ffffff" filter="blur(2px)" />
-                    </g>
-                    <g class="anim-cloud-fast" opacity="0.4">
-                        <path d="M720 120 Q740 105 765 110 Q790 98 815 112 Q835 108 845 120 L730 120 Z" fill="#ffffff" filter="blur(1.5px)" />
-                    </g>
-
-                    <!-- FLYING BIRDS GROUP -->
-                    <g class="anim-birds-group">
-                        <g transform="translate(60, 160)">
-                            <path class="bird-wing-l" d="M0,0 Q-12,-10 -22,-4" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" />
-                            <path class="bird-wing-r" d="M0,0 Q12,-10 22,-4" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" />
-                        </g>
-                        <g transform="translate(95, 175) scale(0.8)">
-                            <path class="bird-wing-l" d="M0,0 Q-12,-10 -22,-4" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" />
-                            <path class="bird-wing-r" d="M0,0 Q12,-10 22,-4" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" />
-                        </g>
-                        <g transform="translate(130, 165) scale(0.7)">
-                            <path class="bird-wing-l" d="M0,0 Q-12,-10 -22,-4" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" />
-                            <path class="bird-wing-r" d="M0,0 Q12,-10 22,-4" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" />
-                        </g>
-                    </g>
-
-                    <!-- DISTANT WAGHOLI HILLS SILHOUETTE -->
-                    <path d="M0 380 Q160 330 320 365 Q500 320 680 355 Q850 335 1000 375 L1000 650 L0 650 Z" fill="#183a60" opacity="0.8" />
-                    <path d="M0 405 Q220 365 440 395 Q670 360 880 390 Q960 380 1000 395 L1000 650 L0 650 Z" fill="#1b4774" opacity="0.9" />
-
-                    <!-- ============================================== -->
-                    <!-- GHRCEM PUNE MAIN COLLEGE BUILDING COMPLEX     -->
-                    <!-- ============================================== -->
-
-                    <!-- Left Academic Wing -->
-                    <rect x="140" y="270" width="220" height="180" rx="3" fill="url(#buildingGrad)" stroke="#94a3b8" stroke-width="1.5" />
-                    <!-- Left Wing Windows (3 Floors) -->
-                    <!-- Floor 3 -->
-                    <rect x="155" y="285" width="40" height="28" rx="2" fill="url(#glassGrad)" class="anim-window-gleam" />
-                    <rect x="205" y="285" width="40" height="28" rx="2" fill="url(#glassGrad)" class="anim-window-gleam" />
-                    <rect x="255" y="285" width="40" height="28" rx="2" fill="url(#glassGrad)" class="anim-window-gleam" />
-                    <rect x="305" y="285" width="40" height="28" rx="2" fill="url(#glassGrad)" class="anim-window-gleam" />
-                    <!-- Floor 2 -->
-                    <rect x="155" y="325" width="40" height="28" rx="2" fill="url(#glassGrad)" />
-                    <rect x="205" y="325" width="40" height="28" rx="2" fill="url(#glassGrad)" />
-                    <rect x="255" y="325" width="40" height="28" rx="2" fill="url(#glassGrad)" />
-                    <rect x="305" y="325" width="40" height="28" rx="2" fill="url(#glassGrad)" />
-                    <!-- Floor 1 -->
-                    <rect x="155" y="365" width="40" height="28" rx="2" fill="url(#glassGrad)" />
-                    <rect x="205" y="365" width="40" height="28" rx="2" fill="url(#glassGrad)" />
-                    <rect x="255" y="365" width="40" height="28" rx="2" fill="url(#glassGrad)" />
-                    <rect x="305" y="365" width="40" height="28" rx="2" fill="url(#glassGrad)" />
-
-                    <!-- Right Academic & Labs Wing -->
-                    <rect x="640" y="270" width="220" height="180" rx="3" fill="url(#buildingGrad)" stroke="#94a3b8" stroke-width="1.5" />
-                    <!-- Right Wing Windows (3 Floors) -->
-                    <!-- Floor 3 -->
-                    <rect x="655" y="285" width="40" height="28" rx="2" fill="url(#glassGrad)" class="anim-window-gleam" />
-                    <rect x="705" y="285" width="40" height="28" rx="2" fill="url(#glassGrad)" class="anim-window-gleam" />
-                    <rect x="755" y="285" width="40" height="28" rx="2" fill="url(#glassGrad)" class="anim-window-gleam" />
-                    <rect x="805" y="285" width="40" height="28" rx="2" fill="url(#glassGrad)" class="anim-window-gleam" />
-                    <!-- Floor 2 -->
-                    <rect x="655" y="325" width="40" height="28" rx="2" fill="url(#glassGrad)" />
-                    <rect x="705" y="325" width="40" height="28" rx="2" fill="url(#glassGrad)" />
-                    <rect x="755" y="325" width="40" height="28" rx="2" fill="url(#glassGrad)" />
-                    <rect x="805" y="325" width="40" height="28" rx="2" fill="url(#glassGrad)" />
-                    <!-- Floor 1 -->
-                    <rect x="655" y="365" width="40" height="28" rx="2" fill="url(#glassGrad)" />
-                    <rect x="705" y="365" width="40" height="28" rx="2" fill="url(#glassGrad)" />
-                    <rect x="755" y="365" width="40" height="28" rx="2" fill="url(#glassGrad)" />
-                    <rect x="805" y="365" width="40" height="28" rx="2" fill="url(#glassGrad)" />
-
-                    <!-- Central Grand Atrium & Administrative Block -->
-                    <rect x="330" y="220" width="340" height="230" rx="4" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
-                    
-                    <!-- Rooftop Pediment & Clock Tower -->
-                    <polygon points="330,220 500,165 670,220" fill="#e2e8f0" stroke="#64748b" stroke-width="2" />
-                    <rect x="460" y="140" width="80" height="45" fill="#f8fafc" stroke="#64748b" stroke-width="1.5" />
-                    <!-- Clock Face -->
-                    <circle cx="500" cy="162" r="14" fill="#ffffff" stroke="#1e3a8a" stroke-width="2" />
-                    <line x1="500" y1="162" x2="500" y2="152" stroke="#1e3a8a" stroke-width="2" stroke-linecap="round" />
-                    <line x1="500" y1="162" x2="507" y2="162" stroke="#1e3a8a" stroke-width="2" stroke-linecap="round" />
-
-                    <!-- Flagpole & Waving Indian National Flag -->
-                    <line x1="500" y1="140" x2="500" y2="88" stroke="#cbd5e1" stroke-width="2.5" />
-                    <circle cx="500" cy="87" r="3" fill="#fbbf24" />
-                    <g class="anim-flag" transform="translate(500, 88)">
-                        <!-- Saffron -->
-                        <path d="M0,0 Q18,-3 36,0 L36,7 Q18,4 0,7 Z" fill="#ff9933" />
-                        <!-- White -->
-                        <path d="M0,7 Q18,4 36,7 L36,14 Q18,11 0,14 Z" fill="#ffffff" />
-                        <circle cx="18" cy="10.5" r="2.2" fill="#000088" />
-                        <!-- Green -->
-                        <path d="M0,14 Q18,11 36,14 L36,21 Q18,18 0,21 Z" fill="#138808" />
-                    </g>
-
-                    <!-- Central Glass Curtain Wall -->
-                    <rect x="420" y="235" width="160" height="120" rx="3" fill="url(#glassGrad)" stroke="#1e40af" stroke-width="2" class="anim-window-gleam" />
-                    <line x1="460" y1="235" x2="460" y2="355" stroke="#ffffff" stroke-width="1" opacity="0.6" />
-                    <line x1="500" y1="235" x2="500" y2="355" stroke="#ffffff" stroke-width="1.5" opacity="0.7" />
-                    <line x1="540" y1="235" x2="540" y2="355" stroke="#ffffff" stroke-width="1" opacity="0.6" />
-                    <line x1="420" y1="275" x2="580" y2="275" stroke="#ffffff" stroke-width="1" opacity="0.6" />
-                    <line x1="420" y1="315" x2="580" y2="315" stroke="#ffffff" stroke-width="1" opacity="0.6" />
-
-                    <!-- Grand Entrance Portico & Pillars -->
-                    <rect x="360" y="360" width="280" height="15" rx="2" fill="#334155" />
-                    <rect x="380" y="375" width="16" height="75" fill="#f8fafc" stroke="#94a3b8" stroke-width="1" />
-                    <rect x="450" y="375" width="16" height="75" fill="#f8fafc" stroke="#94a3b8" stroke-width="1" />
-                    <rect x="534" y="375" width="16" height="75" fill="#f8fafc" stroke="#94a3b8" stroke-width="1" />
-                    <rect x="604" y="375" width="16" height="75" fill="#f8fafc" stroke="#94a3b8" stroke-width="1" />
-                    <!-- Main Entrance Doors -->
-                    <rect x="478" y="390" width="44" height="60" rx="2" fill="#1e293b" />
-                    <line x1="500" y1="390" x2="500" y2="450" stroke="#f1f5f9" stroke-width="1.5" />
-                    <circle cx="494" cy="420" r="2" fill="#fbbf24" />
-                    <circle cx="506" cy="420" r="2" fill="#fbbf24" />
-
-                    <!-- ============================================== -->
-                    <!-- PROMINENT MARQUEE BOARD: GHRCEM WAGHOLI PUNE   -->
-                    <!-- ============================================== -->
-                    <g transform="translate(0, -10)">
-                        <rect x="160" y="445" width="680" height="54" rx="10" fill="#4a154b" stroke="url(#goldGrad)" stroke-width="2.5" class="marquee-glow" />
-                        <circle cx="175" cy="472" r="3.5" fill="#fbbf24" />
-                        <circle cx="825" cy="472" r="3.5" fill="#fbbf24" />
-                        <!-- Primary College Name -->
-                        <text x="500" y="468" text-anchor="middle" fill="#ffffff" font-family="'Segoe UI', Roboto, Arial, sans-serif" font-weight="900" font-size="13" letter-spacing="1.5">
-                            G H RAISONI COLLEGE OF ENGINEERING AND MANAGEMENT
-                        </text>
-                        <!-- Location & Subtitle -->
-                        <text x="500" y="488" text-anchor="middle" fill="#fef08a" font-family="'Segoe UI', Roboto, Arial, sans-serif" font-weight="800" font-size="11.5" letter-spacing="4">
-                            WAGHOLI, PUNE
-                        </text>
-                    </g>
-
-                    <!-- Grand Marble Entrance Steps -->
-                    <polygon points="340,495 660,495 680,515 320,515" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="1" />
-                    <polygon points="310,515 690,515 710,535 290,535" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1" />
-                    <polygon points="275,535 725,535 750,555 250,555" fill="#94a3b8" stroke="#64748b" stroke-width="1" />
-
-                    <!-- FRONT LAWN & CENTRAL WALKWAY -->
-                    <path d="M0 530 Q240 500 500 520 Q760 500 1000 530 L1000 650 L0 650 Z" fill="url(#lawnGrad)" />
-                    <polygon points="460,535 540,535 620,650 380,650" fill="#e2e8f0" opacity="0.95" />
-                    <line x1="460" y1="535" x2="380" y2="650" stroke="#94a3b8" stroke-width="4" stroke-dasharray="12 8" />
-                    <line x1="540" y1="535" x2="620" y2="650" stroke="#94a3b8" stroke-width="4" stroke-dasharray="12 8" />
-
-                    <!-- SWAYING ROYAL PALM TREES -->
-                    <!-- Left Palm -->
-                    <g class="anim-palm-left">
-                        <path d="M110 590 Q118 420 125 290" stroke="url(#trunkGrad)" stroke-width="11" fill="none" stroke-linecap="round" />
-                        <path d="M125 290 Q80 230 20 250" stroke="#16a34a" stroke-width="7" fill="none" stroke-linecap="round" />
-                        <path d="M125 290 Q70 200 35 180" stroke="#15803d" stroke-width="6.5" fill="none" stroke-linecap="round" />
-                        <path d="M125 290 Q110 180 95 140" stroke="#22c55e" stroke-width="6" fill="none" stroke-linecap="round" />
-                        <path d="M125 290 Q150 180 170 150" stroke="#16a34a" stroke-width="6" fill="none" stroke-linecap="round" />
-                        <path d="M125 290 Q180 210 220 200" stroke="#15803d" stroke-width="6.5" fill="none" stroke-linecap="round" />
-                        <path d="M125 290 Q190 250 230 270" stroke="#14532d" stroke-width="6.5" fill="none" stroke-linecap="round" />
-                        <circle cx="120" cy="295" r="5" fill="#78350f" />
-                        <circle cx="128" cy="297" r="5.5" fill="#713f12" />
-                    </g>
-
-                    <!-- Right Palm -->
-                    <g class="anim-palm-right">
-                        <path d="M890 590 Q882 420 875 290" stroke="url(#trunkGrad)" stroke-width="11" fill="none" stroke-linecap="round" />
-                        <path d="M875 290 Q920 230 980 250" stroke="#16a34a" stroke-width="7" fill="none" stroke-linecap="round" />
-                        <path d="M875 290 Q930 200 965 180" stroke="#15803d" stroke-width="6.5" fill="none" stroke-linecap="round" />
-                        <path d="M875 290 Q890 180 905 140" stroke="#22c55e" stroke-width="6" fill="none" stroke-linecap="round" />
-                        <path d="M875 290 Q850 180 830 150" stroke="#16a34a" stroke-width="6" fill="none" stroke-linecap="round" />
-                        <path d="M875 290 Q820 210 780 200" stroke="#15803d" stroke-width="6.5" fill="none" stroke-linecap="round" />
-                        <path d="M875 290 Q810 250 770 270" stroke="#14532d" stroke-width="6.5" fill="none" stroke-linecap="round" />
-                        <circle cx="880" cy="295" r="5" fill="#78350f" />
-                        <circle cx="872" cy="297" r="5.5" fill="#713f12" />
-                    </g>
-
-                    <!-- Modern Lampposts -->
-                    <line x1="330" y1="560" x2="330" y2="470" stroke="#475569" stroke-width="3" />
-                    <circle cx="330" cy="465" r="7" fill="#fef08a" opacity="0.9" />
-                    <circle cx="330" cy="465" r="18" fill="#fef08a" opacity="0.25" filter="blur(4px)" />
-
-                    <line x1="670" y1="560" x2="670" y2="470" stroke="#475569" stroke-width="3" />
-                    <circle cx="670" cy="465" r="7" fill="#fef08a" opacity="0.9" />
-                    <circle cx="670" cy="465" r="18" fill="#fef08a" opacity="0.25" filter="blur(4px)" />
-
-                    <!-- AMBIENT FLOATING PARTICLES -->
-                    <g class="particle-group">
-                        <circle cx="280" cy="520" r="2.5" fill="#fef08a" />
-                        <circle cx="480" cy="490" r="3" fill="#67e8f9" />
-                        <circle cx="620" cy="510" r="2" fill="#fde047" />
-                        <circle cx="750" cy="530" r="2.8" fill="#a7f3d0" />
-                    </g>
-                </svg>
-            </div>
-
-            <!-- Bottom Narrative Copy -->
-            <div class="campus-copy">
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                    <span class="eyebrow" style="margin: 0;">Wagholi, Pune</span>
-                    <span style="color: #64748b;">&bull;</span>
-                    <span style="font-size: 11px; font-weight: 700; color: #fbbf24; text-transform: uppercase; letter-spacing: 0.08em;">Autonomous Institute</span>
-                </div>
-                <h1 style="font-size: 24px; line-height: 1.25; margin: 0 0 8px 0;">Excellence in Engineering &amp; Innovation</h1>
-                <p style="font-size: 13px; line-height: 1.5; color: #cbd5e1; margin: 0;">Official Examination &amp; Faculty Administration Portal &bull; Approved by AICTE, New Delhi &amp; Affiliated to Savitribai Phule Pune University (SPPU).</p>
-            </div>
-        </section>
-        <section class="campus-login-panel" aria-label="Staff portal sign in">
+    <section class="campus-login-panel" aria-label="Staff Sign In">
         <div class="login-card">
-            <h2>Welcome to the staff portal</h2>
-            <p class="login-intro">Choose your role and enter your details to continue.</p>
-            <!-- Student Redirect Banner -->
-            <div style="background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 10px; padding: 14px; margin-bottom: 20px; text-align: left;">
-                <div style="font-weight: 700; color: #1e40af; font-size: 14px;">🎓 Are you a Student?</div>
-                <div style="color: #3b82f6; font-size: 13px; margin: 4px 0 8px 0;">This portal is for faculty & teachers. Students must enter via the dedicated exam page.</div>
-                <a href="/student" style="display: block; text-align: center; background: #2563eb; color: white; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 13.5px;">Go to Student Exam Portal &rarr;</a>
+            <div class="login-brand-header">
+                <img src="/ghrcem_logo.png" alt="GHRCEM Pune" class="login-college-logo">
+                <img src="/cyber_vidya_logo.jpg" alt="CyberVidya ERP" class="login-cybervidya-logo">
             </div>
 
-            <!-- Role Selector -->
+            <h2>Staff &amp; Faculty Portal</h2>
+            <p class="login-intro">Sign in with your institutional CyberVidya credentials.</p>
+
+            <div class="student-redirect">
+                <strong>🎓 Are you an Examinee / Student?</strong>
+                <p>Students must join their scheduled examination room here.</p>
+                <a href="/student">Enter Student Exam Portal →</a>
+            </div>
+
             <div class="role-selector">
-                <button class="role-btn selected" onclick="setRole('FACULTY', this)">Faculty</button>
-                <button class="role-btn" onclick="setRole('CLASS_TEACHER', this)">Class Teacher</button>
-                <button class="role-btn" onclick="setRole('HOD', this)">HOD</button>
+                <button class="role-btn selected" id="roleFaculty" onclick="setRole('FACULTY', this)">Faculty</button>
+                <button class="role-btn" id="roleCT" onclick="setRole('CLASS_TEACHER', this)">Class Teacher</button>
+                <button class="role-btn" id="roleHOD" onclick="setRole('HOD', this)">HOD</button>
             </div>
 
-            <div id="staff-fields">
-                <input type="text" id="staffId" class="input-field" placeholder="Staff ID (e.g. FAC001 / HOD001)">
-                <input type="password" id="staffPass" class="input-field" placeholder="Password">
+            <label class="card-label" for="staffId" style="font-size:12px;font-weight:700;color:#334155;display:block;margin-top:4px;">Staff ID</label>
+            <input type="text" id="staffId" class="input-field" placeholder="e.g. FAC001 / HOD001" autocomplete="username">
+
+            <label class="card-label" for="staffPass" style="font-size:12px;font-weight:700;color:#334155;display:block;margin-top:6px;">Password</label>
+            <input type="password" id="staffPass" class="input-field" placeholder="Enter your portal password" autocomplete="current-password">
+
+            <div class="login-credentials-tip" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;margin:12px 0 14px;font-size:11.5px;color:#475569;line-height:1.5;">
+                <div style="font-weight:700;color:#1e3a8a;margin-bottom:3px;">🔑 Institutional Quick Logins:</div>
+                <div><strong>Faculty:</strong> <code>FAC001</code> / <code>faculty</code> (Subject: DSA)</div>
+                <div><strong>Class Teacher:</strong> <code>CLASSBAIML</code> / <code>CLASSB2026</code> (SY-AIML B)</div>
+                <div><strong>HOD:</strong> <code>HOD001</code> / <code>admin</code> (Super Admin)</div>
             </div>
 
-            <button id="loginBtn" onclick="handleLogin()" class="btn btn-blue">Login to Portal</button>
-            <p id="loginError" style="color: #dc2626; display: none; margin-top: 12px; font-size: 13.5px; font-weight: 600;"></p>
+            <button id="loginBtn" onclick="handleLogin()" class="btn btn-blue" style="background:#1e3a8a;box-shadow:0 4px 14px rgba(30,58,138,0.35);">Sign In to Portal</button>
+            <div id="loginError" style="display:none;color:#dc2626;font-size:12.5px;font-weight:600;margin-top:12px;background:#fef2f2;border:1px solid #fecaca;padding:8px 12px;border-radius:8px;"></div>
         </div>
-        <p class="campus-footer">GHRCEM Pune &middot; Examination portal prototype</p>
-        </section>
+        <div class="campus-footer">GHRCEM Pune &middot; CyberVidya ERP System v3.0</div>
+    </section>
+</div>
+
+<!-- ==================== 2. HOD DASHBOARD ==================== -->
+<div id="hod-dash" class="screen">
+    <header class="dash-header">
+        <div class="brand">
+            <div class="campus-logo-mark" style="width:40px;height:40px;font-size:14px;">GH</div>
+            <div class="brand-info">
+                <h1>GHRCEM Examination Portal</h1>
+                <p>Head of Department — Dashboard</p>
+            </div>
+        </div>
+        <div class="accreditations">
+            <img src="https://rgicdn.s3.ap-south-1.amazonaws.com/raisoni/rgi/images/acredientions/naac-plus-plus.webp" alt="NAAC A++" title="NAAC A++">
+            <img src="https://rgicdn.s3.ap-south-1.amazonaws.com/raisoni/rgi/images/acredientions/nba.webp" alt="NBA" title="NBA">
+            <img src="https://rgicdn.s3.ap-south-1.amazonaws.com/raisoni/rgi/images/acredientions/aicte.webp" alt="AICTE" title="AICTE">
+        </div>
+        <div class="user-info">
+            <div class="user-details">
+                <h4 id="hod-profile-name">Super Admin</h4>
+                <p>ID: <span id="hod-profile-id">HOD001</span></p>
+            </div>
+            <div class="user-avatar">🎓</div>
+            <button class="btn-logout" onclick="location.reload()">Sign Out</button>
+        </div>
+    </header>
+
+    <div class="kpi-strip">
+        <div class="kpi-card">
+            <div class="kpi-icon" style="background:#eff6ff;color:#2563eb;">🏛️</div>
+            <div><div class="kpi-value">GHRCEM</div><div class="kpi-label">Autonomous Campus</div></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon" style="background:#f0fdf4;color:#16a34a;">👨‍🏫</div>
+            <div><div class="kpi-value" id="hod-stat-faculty">—</div><div class="kpi-label">Active Faculty</div></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon" style="background:#fef3c7;color:#d97706;">📝</div>
+            <div><div class="kpi-value" id="hod-stat-submissions">—</div><div class="kpi-label">Submissions</div></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon" style="background:#faf5ff;color:#7e22ce;">🛡️</div>
+            <div><div class="kpi-value">99.8%</div><div class="kpi-label">Proctoring Integrity</div></div>
+        </div>
     </div>
 
-    <!-- 2. HOD DASHBOARD: EXECUTIVE COMMAND SUITE -->
-    <div id="hod-dash" class="screen">
-        <!-- Institutional Header Banner -->
-        <header class="inst-header">
-            <div class="inst-brand-box">
-                <div class="inst-logo-wrap">
-                    <img src="https://rgicdn.s3.ap-south-1.amazonaws.com/raisoni/rgi/images/logo/logo-color.webp" alt="Raisoni Group Logo" class="inst-logo-img">
-                </div>
-                <div class="inst-text">
-                    <div class="inst-sub">Autonomous Institute Affiliated to Savitribai Phule Pune University (SPPU) &bull; Approved by AICTE, New Delhi</div>
-                    <h1>G H Raisoni College of Engineering and Management</h1>
-                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
-                        <span style="background: rgba(254, 240, 138, 0.2); border: 1px solid rgba(253, 224, 71, 0.5); color: #fef08a; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 700; letter-spacing: 0.05em;">DEPARTMENT OF COMPUTER ENGINEERING &amp; AI</span>
-                        <span style="color: #94a3b8; font-size: 12px;">&bull; Wagholi, Pune</span>
-                    </div>
-                </div>
-            </div>
+    <div class="dash-body">
+        <nav class="sidebar">
+            <div class="sidebar-brand">Navigation</div>
+            <div class="sidebar-section">Management</div>
+            <div class="sidebar-item active" id="hod-nav-teachers" onclick="showHodTab('teachers')">👥 Manage Class Teachers</div>
+            <div class="sidebar-item" id="hod-nav-create-hod" onclick="showHodTab('create-hod')">👑 Create HOD Account</div>
+            <div class="sidebar-section">Exams</div>
+            <div class="sidebar-item" id="hod-nav-exams" onclick="showHodTab('exams')">📊 All Subject Exams</div>
+            <div class="sidebar-section">Settings</div>
+            <div class="sidebar-item" id="hod-nav-settings" onclick="showHodTab('settings')">⚙️ Academic Controls</div>
+            <div class="sidebar-spacer"></div>
+            <div class="sidebar-item" style="color:#fca5a5;" onclick="location.reload()">🚪 Sign Out</div>
+            <div class="sidebar-footer">Institutional Portal v3.0</div>
+        </nav>
 
-            <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-                <div class="inst-accreditations">
-                    <img src="https://rgicdn.s3.ap-south-1.amazonaws.com/raisoni/rgi/images/acredientions/naac-plus-plus.webp" alt="NAAC A++" class="inst-badge-img" title="NAAC Accredited A++">
-                    <img src="https://rgicdn.s3.ap-south-1.amazonaws.com/raisoni/rgi/images/acredientions/nba.webp" alt="NBA Accredited" class="inst-badge-img" title="NBA Accredited">
-                    <img src="https://rgicdn.s3.ap-south-1.amazonaws.com/raisoni/rgi/images/acredientions/aicte.webp" alt="AICTE" class="inst-badge-img" title="AICTE Approved">
-                    <img src="https://rgicdn.s3.ap-south-1.amazonaws.com/raisoni/rgi/images/acredientions/nirf.webp" alt="NIRF Ranked" class="inst-badge-img" title="NIRF Ranked Institution">
-                </div>
-                <div class="hod-profile-card">
-                    <div class="hod-avatar">🎓</div>
-                    <div class="hod-info">
-                        <h4 id="hod-profile-name">Super Admin HOD</h4>
-                        <p>Head of Department &bull; ID: <span id="hod-profile-id">HOD001</span></p>
-                    </div>
-                    <button class="hod-logout-btn" onclick="location.reload()" title="Sign out of administrative portal">Sign Out</button>
-                </div>
-            </div>
-        </header>
-
-        <!-- Executive KPI Counters Grid -->
-        <div class="hod-stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon" style="background:#eff6ff; color:#2563eb;">🏛️</div>
-                <div>
-                    <div class="stat-num">GHRCEM</div>
-                    <div class="stat-label">Autonomous Wagholi Campus</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon" style="background:#f0fdf4; color:#16a34a;">👨‍🏫</div>
-                <div>
-                    <div class="stat-num" id="hod-stat-faculty">4</div>
-                    <div class="stat-label">Appointed Faculty &amp; Staff</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon" style="background:#fef3c7; color:#d97706;">📝</div>
-                <div>
-                    <div class="stat-num" id="hod-stat-submissions">0</div>
-                    <div class="stat-label">Candidate Exam Submissions</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon" style="background:#faf5ff; color:#7e22ce;">🛡️</div>
-                <div>
-                    <div class="stat-num">99.8%</div>
-                    <div class="stat-label">AI Proctoring Integrity Active</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Main Body: Navigation Sidebar + Tab Contents -->
-        <div class="dash-container">
-            <div class="sidebar">
-                <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; font-weight: 700; margin-bottom: 8px;">Executive Navigation</div>
-                <div class="sidebar-item active-nav" id="hod-nav-teachers" onclick="showHodTab('teachers')">👥 Manage Class Teachers</div>
-                <div class="sidebar-item" id="hod-nav-create-hod" onclick="showHodTab('create-hod')">👑 Create HOD Account</div>
-                <div class="sidebar-item" id="hod-nav-exams" onclick="showHodTab('exams')">📊 All Subject Exams</div>
-                <div class="sidebar-item" id="hod-nav-settings" onclick="showHodTab('settings')">⚙️ Academic Controls</div>
-                
-                <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #334155; font-size: 12px; color: #94a3b8; line-height: 1.5;">
-                    <div style="color: #cbd5e1; font-weight: 700; margin-bottom: 4px;">Institutional Portal v2.6</div>
-                    <div>SPPU Exam Centre 412207</div>
-                    <div style="color: #64748b; font-size: 11px; margin-top: 4px;">Wagholi, Pune - 412207</div>
-                </div>
-                <div class="sidebar-item" style="margin-top: 16px; color: #fca5a5; background: rgba(239, 68, 68, 0.1);" onclick="location.reload()">🚪 Sign Out</div>
-            </div>
-
-            <div class="main-content">
-                <!-- TAB: MANAGE CLASS TEACHERS & FACULTY ROSTER -->
-                <div id="hod-teachers" class="tab-content">
-                    <div style="display: grid; grid-template-columns: minmax(320px, 1fr) minmax(320px, 1.35fr); gap: 20px; align-items: start;">
-                        <!-- Left: Create Class Teacher Card -->
-                        <div class="card">
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                                <span style="font-size: 20px;">✍️</span>
-                                <h3 style="margin: 0; color: #0f2942; font-size: 17px;">Appoint Class Teacher</h3>
-                            </div>
-                            <p style="color: #64748b; font-size: 13px; margin: 0 0 16px 0;">Authorize new class teachers with division administrative control for the academic term.</p>
-                            
-                            <label style="display:block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">TEACHER IDENTIFIER</label>
-                            <input type="text" id="ctId" class="input-field" placeholder="Staff ID (e.g. CT004)">
-                            
-                            <label style="display:block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">INITIAL ACCESS PASSWORD</label>
-                            <input type="text" id="ctPass" class="input-field" placeholder="Temporary Password">
-                            
-                            <label style="display:block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">FACULTY FULL NAME</label>
-                            <input type="text" id="ctName" class="input-field" placeholder="Full Name (e.g. Dr. Rajesh Sharma)">
-                            
-                            <label style="display:block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">ASSIGNED CLASS DIVISION</label>
-                            <input type="text" id="ctClass" class="input-field" placeholder="Division (e.g. SY-AIML D)">
-                            
-                            <button onclick="createStaff('CLASS_TEACHER')" class="btn btn-blue" style="margin-top: 12px;">Appoint Class Teacher</button>
+        <div class="main-content">
+            <!-- TAB: MANAGE CLASS TEACHERS -->
+            <div id="hod-teachers" class="tab-content active">
+                <div class="two-col">
+                    <div class="card">
+                        <h3>✍️ Appoint Class Teacher</h3>
+                        <p>Authorize new class teachers with division administrative control.</p>
+                        <div class="form-group">
+                            <label class="card-label" for="ctId">Staff ID</label>
+                            <input type="text" id="ctId" class="input-field" placeholder="e.g. CT004">
                         </div>
-
-                        <!-- Right: Active Staff & Teachers Directory -->
-                        <div class="card">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-                                <div>
-                                    <h3 style="margin: 0; color: #0f2942; font-size: 17px;">👨‍🏫 Department Faculty &amp; Class Teachers</h3>
-                                    <p style="margin: 2px 0 0 0; color: #64748b; font-size: 12.5px;">Active faculty members authorized for this session.</p>
-                                </div>
-                                <button onclick="loadHodStaffList()" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer;">↺ Refresh</button>
+                        <div class="form-group">
+                            <label class="card-label" for="ctPass">Password</label>
+                            <input type="text" id="ctPass" class="input-field" placeholder="Temporary password (12+ chars)">
+                        </div>
+                        <div class="form-group">
+                            <label class="card-label" for="ctName">Full Name</label>
+                            <input type="text" id="ctName" class="input-field" placeholder="e.g. Dr. Rajesh Sharma">
+                        </div>
+                        <div class="form-group">
+                            <label class="card-label" for="ctClass">Assigned Division</label>
+                            <input type="text" id="ctClass" class="input-field" placeholder="e.g. SY-AIML D">
+                        </div>
+                        <button onclick="createStaff('CLASS_TEACHER')" class="btn btn-blue">Appoint Class Teacher</button>
+                    </div>
+                    <div class="card">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+                            <div>
+                                <h3>👨‍🏫 Faculty &amp; Class Teachers</h3>
+                                <p>Active staff directory for this session.</p>
                             </div>
-                            <div id="hod-staff-roster" class="staff-roster-grid">
-                                <div style="color: #94a3b8; font-size: 13.5px; padding: 20px; text-align: center;">Loading department staff directory...</div>
-                            </div>
+                            <button onclick="loadHodStaffList()" class="btn btn-outline btn-sm">↺ Refresh</button>
+                        </div>
+                        <div id="hod-staff-roster" class="staff-grid">
+                            <div style="color:#94a3b8;font-size:13px;padding:20px;text-align:center;">Loading staff directory…</div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- TAB: CREATE & MANAGE HOD ACCOUNTS -->
-                <div id="hod-create-hod" class="tab-content" style="display:none">
-                    <div style="display: grid; grid-template-columns: minmax(320px, 1fr) minmax(320px, 1.35fr); gap: 20px; align-items: start;">
-                        <!-- Left: Create HOD Account Form -->
-                        <div class="card" style="border-top: 4px solid #f59e0b;">
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                                <span style="font-size: 22px;">👑</span>
-                                <div>
-                                    <h3 style="margin: 0; color: #0f2942; font-size: 17px;">Create HOD / Executive Account</h3>
-                                    <p style="margin: 2px 0 0 0; color: #64748b; font-size: 12.5px;">Register a new Head of Department or Academic Administrator.</p>
-                                </div>
-                            </div>
-
-                            <label style="display:block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">HOD IDENTIFIER / USERNAME</label>
-                            <input type="text" id="newHodId" class="input-field" placeholder="e.g. HOD_IT, HOD_MECH, HOD002">
-
-                            <label style="display:block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">SECURITY ACCESS PASSWORD</label>
+            <!-- TAB: CREATE HOD -->
+            <div id="hod-create-hod" class="tab-content">
+                <div class="two-col">
+                    <div class="card" style="border-top:3px solid #f59e0b;">
+                        <h3>👑 Create HOD Account</h3>
+                        <p>Register a new Head of Department or Academic Administrator.</p>
+                        <div class="form-group">
+                            <label class="card-label" for="newHodId">Username / ID</label>
+                            <input type="text" id="newHodId" class="input-field" placeholder="e.g. HOD_IT, HOD002">
+                        </div>
+                        <div class="form-group">
+                            <label class="card-label" for="newHodPass">Password</label>
                             <input type="password" id="newHodPass" class="input-field" placeholder="At least 12 characters">
-
-                            <label style="display:block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">FULL NAME &amp; DESIGNATION</label>
+                        </div>
+                        <div class="form-group">
+                            <label class="card-label" for="newHodName">Full Name</label>
                             <input type="text" id="newHodName" class="input-field" placeholder="e.g. Dr. Anand B. Kulkarni">
-
-                            <label style="display:block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">DEPARTMENT</label>
-                            <select id="newHodDept" class="input-field" style="height: 44px; background: white; cursor: pointer;">
-                                <option value="Computer Engineering & AI">Department of Computer Engineering &amp; AI</option>
-                                <option value="Information Technology & Data Science">Department of Information Technology &amp; DS</option>
-                                <option value="Electronics & Telecommunication">Department of Electronics &amp; Telecommunication (E&amp;TC)</option>
-                                <option value="Mechanical Engineering">Department of Mechanical Engineering</option>
-                                <option value="Civil Engineering">Department of Civil Engineering</option>
-                                <option value="Applied Science & Humanities">Department of Applied Sciences &amp; Humanities (FE)</option>
-                                <option value="Dean Office & Examination Cell">Dean Office &amp; Central Examination Cell</option>
+                        </div>
+                        <div class="form-group">
+                            <label class="card-label" for="newHodDept">Department</label>
+                            <select id="newHodDept" class="input-field" style="cursor:pointer;">
+                                <option value="Computer Engineering & AI">Computer Engineering & AI</option>
+                                <option value="Information Technology & DS">Information Technology & DS</option>
+                                <option value="Electronics & Telecommunication">Electronics & Telecommunication</option>
+                                <option value="Mechanical Engineering">Mechanical Engineering</option>
+                                <option value="Civil Engineering">Civil Engineering</option>
+                                <option value="Applied Science">Applied Sciences & Humanities</option>
+                                <option value="Dean Office">Dean Office & Examination Cell</option>
                             </select>
-
-                            <label style="display:block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">OFFICIAL ADMINISTRATIVE TITLE</label>
-                            <input type="text" id="newHodTitle" class="input-field" placeholder="e.g. Head of Department, Deputy HOD, Dean Academics" value="Head of Department">
-
-                            <button onclick="createHodAccount()" class="btn btn-blue" style="background: linear-gradient(135deg, #f59e0b, #d97706); margin-top: 14px; font-weight: 700; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);">
-                                👑 Register &amp; Create HOD Account
-                            </button>
                         </div>
-
-                        <!-- Right: Registered HOD Directory -->
-                        <div class="card">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-                                <div>
-                                    <h3 style="margin: 0; color: #0f2942; font-size: 17px;">🏛️ Registered Department Heads (HODs)</h3>
-                                    <p style="margin: 2px 0 0 0; color: #64748b; font-size: 12.5px;">All verified administrators holding HOD executive privileges.</p>
-                                </div>
-                                <button onclick="loadHodDirectoryList()" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer;">↺ Refresh</button>
-                            </div>
-                            <div id="hod-directors-roster" class="staff-roster-grid">
-                                <div style="color: #94a3b8; font-size: 13.5px; padding: 20px; text-align: center;">Loading HOD administrative roster...</div>
-                            </div>
-                            <div style="margin-top:20px; border-top:1px solid #e2e8f0; padding-top:18px;">
-                                <h4>Reset a staff password</h4>
-                                <input type="text" id="resetStaffId" class="input-field" placeholder="Existing staff ID">
-                                <input type="password" id="resetStaffPass" class="input-field" placeholder="New unique password (12+ characters)">
-                                <button type="button" onclick="resetStaffPassword()" class="btn btn-blue">Set new password</button>
-                            </div>
+                        <div class="form-group">
+                            <label class="card-label" for="newHodTitle">Title</label>
+                            <input type="text" id="newHodTitle" class="input-field" value="Head of Department">
                         </div>
+                        <button onclick="createHodAccount()" class="btn" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;">👑 Register HOD</button>
                     </div>
-                </div>
-
-                <!-- TAB 3: ALL SUBJECT EXAMS -->
-                <div id="hod-exams" class="tab-content" style="display:none">
                     <div class="card">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
                             <div>
-                                <h3 style="margin: 0; color: #0f2942; font-size: 17px;">📊 Subject-wise Examination Records &amp; Marks</h3>
-                                <p style="margin: 2px 0 0 0; color: #64748b; font-size: 13px;">Review candidate performance across all subjects under Department of Computer Engineering &amp; AI.</p>
+                                <h3>🏛️ Registered HODs</h3>
+                                <p>All verified administrators with HOD privileges.</p>
                             </div>
-                            <button onclick="viewSubjectMarks('HOD')" style="background: #2563eb; color: white; border: none; border-radius: 6px; padding: 8px 14px; font-size: 12.5px; font-weight: 600; cursor: pointer;">↺ Refresh Submissions</button>
+                            <button onclick="loadHodDirectoryList()" class="btn btn-outline btn-sm">↺ Refresh</button>
                         </div>
-                        <input type="text" id="hod-sub-search" class="search-bar" placeholder="Enter Subject (e.g. DSA, AI, ML) or student roll no to filter records..." oninput="viewSubjectMarks('HOD')">
-                        <div id="hod-results-table">
-                            <div style="text-align: center; color: #94a3b8; padding: 30px; font-size: 13.5px;">Type a subject code above or click Refresh to view submissions.</div>
+                        <div id="hod-directors-roster" class="staff-grid">
+                            <div style="color:#94a3b8;font-size:13px;padding:20px;text-align:center;">Loading HOD roster…</div>
+                        </div>
+                        <div style="margin-top:20px;padding-top:18px;border-top:1px solid #e2e8f0;">
+                            <h4 style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:10px;">Reset a staff password</h4>
+                            <div style="display:flex;gap:8px;">
+                                <input type="text" id="resetStaffId" class="input-field" placeholder="Existing staff ID" style="flex:1;">
+                                <input type="password" id="resetStaffPass" class="input-field" placeholder="New password (12+ chars)" style="flex:1;">
+                                <button onclick="resetStaffPassword()" class="btn btn-blue btn-sm" style="width:auto;">Reset</button>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- TAB 4: GLOBAL SETTINGS & ACADEMIC POLICIES -->
-                <div id="hod-settings" class="tab-content" style="display:none">
-                    <div class="card">
-                        <h3 style="margin: 0 0 8px 0; color: #0f2942; font-size: 17px;">⚙️ Global Institutional Exam Access &amp; Compliance</h3>
-                        <p style="color: #64748b; font-size: 13.5px; margin: 0 0 20px 0;">Configure university exam publishing guidelines, student result disclosure, and anti-cheat policies.</p>
-                        
-                        <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 18px; margin-bottom: 20px;">
-                            <label style="display:flex; align-items:center; gap:12px; cursor:pointer;">
-                                <input type="checkbox" id="global-marks-toggle" onchange="updateGlobalMarks()" style="width: 18px; height: 18px; cursor: pointer;">
-                                <div>
-                                    <div style="font-weight: 700; color: #0f172a; font-size: 14px;">Instant Score Disclosure for Candidates</div>
-                                    <div style="color: #64748b; font-size: 12.5px; margin-top: 2px;">When enabled, students immediately view their calculated score upon exam submission.</div>
-                                </div>
-                            </label>
+            <!-- TAB: ALL SUBJECT EXAMS -->
+            <div id="hod-exams" class="tab-content">
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+                        <div>
+                            <h3>📊 Subject Examination Records</h3>
+                            <p>Review candidate performance across all subjects.</p>
                         </div>
+                        <button onclick="viewSubjectMarks('HOD')" class="btn btn-outline btn-sm">↺ Refresh</button>
+                    </div>
+                    <input type="text" id="hod-sub-search" class="search-bar" placeholder="Search subject (e.g. DSA, AI) or student roll no…" oninput="viewSubjectMarks('HOD')">
+                    <div id="hod-results-table"></div>
+                </div>
+            </div>
 
-                        <div style="background: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: 10px; padding: 18px;">
-                            <h4 style="margin: 0 0 6px 0; color: #166534; font-size: 14.5px;">🛡️ University AI Proctoring Guidelines (Active)</h4>
-                            <ul style="margin: 8px 0 0 0; padding-left: 20px; font-size: 13px; color: #15803d; line-height: 1.7;">
-                                <li><strong>Facial Tracking:</strong> Continuous MediaPipe Face Landmark proctoring active on candidate devices.</li>
-                                <li><strong>Anti-OCR Canvas:</strong> Questions are rendered with algorithmic canvas watermarking to prevent OCR scanning.</li>
-                                <li><strong>Tab &amp; Fullscreen Lock:</strong> Candidate violations trigger real-time strike logging and automatic submission at 3 strikes.</li>
-                            </ul>
-                        </div>
+            <!-- TAB: SETTINGS -->
+            <div id="hod-settings" class="tab-content">
+                <div class="card">
+                    <h3>⚙️ Academic Controls</h3>
+                    <p>Configure global examination policies and compliance settings.</p>
+                    <label class="toggle-row">
+                        <input type="checkbox" id="global-marks-toggle" onchange="updateGlobalMarks()">
+                        <span>Instant Score Disclosure for Candidates</span>
+                    </label>
+                    <p style="color:#94a3b8;font-size:12px;margin-top:8px;">When enabled, students immediately view their score upon submission.</p>
+
+                    <div class="guide-box" style="margin-top:24px;">
+                        <h4>🛡️ University AI Proctoring Guidelines (Active)</h4>
+                        <ul>
+                            <li><strong>Facial Tracking:</strong> Continuous MediaPipe Face Landmark proctoring active on candidate devices.</li>
+                            <li><strong>Anti-OCR Canvas:</strong> Questions rendered with algorithmic watermarking to prevent OCR scanning.</li>
+                            <li><strong>Tab & Fullscreen Lock:</strong> Violations trigger real-time strike logging and automatic submission at 3 strikes.</li>
+                        </ul>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- 3. CLASS TEACHER DASHBOARD -->
-    <div id="ct-dash" class="screen">
-        <div class="dash-container">
-            <div class="sidebar">
-                <h3>🏫 Class Teacher</h3>
-                <div class="sidebar-item active-nav" onclick="showCtTab('faculty')">Manage Faculty</div>
-                <div class="sidebar-item" onclick="showCtTab('students')">Class Student List</div>
-                <div class="sidebar-item" style="margin-top:20px; color:#fca5a5" onclick="location.reload()">Logout</div>
+<!-- ==================== 3. CLASS TEACHER DASHBOARD ==================== -->
+<div id="ct-dash" class="screen">
+    <header class="dash-header">
+        <div class="brand">
+            <div class="campus-logo-mark" style="width:40px;height:40px;font-size:14px;">CT</div>
+            <div class="brand-info">
+                <h1>Class Teacher Dashboard</h1>
+                <p>Manage your assigned division</p>
             </div>
-            <div class="main-content">
-                <div id="ct-faculty" class="tab-content">
-                    <div class="card">
-                        <h3>Assign Subject Teacher</h3>
-                        <input type="text" id="facId" class="input-field" placeholder="ID (e.g. FAC001)">
-                        <input type="text" id="facPass" class="input-field" placeholder="Password">
-                        <input type="text" id="facName" class="input-field" placeholder="Full Name">
-                        <input type="text" id="facSub" class="input-field" placeholder="Subject (e.g. DSA)">
-                        <button onclick="createStaff('FACULTY')" class="btn btn-blue">Create Faculty</button>
-                    </div>
+        </div>
+        <div class="user-info">
+            <div class="user-details">
+                <h4 id="ct-profile-name">—</h4>
+                <p id="ct-profile-div">—</p>
+            </div>
+            <div class="user-avatar">👤</div>
+            <button class="btn-logout" onclick="location.reload()">Sign Out</button>
+        </div>
+    </header>
+    <div class="kpi-strip">
+        <div class="kpi-card">
+            <div class="kpi-icon" style="background:#eff6ff;color:#2563eb;">👨‍🏫</div>
+            <div><div class="kpi-value" id="ct-stat-faculty">—</div><div class="kpi-label">Assigned Faculty</div></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon" style="background:#fef3c7;color:#d97706;">👥</div>
+            <div><div class="kpi-value" id="ct-stat-students">—</div><div class="kpi-label">Class Students</div></div>
+        </div>
+    </div>
+    <div class="dash-body">
+        <nav class="sidebar">
+            <div class="sidebar-brand">Navigation</div>
+            <div class="sidebar-section">Management</div>
+            <div class="sidebar-item active" onclick="showCtTab('faculty')">Manage Faculty</div>
+            <div class="sidebar-item" onclick="showCtTab('students')">Class Student List</div>
+            <div class="sidebar-spacer"></div>
+            <div class="sidebar-item" style="color:#fca5a5;" onclick="location.reload()">🚪 Sign Out</div>
+        </nav>
+        <div class="main-content">
+            <div id="ct-faculty" class="tab-content active">
+                <div class="card">
+                    <h3>Assign Subject Faculty</h3>
+                    <div class="form-group"><input type="text" id="facId" class="input-field" placeholder="ID (e.g. FAC001)"></div>
+                    <div class="form-group"><input type="text" id="facPass" class="input-field" placeholder="Password"></div>
+                    <div class="form-group"><input type="text" id="facName" class="input-field" placeholder="Full Name"></div>
+                    <div class="form-group"><input type="text" id="facSub" class="input-field" placeholder="Subject (e.g. DSA)"></div>
+                    <button onclick="createStaff('FACULTY')" class="btn btn-blue">Create Faculty</button>
                 </div>
-                <div id="ct-students" class="tab-content" style="display:none">
-                    <div class="card">
-                        <h3>My Class Students</h3>
-                        <input type="text" id="ct-stu-search" class="search-bar" placeholder="Search by Name or Roll No..." oninput="searchStudents('CT')">
-                        <div id="ct-student-list"></div>
-                    </div>
+            </div>
+            <div id="ct-students" class="tab-content">
+                <div class="card">
+                    <h3>My Class Students</h3>
+                    <input type="text" id="ct-stu-search" class="search-bar" placeholder="Search by Name or Roll No…" oninput="searchStudents('CT')">
+                    <div id="ct-student-list"></div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- 4. FACULTY DASHBOARD (WITH MASTER RELEASE SWITCH) -->
-    <div id="fac-dash" class="screen">
-        <div class="dash-container">
-            <div class="sidebar">
-                <h3>👨‍🏫 Faculty Panel</h3>
-                <div style="font-size: 13px; color: #94a3b8; margin-bottom: 15px;" id="faculty-profile-badge">...</div>
-                <div class="sidebar-item active-nav" onclick="showFacTab('exam')">Exam Control & Paper</div>
-                <div class="sidebar-item" onclick="showFacTab('marks')">Student Marks & Submissions</div>
-                <div class="sidebar-item" style="margin-top:20px; color:#fca5a5" onclick="location.reload()">Logout</div>
+<!-- ==================== 4. FACULTY DASHBOARD ==================== -->
+<div id="fac-dash" class="screen">
+    <header class="dash-header">
+        <div class="brand">
+            <div class="campus-logo-mark" style="width:40px;height:40px;font-size:14px;">F</div>
+            <div class="brand-info">
+                <h1>Faculty Panel</h1>
+                <p>Subject: <span id="fac-subject-display">—</span></p>
             </div>
-            <div class="main-content">
-                <div id="fac-exam" class="tab-content">
-                    
-                    <!-- MASTER EXAM RELEASE SWITCH -->
-                    <div class="card" style="border: 2px solid #2563eb; background: #eff6ff;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
-                            <div>
-                                <h3 style="margin:0 0 4px 0; color:#1e3a8a; font-size:18px;">
-                                    Exam Master Release Switch (<span id="exam-control-sub">...</span>)
-                                </h3>
-                                <p style="margin:0; font-size:13.5px; color:#2563eb;">
-                                    Students in the waiting room <strong>cannot start</strong> until you release the exam here.
-                                </p>
-                                <div id="faculty-exam-status-badge" style="margin-top:8px; font-weight:800; font-size:15px; color:#d97706;">
-                                    🔒 Status: EXAM IS LOCKED (Students in Waiting Room)
-                                </div>
-                                <div id="faculty-student-counter" style="font-size:13px; color:#475569; margin-top:4px;">
-                                    👥 Connected Students: 0 waiting, 0 in exam
-                                </div>
-                            </div>
-                            <div>
-                                <button type="button" id="facultyToggleExamBtn" onclick="toggleFacultyExam()" class="btn btn-green" style="padding:14px 24px; font-size:15px; width:auto; margin:0;">
-                                    🚀 RELEASE EXAM FOR STUDENTS NOW
-                                </button>
-                            </div>
+        </div>
+        <div class="user-info">
+            <div class="user-details">
+                <h4 id="fac-profile-name">—</h4>
+                <p>Subject: <span id="fac-profile-subject">—</span></p>
+            </div>
+            <div class="user-avatar">👤</div>
+            <button class="btn-logout" onclick="location.reload()">Sign Out</button>
+        </div>
+    </header>
+    <div class="dash-body">
+        <nav class="sidebar">
+            <div class="sidebar-brand">Navigation</div>
+            <div class="sidebar-item active" id="fac-nav-exam" onclick="showFacTab('exam')">📝 Exam Control</div>
+            <div class="sidebar-item" id="fac-nav-marks" onclick="showFacTab('marks')">📊 Results</div>
+            <div class="sidebar-spacer"></div>
+            <div class="sidebar-item" style="color:#fca5a5;" onclick="location.reload()">🚪 Sign Out</div>
+        </nav>
+        <div class="main-content">
+            <!-- EXAM CONTROL -->
+            <div id="fac-exam" class="tab-content active">
+                <div class="release-card" id="releaseCard">
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">
+                        <div>
+                            <h3 style="font-size:17px;margin-bottom:4px;">Exam Master Release Switch</h3>
+                            <p style="color:#64748b;font-size:13px;">Students cannot start until you release the exam.</p>
+                            <div id="faculty-exam-status-badge" style="margin-top:8px;font-weight:700;font-size:13px;color:#d97706;">🔒 EXAM LOCKED</div>
+                            <div id="faculty-student-counter" style="font-size:12px;color:#64748b;margin-top:4px;">Students: 0 waiting, 0 in exam</div>
                         </div>
-                    </div>
-
-                    <!-- UPLOAD QUESTIONS -->
-                    <div class="card">
-                        <h3>Upload Questions for <span id="my-subject-display">...</span></h3>
-                        <p style="color:#64748b; font-size:13.5px; margin-top:0;">Upload question images. The student portal will automatically apply anti-OCR watermarks.</p>
-                        <form id="upload-form" enctype="multipart/form-data">
-                            <input type="file" id="qImg" accept="image/*" class="input-field" required>
-                            <input type="text" id="qCorrect" class="input-field" placeholder="Correct Option (A, B, C, or D)" maxlength="1" required>
-                            <button type="button" onclick="uploadQuestion()" class="btn btn-blue">Upload Question Image</button>
-                        </form>
-                        
-                        <h4 style="margin-top:25px; margin-bottom:10px; color:#0f172a;">Current Exam Questions</h4>
-                        <div id="question-list" style="margin-top:10px;"></div>
+                        <button id="facultyToggleExamBtn" onclick="toggleFacultyExam()" class="btn btn-green" style="width:auto;margin:0;padding:14px 28px;font-size:15px;">🚀 RELEASE EXAM</button>
                     </div>
                 </div>
 
-                <div id="fac-marks" class="tab-content" style="display:none">
-                    <div class="card">
-                        <h3>Student Results & Submissions</h3>
-                        <label style="display:flex; align-items:center; gap:10px; margin-bottom:15px; cursor:pointer;">
-                            <input type="checkbox" id="fac-marks-toggle" onchange="updateSubjectMarks()">
-                            <span>Allow students of this subject to see their score immediately upon submission</span>
-                        </label>
-                        <input type="text" id="fac-stu-search" class="search-bar" placeholder="Search student by name or roll number..." oninput="searchStudents('FAC')">
-                        <div id="fac-results-table"></div>
+                <div class="card" style="margin-top:20px;">
+                    <h3>Upload Questions</h3>
+                    <p style="margin-bottom:16px;">Upload question images with correct answer options. Anti-OCR watermarks applied automatically.</p>
+                    <div class="form-group">
+                        <input type="file" id="qImg" accept="image/*" class="input-field" required>
                     </div>
+                    <div class="form-group">
+                        <input type="text" id="qCorrect" class="input-field" placeholder="Correct Option (A, B, C, or D)" maxlength="1">
+                    </div>
+                    <button onclick="uploadQuestion()" class="btn btn-blue">Upload Question</button>
+                </div>
+
+                <div class="card">
+                    <h3 style="margin-bottom:12px;">Current Questions</h3>
+                    <div id="question-list">
+                        <p style="color:#94a3b8;font-size:13px;">No questions uploaded yet.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RESULTS -->
+            <div id="fac-marks" class="tab-content">
+                <div class="card">
+                    <h3>Student Results & Submissions</h3>
+                    <label class="toggle-row">
+                        <input type="checkbox" id="fac-marks-toggle" onchange="updateSubjectMarks()">
+                        <span>Allow students to see their score immediately</span>
+                    </label>
+                    <input type="text" id="fac-stu-search" class="search-bar" placeholder="Search student by name or roll number…" oninput="searchStudents('FAC')">
+                    <div id="fac-results-table"></div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        let currentUser = null;
-        let currentRole = 'FACULTY';
-        let facultyExamActive = false;
-        let facultyPollInterval = null;
+<script>
+    // ============ AUTH & ROLE ============
+    let currentUser = null;
+    let currentRole = 'FACULTY';
 
-        // --- LOGIN & ROLE MANAGEMENT ---
-        window.setRole = (role, btn) => {
-            currentRole = role;
-            document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
-        };
+    window.setRole = (role, btn) => {
+        currentRole = role;
+        document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+        if (btn) btn.classList.add('selected');
+        const idInput = document.getElementById('staffId');
+        if (idInput) {
+            if (role === 'HOD') idInput.placeholder = 'e.g. HOD001';
+            else if (role === 'CLASS_TEACHER') idInput.placeholder = 'e.g. CLASSBAIML';
+            else idInput.placeholder = 'e.g. FAC001';
+        }
+    };
 
-        window.handleLogin = async () => {
-            const errorEl = document.getElementById('loginError');
-            errorEl.style.display = 'none';
-
-            const data = {
-                id: document.getElementById('staffId').value.trim(),
-                password: document.getElementById('staffPass').value.trim(),
-                role: currentRole
-            };
-
-            if (!data.id || !data.password) {
-                errorEl.innerText = "Please enter Staff ID and Password.";
+    window.handleLogin = async () => {
+        const errorEl = document.getElementById('loginError');
+        const loginBtn = document.getElementById('loginBtn');
+        if (errorEl) { errorEl.style.display = 'none'; errorEl.innerText = ''; }
+        const id = (document.getElementById('staffId')?.value || '').trim();
+        const pass = (document.getElementById('staffPass')?.value || '').trim();
+        if (!id || !pass) {
+            if (errorEl) {
+                errorEl.innerText = 'Please enter both Staff ID and Password.';
                 errorEl.style.display = 'block';
-                return;
             }
-
-            try {
-                const res = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                const result = await res.json();
-                if (res.ok && result.success) {
-                    currentUser = result.user;
-                    document.getElementById('login-screen').classList.remove('active');
-                    
-                    if (currentRole === 'HOD') {
-                        document.getElementById('hod-dash').classList.add('active');
-                        initHodDashboard();
-                    } else if (currentRole === 'CLASS_TEACHER') {
-                        document.getElementById('ct-dash').classList.add('active');
-                    } else if (currentRole === 'FACULTY') {
-                        document.getElementById('fac-dash').classList.add('active');
-                        initFacultyDashboard();
-                    }
-                } else {
-                    throw new Error(result.error || "Invalid Credentials or Role");
-                }
-            } catch (e) {
-                errorEl.innerText = e.message;
-                errorEl.style.display = 'block';
-            }
-        };
-
-        // --- HOD DASHBOARD INITIALIZATION & MANAGEMENT ---
-        window.initHodDashboard = async () => {
-            if (currentUser) {
-                const nameEl = document.getElementById('hod-profile-name');
-                const idEl = document.getElementById('hod-profile-id');
-                if (nameEl) nameEl.innerText = currentUser.name || "Super Admin HOD";
-                if (idEl) idEl.innerText = currentUser.id || "HOD001";
-            }
-            loadHodStaffList();
-            loadHodDirectoryList();
-            loadHodSubmissionsCount();
-            showHodTab('teachers');
-        };
-
-        window.loadHodStaffList = async () => {
-            const container = document.getElementById('hod-staff-roster');
-            try {
-                const res = await fetch('/api/get-staff');
-                const staffList = await res.json();
-                
-                const staffCountEl = document.getElementById('hod-stat-faculty');
-                if (staffCountEl) staffCountEl.innerText = staffList.length;
-
-                if (!container) return;
-                if (!staffList || staffList.length === 0) {
-                    container.innerHTML = `<div style="color:#94a3b8; font-size:13px; padding:15px;">No staff records found.</div>`;
-                    return;
-                }
-
-                let html = '';
-                staffList.forEach(s => {
-                    const isCT = s.role === 'CLASS_TEACHER';
-                    const isHOD = s.role === 'HOD';
-                    const roleBadgeClass = isHOD ? 'badge-amber' : (isCT ? 'badge-blue' : 'badge-purple');
-                    const roleTitle = isHOD ? 'Head of Dept' : (isCT ? 'Class Teacher' : 'Faculty Member');
-                    const detail = isCT ? `Division: <strong>${s.className || 'General'}</strong>` : (s.subject ? `Subject: <strong>${s.subject}</strong>` : 'Administration');
-                    
-                    html += `
-                        <div class="staff-card">
-                            <div>
-                                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
-                                    <span class="badge ${roleBadgeClass}">${roleTitle}</span>
-                                    <span style="font-size:11px; font-weight:700; color:#16a34a; display:flex; align-items:center; gap:4px;">
-                                        <span style="width:6px; height:6px; background:#16a34a; border-radius:50%; display:inline-block;"></span> Active
-                                    </span>
-                                </div>
-                                <h4 style="margin:4px 0 2px 0; font-size:14.5px; color:#0f172a; font-weight:700;">${s.name || s.id}</h4>
-                                <div style="font-size:12px; color:#64748b;">Staff ID: <code>${s.id}</code></div>
-                            </div>
-                            <div style="margin-top:10px; padding-top:8px; border-top:1px dashed #e2e8f0; font-size:12px; color:#334155;">
-                                ${detail}
-                            </div>
-                        </div>
-                    `;
-                });
-                container.innerHTML = html;
-            } catch(e) {
-                if (container) container.innerHTML = `<div style="color:#dc2626; font-size:13px;">Failed to load staff list.</div>`;
-            }
-        };
-
-        window.loadHodSubmissionsCount = async () => {
-            try {
-                const res = await fetch('/api/get-submissions');
-                const subs = await res.json();
-                const subCountEl = document.getElementById('hod-stat-submissions');
-                if (subCountEl) subCountEl.innerText = subs ? subs.length : 0;
-            } catch(e) {}
-        };
-
-        window.createHodAccount = async () => {
-            const id = document.getElementById('newHodId').value.trim();
-            const password = document.getElementById('newHodPass').value.trim();
-            const name = document.getElementById('newHodName').value.trim();
-            const dept = document.getElementById('newHodDept').value.trim();
-            const title = document.getElementById('newHodTitle').value.trim();
-
-            if (!id || !password) {
-                alert("Please provide HOD ID and Password.");
-                return;
-            }
-            if (!name) {
-                alert("Please enter the Full Name of the HOD.");
-                return;
-            }
-
-            const data = {
-                id: id,
-                password: password,
-                role: 'HOD',
-                name: name,
-                dept: dept || 'Computer Engineering & AI',
-                className: title || 'Head of Department'
-            };
-
-            try {
-                const res = await fetch('/api/create-user', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                const result = await res.json();
-                if (res.ok && result.success) {
-                    alert(`HOD Account for ${name} (${id}) created successfully! They can now log in with role HOD.`);
-                    document.getElementById('newHodId').value = '';
-                    document.getElementById('newHodPass').value = '';
-                    document.getElementById('newHodName').value = '';
-                    loadHodStaffList();
-                    loadHodDirectoryList();
-                } else {
-                    alert(result.error || "Failed to create HOD account.");
-                }
-            } catch (e) {
-                alert("Error connecting to server.");
-            }
-        };
-
-        window.resetStaffPassword = async () => {
-            const id = document.getElementById('resetStaffId').value.trim();
-            const password = document.getElementById('resetStaffPass').value;
-            if (!id || password.length < 12) {
-                alert('Enter an existing staff ID and a unique password of at least 12 characters.');
-                return;
-            }
-            try {
-                const res = await fetch('/api/reset-password', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id, password })
-                });
-                if (!res.ok) throw new Error('Could not reset this account.');
-                document.getElementById('resetStaffPass').value = '';
-                alert('Password reset. The staff member can now sign in.');
-            } catch (err) { alert(err.message); }
-        };
-
-        window.loadHodDirectoryList = async () => {
-            const container = document.getElementById('hod-directors-roster');
-            try {
-                const res = await fetch('/api/get-staff');
-                const staffList = await res.json();
-                if (!container) return;
-                
-                const hodList = staffList.filter(s => s.role === 'HOD');
-                if (hodList.length === 0) {
-                    container.innerHTML = `<div style="color:#94a3b8; font-size:13px; padding:15px;">No HOD records found.</div>`;
-                    return;
-                }
-
-                let html = '';
-                hodList.forEach(h => {
-                    html += `
-                        <div class="staff-card" style="border-left: 3px solid #f59e0b;">
-                            <div>
-                                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
-                                    <span class="badge badge-amber">👑 Head of Dept</span>
-                                    <span style="font-size:11px; font-weight:700; color:#16a34a; display:flex; align-items:center; gap:4px;">
-                                        <span style="width:6px; height:6px; background:#16a34a; border-radius:50%; display:inline-block;"></span> Active Admin
-                                    </span>
-                                </div>
-                                <h4 style="margin:4px 0 2px 0; font-size:14.5px; color:#0f172a; font-weight:700;">${h.name || h.id}</h4>
-                                <div style="font-size:12px; color:#64748b;">HOD ID: <code>${h.id}</code></div>
-                            </div>
-                            <div style="margin-top:10px; padding-top:8px; border-top:1px dashed #e2e8f0; font-size:12px; color:#334155;">
-                                Dept: <strong>${h.dept || 'Computer Engineering & AI'}</strong>
-                            </div>
-                        </div>
-                    `;
-                });
-                container.innerHTML = html;
-            } catch (e) {
-                if (container) container.innerHTML = `<div style="color:#dc2626; font-size:13px;">Failed to load HOD directory.</div>`;
-            }
-        };
-
-        // --- DASHBOARD NAVIGATION ---
-        window.showHodTab = (tab) => {
-            document.querySelectorAll('#hod-dash .tab-content').forEach(t => t.style.display = 'none');
-            document.querySelectorAll('#hod-dash .sidebar .sidebar-item').forEach(b => b.classList.remove('active-nav'));
-            
-            const targetContent = document.getElementById(`hod-${tab}`);
-            const targetNav = document.getElementById(`hod-nav-${tab}`);
-            if (targetContent) targetContent.style.display = 'block';
-            if (targetNav) targetNav.classList.add('active-nav');
-
-            if (tab === 'teachers') loadHodStaffList();
-            if (tab === 'create-hod') loadHodDirectoryList();
-            if (tab === 'exams') viewSubjectMarks('HOD');
-        };
-
-        window.showCtTab = (tab) => {
-            document.querySelectorAll('#ct-dash .tab-content').forEach(t => t.style.display = 'none');
-            document.getElementById(`ct-${tab}`).style.display = 'block';
-        };
-
-        window.showFacTab = (tab) => {
-            document.querySelectorAll('#fac-dash .tab-content').forEach(t => t.style.display = 'none');
-            document.getElementById(`fac-${tab}`).style.display = 'block';
-            if (tab === 'marks') searchStudents('FAC');
-            if (tab === 'exam') loadFacultyQuestions();
-        };
-
-        // --- FACULTY EXAM RELEASE SWITCH & QUESTIONS ---
-        function initFacultyDashboard() {
-            document.getElementById('faculty-profile-badge').innerText = `${currentUser.name} • Subject: ${currentUser.subject}`;
-            document.getElementById('my-subject-display').innerText = currentUser.subject;
-            document.getElementById('exam-control-sub').innerText = currentUser.subject;
-
-            loadFacultyQuestions();
-            pollWaitingRoom();
-            if (facultyPollInterval) clearInterval(facultyPollInterval);
-            facultyPollInterval = setInterval(pollWaitingRoom, 3000);
+            return;
         }
-
-        async function pollWaitingRoom() {
-            if (!currentUser || currentRole !== 'FACULTY') return;
-            try {
-                const res = await fetch(`/api/waiting-students?subject=${encodeURIComponent(currentUser.subject)}`);
-                const data = await res.json();
-
-                facultyExamActive = !!data.isExamActive;
-                updateFacultySwitchUI();
-
-                const counterEl = document.getElementById('faculty-student-counter');
-                if (counterEl) {
-                    counterEl.innerHTML = `👥 <strong>Students Connected:</strong> <span class="badge badge-amber">${data.waiting} in waiting room</span> | <span class="badge badge-green">${data.in_exam} taking exam</span>`;
-                }
-            } catch (e) {}
+        if (loginBtn) {
+            loginBtn.disabled = true;
+            loginBtn.innerText = 'Verifying & Signing in...';
         }
-
-        function updateFacultySwitchUI() {
-            const badge = document.getElementById('faculty-exam-status-badge');
-            const btn = document.getElementById('facultyToggleExamBtn');
-            if (!badge || !btn) return;
-
-            if (facultyExamActive) {
-                badge.innerHTML = `<span style="color:#16a34a;">🟢 Status: EXAM IS LIVE & RELEASED (Students can start now)</span>`;
-                btn.className = "btn btn-red";
-                btn.style.width = "auto";
-                btn.style.margin = "0";
-                btn.innerText = "🔒 LOCK / STOP EXAM";
-            } else {
-                badge.innerHTML = `<span style="color:#d97706;">🔒 Status: EXAM IS LOCKED (Students in Waiting Room)</span>`;
-                btn.className = "btn btn-green";
-                btn.style.width = "auto";
-                btn.style.margin = "0";
-                btn.innerText = "🚀 RELEASE EXAM FOR STUDENTS NOW";
-            }
-        }
-
-        window.toggleFacultyExam = async () => {
-            const endpoint = facultyExamActive ? '/api/stop-exam' : '/api/start-exam';
-            try {
-                const res = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ subject: currentUser.subject })
-                });
-                const data = await res.json();
-                facultyExamActive = !!data.active;
-                updateFacultySwitchUI();
-                pollWaitingRoom();
-            } catch (e) {
-                alert("Error toggling exam status.");
-            }
-        };
-
-        async function loadFacultyQuestions() {
-            if (!currentUser || !currentUser.subject) return;
-            try {
-                const res = await fetch(`/api/get-questions?subject=${encodeURIComponent(currentUser.subject)}`);
-                const questions = await res.json();
-                const container = document.getElementById('question-list');
-                if (!container) return;
-
-                if (!questions || questions.length === 0) {
-                    container.innerHTML = `<p style="color:#64748b; font-size:14px;">No questions uploaded yet for ${currentUser.subject}. Use the form above to add questions.</p>`;
-                    return;
-                }
-
-                let html = '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:15px;">';
-                questions.forEach((q, idx) => {
-                    html += `
-                        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:12px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                                <strong>Question ${idx + 1}</strong>
-                                <button onclick="deleteQuestion('${q.id}')" style="background:#fee2e2; border:1px solid #ef4444; color:#dc2626; border-radius:6px; padding:4px 8px; font-size:12px; cursor:pointer;">🗑️ Delete</button>
-                            </div>
-                            <img src="${q.image}" style="max-width:100%; height:140px; object-fit:contain; background:#fff; border-radius:6px; display:block; margin:0 auto 8px auto;">
-                        </div>
-                    `;
-                });
-                html += '</div>';
-                container.innerHTML = html;
-            } catch (e) {}
-        }
-
-        window.uploadQuestion = async () => {
-            const fileInput = document.getElementById('qImg');
-            const correctInput = document.getElementById('qCorrect');
-            if (!fileInput.files || fileInput.files.length === 0) {
-                alert("Please select a question image.");
-                return;
-            }
-            if (!correctInput.value.trim()) {
-                alert("Please specify the correct option (A, B, C, or D).");
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('questionImage', fileInput.files[0]);
-            formData.append('correctOption', correctInput.value.trim().toUpperCase());
-            formData.append('subject', currentUser.subject);
-
-            try {
-                const res = await fetch('/api/upload-question', { method: 'POST', body: formData });
-                if (res.ok) {
-                    alert("Question Uploaded Successfully!");
-                    fileInput.value = '';
-                    correctInput.value = '';
-                    loadFacultyQuestions();
-                } else {
-                    alert("Failed to upload question.");
-                }
-            } catch(e) {
-                alert("Error connecting to server.");
-            }
-        };
-
-        window.deleteQuestion = async (id) => {
-            if (!confirm("Are you sure you want to delete this question?")) return;
-            try {
-                const res = await fetch('/api/delete-question', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ subject: currentUser.subject, id })
-                });
-                if (res.ok) {
-                    loadFacultyQuestions();
-                }
-            } catch(e) {}
-        };
-
-        // --- MARKS & SUBMISSIONS ---
-        window.searchStudents = async (role) => {
-            const sub = (role === 'FAC') ? currentUser.subject : (document.getElementById('hod-sub-search')?.value || "");
-            const query = (role === 'FAC') ? (document.getElementById('fac-stu-search')?.value || "") : (document.getElementById('ct-stu-search')?.value || "");
-            
-            try {
-                const res = await fetch(`/api/get-submissions?subject=${encodeURIComponent(sub)}`);
-                const data = await res.json();
-                
-                const filtered = data.filter(s => 
-                    !query || 
-                    (s.rollNo && s.rollNo.toLowerCase().includes(query.toLowerCase())) || 
-                    (s.name && s.name.toLowerCase().includes(query.toLowerCase()))
-                );
-                
-                let html = `<table><thead><tr><th>Roll No</th><th>Student Name</th><th>Subject</th><th>Score</th><th>Submitted Time</th></tr></thead><tbody>`;
-                if (filtered.length === 0) {
-                    html += `<tr><td colspan="5" style="text-align:center; color:#94a3b8;">No submissions found.</td></tr>`;
-                } else {
-                    filtered.forEach(s => {
-                        html += `<tr><td><strong>${s.rollNo}</strong></td><td>${s.name || 'Student'}</td><td>${s.subject}</td><td><span class="badge badge-green">${s.score}</span></td><td style="color:#64748b; font-size:12px;">${s.time}</td></tr>`;
-                    });
-                }
-                html += `</tbody></table>`;
-                
-                const target = document.getElementById(role === 'FAC' ? 'fac-results-table' : (role === 'CT' ? 'ct-student-list' : 'hod-results-table'));
-                if (target) target.innerHTML = html;
-            } catch(e) {}
-        };
-
-        window.viewSubjectMarks = (role) => searchStudents(role);
-
-        window.updateGlobalMarks = async () => {
-            const val = document.getElementById('global-marks-toggle').checked;
-            await fetch('/api/update-settings', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ showMarks: val })
-            });
-        };
-
-        window.updateSubjectMarks = async () => {
-            const val = document.getElementById('fac-marks-toggle').checked;
-            await fetch('/api/update-settings', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ subject: currentUser.subject, showMarks: val })
-            });
-        };
-
-        window.createStaff = async (role) => {
-            const data = (role === 'CLASS_TEACHER') ? {
-                id: document.getElementById('ctId').value.trim(),
-                password: document.getElementById('ctPass').value.trim(),
-                name: document.getElementById('ctName').value.trim(),
-                className: document.getElementById('ctClass').value.trim(),
-                role: role
-            } : {
-                id: document.getElementById('facId').value.trim(),
-                password: document.getElementById('facPass').value.trim(),
-                name: document.getElementById('facName').value.trim(),
-                subject: document.getElementById('facSub').value.trim(),
-                role: role
-            };
-
-            if (!data.id || !data.password) {
-                alert("Please provide ID and Password.");
-                return;
-            }
-
-            try {
-                const res = await fetch('/api/create-user', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                const result = await res.json();
-                if (res.ok && result.success) {
-                    alert("Staff account created successfully!");
-                    if (role === 'CLASS_TEACHER') {
-                        document.getElementById('ctId').value = '';
-                        document.getElementById('ctPass').value = '';
-                        document.getElementById('ctName').value = '';
-                        document.getElementById('ctClass').value = '';
-                        if (typeof loadHodStaffList === 'function') loadHodStaffList();
-                    } else {
-                        document.getElementById('facId').value = '';
-                        document.getElementById('facPass').value = '';
-                        document.getElementById('facName').value = '';
-                        document.getElementById('facSub').value = '';
-                    }
-                } else {
-                    alert(result.error || "Failed to create staff account.");
-                }
-            } catch(e) {
-                alert("Error connecting to server.");
-            }
-        };
-    </script>
-
-    <!-- 3D Campus Simulation Controller -->
-    <script type="module">
-        import { createCampus3D } from './campus_3d.js';
-
-        let campus3DInstance = null;
-        const canvas = document.getElementById('scene3d');
-        const container3D = document.getElementById('campus3dContainer');
-        const container2D = document.getElementById('campus2dContainer');
-        const btn3D = document.getElementById('btn3DView');
-        const btn2D = document.getElementById('btn2DView');
-
-        window.switchCampusMode = function(mode) {
-            if (mode === '3d') {
-                if (container3D) container3D.style.display = 'block';
-                if (container2D) container2D.style.display = 'none';
-                if (btn3D) btn3D.classList.add('active');
-                if (btn2D) btn2D.classList.remove('active');
-                if (campus3DInstance) {
-                    campus3DInstance.resume();
-                    campus3DInstance.resize();
-                }
-                localStorage.setItem('ghrcem_campus_mode', '3d');
-            } else {
-                if (container3D) container3D.style.display = 'none';
-                if (container2D) container2D.style.display = 'block';
-                if (btn3D) btn3D.classList.remove('active');
-                if (btn2D) btn2D.classList.add('active');
-                if (campus3DInstance) campus3DInstance.pause();
-                localStorage.setItem('ghrcem_campus_mode', '2d');
-            }
-        };
-
         try {
-            campus3DInstance = createCampus3D(canvas);
-        } catch (e) {
-            console.warn("WebGL 3D Campus not supported, falling back to 2D:", e);
-            window.switchCampusMode('2d');
-        }
-
-        window.replayCampus3D = function() {
-            if (campus3DInstance) {
-                window.switchCampusMode('3d');
-                campus3DInstance.replayIntro();
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, password: pass, role: currentRole })
+            });
+            const result = await res.json();
+            if (res.ok && result.success) {
+                currentUser = result.user;
+                const loginScreen = document.getElementById('login-screen');
+                loginScreen.classList.remove('active');
+                if (currentRole === 'HOD') {
+                    document.getElementById('hod-dash').classList.add('active');
+                    initHodDashboard();
+                } else if (currentRole === 'CLASS_TEACHER') {
+                    document.getElementById('ct-dash').classList.add('active');
+                    if (typeof initCtDashboard === 'function') initCtDashboard();
+                } else if (currentRole === 'FACULTY') {
+                    document.getElementById('fac-dash').classList.add('active');
+                    initFacultyDashboard();
+                }
+            } else {
+                throw new Error(result.error || 'Invalid Credentials or Role');
             }
-        };
-
-        const savedMode = localStorage.getItem('ghrcem_campus_mode');
-        if (savedMode === '2d') {
-            window.switchCampusMode('2d');
+        } catch (e) {
+            if (errorEl) {
+                errorEl.innerText = e.message || 'Sign in failed';
+                errorEl.style.display = 'block';
+            }
+        } finally {
+            if (loginBtn) {
+                loginBtn.disabled = false;
+                loginBtn.innerText = 'Sign In to Portal';
+            }
         }
-    </script>
+    };
+
+    // ============ HOD DASHBOARD ============
+    window.initHodDashboard = async () => {
+        if (currentUser) {
+            const n = document.getElementById('hod-profile-name');
+            const i = document.getElementById('hod-profile-id');
+            if (n) n.innerText = currentUser.name || "Super Admin HOD";
+            if (i) i.innerText = currentUser.id || "HOD001";
+        }
+        loadHodStaffList();
+        loadHodDirectoryList();
+        loadHodSubmissionsCount();
+    };
+
+    window.loadHodStaffList = async () => {
+        const container = document.getElementById('hod-staff-roster');
+        if (!container) return;
+        try {
+            const res = await fetch('/api/get-staff');
+            const staffList = await res.json();
+            const el = document.getElementById('hod-stat-faculty');
+            if (el) el.innerText = staffList.length;
+            if (!staffList.length) { container.innerHTML = '<div style="color:#94a3b8;font-size:13px;padding:20px;text-align:center;">No staff records.</div>'; return; }
+            container.innerHTML = staffList.map(s => {
+                const roleClass = s.role === 'HOD' ? 'badge-amber' : s.role === 'CLASS_TEACHER' ? 'badge-blue' : 'badge-purple';
+                const roleTitle = s.role === 'HOD' ? 'Head of Dept' : s.role === 'CLASS_TEACHER' ? 'Class Teacher' : 'Faculty';
+                const detail = s.role === 'CLASS_TEACHER' ? `Division: ${s.className || 'General'}` : (s.subject ? `Subject: ${s.subject}` : 'Administration');
+                return `<div class="staff-card"><span class="role-badge ${roleClass}">${roleTitle}</span><h4>${s.name || s.id}</h4><div class="staff-id">${s.id}</div><div class="staff-detail">${detail}</div></div>`;
+            }).join('');
+        } catch(e) { container.innerHTML = '<div style="color:#dc2626;font-size:13px;">Failed to load.</div>'; }
+    };
+
+    window.loadHodSubmissionsCount = async () => {
+        try { const res = await fetch('/api/get-submissions'); const subs = await res.json(); const el = document.getElementById('hod-stat-submissions'); if (el) el.innerText = subs ? subs.length : 0; } catch(e) {}
+    };
+
+    window.createHodAccount = async () => {
+        const id = document.getElementById('newHodId').value.trim();
+        const pass = document.getElementById('newHodPass').value.trim();
+        const name = document.getElementById('newHodName').value.trim();
+        const dept = document.getElementById('newHodDept').value;
+        const title = document.getElementById('newHodTitle').value.trim();
+        if (!id || !pass || !name) { alert("Please fill all required fields."); return; }
+        try {
+            const res = await fetch('/api/create-user', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, password: pass, role: 'HOD', name, dept, className: title }) });
+            const result = await res.json();
+            if (res.ok && result.success) { alert(`HOD Account for ${name} created!`); document.getElementById('newHodId').value = ''; document.getElementById('newHodPass').value = ''; document.getElementById('newHodName').value = ''; loadHodStaffList(); loadHodDirectoryList(); }
+            else alert(result.error || "Failed to create.");
+        } catch (e) { alert("Error connecting to server."); }
+    };
+
+    window.resetStaffPassword = async () => {
+        const id = document.getElementById('resetStaffId').value.trim();
+        const pass = document.getElementById('resetStaffPass').value;
+        if (!id || pass.length < 12) { alert('Enter ID and new password (12+ chars).'); return; }
+        try {
+            const res = await fetch('/api/reset-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, password: pass }) });
+            if (res.ok) { document.getElementById('resetStaffPass').value = ''; alert('Password reset.'); }
+            else alert('Could not reset password.');
+        } catch(e) { alert(e.message); }
+    };
+
+    window.loadHodDirectoryList = async () => {
+        const container = document.getElementById('hod-directors-roster');
+        if (!container) return;
+        try {
+            const res = await fetch('/api/get-staff');
+            const staff = await res.json();
+            const hods = staff.filter(s => s.role === 'HOD');
+            if (!hods.length) { container.innerHTML = '<div style="color:#94a3b8;font-size:13px;padding:20px;text-align:center;">No HOD records.</div>'; return; }
+            container.innerHTML = hods.map(h => `<div class="staff-card" style="border-left:3px solid #f59e0b;"><span class="role-badge badge-amber">👑 Head of Dept</span><h4>${h.name || h.id}</h4><div class="staff-id">${h.id}</div><div class="staff-detail">Dept: ${h.dept || 'Computer Engineering & AI'}</div></div>`).join('');
+        } catch(e) { container.innerHTML = '<div style="color:#dc2626;font-size:13px;">Failed to load.</div>'; }
+    };
+
+    window.showHodTab = (tab) => {
+        document.querySelectorAll('#hod-dash .tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('#hod-dash .sidebar .sidebar-item').forEach(b => b.classList.remove('active'));
+        const tc = document.getElementById(`hod-${tab}`);
+        const nb = document.getElementById(`hod-nav-${tab}`);
+        if (tc) tc.classList.add('active');
+        if (nb) nb.classList.add('active');
+        if (tab === 'teachers') loadHodStaffList();
+        if (tab === 'create-hod') loadHodDirectoryList();
+        if (tab === 'exams') viewSubjectMarks('HOD');
+    };
+
+    window.viewSubjectMarks = (role) => {
+        const sub = role === 'HOD' ? (document.getElementById('hod-sub-search')?.value || '') : '';
+        const query = document.getElementById('fac-stu-search')?.value || '';
+        fetch(`/api/get-submissions?subject=${encodeURIComponent(sub)}`).then(r => r.json()).then(data => {
+            const filtered = data.filter(s => !query || (s.rollNo && s.rollNo.toLowerCase().includes(query.toLowerCase())) || (s.name && s.name.toLowerCase().includes(query.toLowerCase())));
+            let html = `<table><thead><tr><th>Roll No</th><th>Name</th><th>Subject</th><th>Score</th><th>Time</th></tr></thead><tbody>`;
+            if (!filtered.length) html += `<tr><td colspan="5" style="text-align:center;color:#94a3b8;">No submissions found.</td></tr>`;
+            else filtered.forEach(s => { html += `<tr><td><strong>${s.rollNo}</strong></td><td>${s.name || 'Student'}</td><td>${s.subject}</td><td><span class="badge badge-green" style="display:inline-block;padding:3px 8px;border-radius:5px;font-size:11px;font-weight:700;background:#dcfce7;color:#166534;">${s.score}</span></td><td style="color:#64748b;font-size:12px;">${s.time}</td></tr>`; });
+            html += '</tbody></table>';
+            const target = document.getElementById(role === 'HOD' ? 'hod-results-table' : 'fac-results-table');
+            if (target) target.innerHTML = html;
+        }).catch(() => {});
+    };
+
+    window.updateGlobalMarks = async () => {
+        const val = document.getElementById('global-marks-toggle').checked;
+        await fetch('/api/update-settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ showMarks: val }) });
+    };
+
+    // ============ CLASS TEACHER ============
+    window.showCtTab = (tab) => {
+        document.querySelectorAll('#ct-dash .tab-content').forEach(t => t.classList.remove('active'));
+        const tcs = document.getElementById(`ct-${tab}`);
+        if (tcs) tcs.classList.add('active');
+    };
+
+    // ============ FACULTY ============
+    function initFacultyDashboard() {
+        document.getElementById('fac-subject-display').innerText = currentUser?.subject || '...';
+        document.getElementById('fac-profile-subject').innerText = currentUser?.subject || '...';
+        document.getElementById('fac-profile-name').innerText = currentUser?.name || '...';
+        document.getElementById('fac-subject-display').innerText = currentUser?.subject || '...';
+        document.getElementById('exam-control-sub').innerText = currentUser?.subject || '...';
+        loadFacultyQuestions();
+        pollWaitingRoom();
+        if (facultyPollInterval) clearInterval(facultyPollInterval);
+        facultyPollInterval = setInterval(pollWaitingRoom, 3000);
+    }
+
+    let facultyExamActive = false;
+    let facultyPollInterval = null;
+
+    async function pollWaitingRoom() {
+        if (!currentUser || currentRole !== 'FACULTY') return;
+        try {
+            const res = await fetch(`/api/waiting-students?subject=${encodeURIComponent(currentUser.subject)}`);
+            const data = await res.json();
+            facultyExamActive = !!data.isExamActive;
+            updateFacultySwitchUI(data);
+        } catch(e) {}
+    }
+
+    function updateFacultySwitchUI(data) {
+        const badge = document.getElementById('faculty-exam-status-badge');
+        const btn = document.getElementById('facultyToggleExamBtn');
+        const card = document.getElementById('releaseCard');
+        if (!badge || !btn) return;
+        if (facultyExamActive) {
+            badge.innerHTML = '<span style="color:#16a34a;">🟢 EXAM LIVE — Students can start now</span>';
+            btn.className = "btn btn-red"; btn.innerText = "🔒 LOCK EXAM";
+            if (card) { card.className = 'release-card live'; }
+        } else {
+            badge.innerHTML = '<span style="color:#d97706;">🔒 EXAM LOCKED — Students in Waiting Room</span>';
+            btn.className = "btn btn-green"; btn.innerText = "🚀 RELEASE EXAM";
+            if (card) { card.className = 'release-card locked'; }
+        }
+        const counter = document.getElementById('faculty-student-counter');
+        if (counter && data) counter.innerHTML = `👥 <strong>Students:</strong> <span style="color:#d97706;">${data.waiting} waiting</span> | <span style="color:#16a34a;">${data.in_exam} in exam</span>`;
+    }
+
+    window.toggleFacultyExam = async () => {
+        const ep = facultyExamActive ? '/api/stop-exam' : '/api/start-exam';
+        try {
+            const res = await fetch(ep, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subject: currentUser.subject }) });
+            const d = await res.json(); facultyExamActive = !!d.active; updateFacultySwitchUI({ isExamActive: d.active, waiting: 0, in_exam: 0 }); pollWaitingRoom();
+        } catch(e) { alert("Error toggling exam."); }
+    };
+
+    async function loadFacultyQuestions() {
+        if (!currentUser?.subject) return;
+        try {
+            const res = await fetch(`/api/get-questions?subject=${encodeURIComponent(currentUser.subject)}`);
+            const questions = await res.json();
+            const c = document.getElementById('question-list');
+            if (!c) return;
+            if (!questions.length) { c.innerHTML = '<p style="color:#94a3b8;font-size:13px;">No questions uploaded yet for this subject.</p>'; return; }
+            c.innerHTML = questions.map((q, i) => `<div class="question-card"><div><strong>Question ${i+1}</strong><br><small style="color:#94a3b8;">Correct: <strong>${q.correct}</strong></small></div><img src="${q.image}" alt="Q${i+1}"><button onclick="deleteQuestion('${q.id}')" class="btn btn-outline btn-sm" style="width:auto;margin:0;">🗑️</button></div>`).join('');
+        } catch(e) {}
+    }
+
+    window.uploadQuestion = async () => {
+        const fileInput = document.getElementById('qImg');
+        const correctInput = document.getElementById('qCorrect');
+        if (!fileInput.files?.length) { alert("Select a question image."); return; }
+        if (!correctInput.value.trim()) { alert("Specify correct option (A–D)."); return; }
+        const fd = new FormData();
+        fd.append('questionImage', fileInput.files[0]);
+        fd.append('correctOption', correctInput.value.trim().toUpperCase());
+        fd.append('subject', currentUser.subject);
+        try {
+            const res = await fetch('/api/upload-question', { method: 'POST', body: fd });
+            if (res.ok) { alert("Question uploaded!"); fileInput.value = ''; correctInput.value = ''; loadFacultyQuestions(); }
+            else alert("Failed to upload.");
+        } catch(e) { alert("Error connecting."); }
+    };
+
+    window.deleteQuestion = async (id) => {
+        if (!confirm("Delete this question?")) return;
+        try {
+            const res = await fetch('/api/delete-question', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subject: currentUser.subject, id }) });
+            if (res.ok) loadFacultyQuestions();
+        } catch(e) {}
+    };
+
+    // ============ SEARCH ============
+    window.searchStudents = async (role) => {
+        const sub = (role === 'FAC') ? currentUser.subject : (document.getElementById('hod-sub-search')?.value || '');
+        const query = (role === 'FAC') ? (document.getElementById('fac-stu-search')?.value || '') : (document.getElementById('ct-stu-search')?.value || '');
+        try {
+            const res = await fetch(`/api/get-submissions?subject=${encodeURIComponent(sub)}`);
+            const data = await res.json();
+            const filtered = data.filter(s => !query || (s.rollNo && s.rollNo.toLowerCase().includes(query.toLowerCase())) || (s.name && s.name.toLowerCase().includes(query.toLowerCase())));
+            let html = `<table><thead><tr><th>Roll No</th><th>Name</th><th>Subject</th><th>Score</th><th>Time</th></tr></thead><tbody>`;
+            if (!filtered.length) html += `<tr><td colspan="5" style="text-align:center;color:#94a3b8;">No submissions.</td></tr>`;
+            else filtered.forEach(s => { html += `<tr><td><strong>${s.rollNo}</strong></td><td>${s.name||'Student'}</td><td>${s.subject}</td><td><span style="display:inline-block;padding:3px 8px;border-radius:5px;font-size:11px;font-weight:700;background:#dcfce7;color:#166534;">${s.score}</span></td><td style="color:#64748b;font-size:12px;">${s.time}</td></tr>`; });
+            html += '</tbody></table>';
+            const target = document.getElementById(role === 'FAC' ? 'fac-results-table' : (role === 'CT' ? 'ct-student-list' : 'hod-results-table'));
+            if (target) target.innerHTML = html;
+        } catch(e) {}
+    };
+
+    window.updateSubjectMarks = async () => {
+        const val = document.getElementById('fac-marks-toggle').checked;
+        await fetch('/api/update-settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subject: currentUser.subject, showMarks: val }) });
+    };
+
+    window.createStaff = async (role) => {
+        const data = role === 'CLASS_TEACHER'
+            ? { id: document.getElementById('ctId').value.trim(), password: document.getElementById('ctPass').value.trim(), name: document.getElementById('ctName').value.trim(), className: document.getElementById('ctClass').value.trim(), role }
+            : { id: document.getElementById('facId').value.trim(), password: document.getElementById('facPass').value.trim(), name: document.getElementById('facName').value.trim(), subject: document.getElementById('facSub').value.trim(), role };
+        if (!data.id || !data.password) { alert("Enter ID and Password."); return; }
+        try {
+            const res = await fetch('/api/create-user', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+            const result = await res.json();
+            if (res.ok && result.success) { alert("Account created!"); if (role === 'CLASS_TEACHER') { document.getElementById('ctId').value='';document.getElementById('ctPass').value='';document.getElementById('ctName').value='';document.getElementById('ctClass').value=''; } else { document.getElementById('facId').value='';document.getElementById('facPass').value='';document.getElementById('facName').value='';document.getElementById('facSub').value=''; } loadHodStaffList(); }
+            else alert(result.error || "Failed.");
+        } catch(e) { alert("Error connecting."); }
+    };
+
+    // ============ KEYBOARD SHORTCUT ============
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            const activeScreen = document.querySelector('.screen.active');
+            if (activeScreen?.id === 'login-screen') handleLogin();
+        }
+    });
+</script>
+
+<!-- ==================== 3D CAMPUS CONTROLLER (Auto-Run) ==================== -->
+<script type="module">
+    import { createCampus3D } from './campus_3d.js';
+    let campus3DInstance = null;
+    const canvas = document.getElementById('scene3d');
+
+    try {
+        if (canvas) {
+            campus3DInstance = createCampus3D(canvas);
+        }
+    } catch (e) {
+        console.error('3D Campus initialization failed:', e);
+    }
+
+    window.replayCampus3D = function() {
+        if (campus3DInstance) {
+            campus3DInstance.replayIntro();
+        }
+    };
+
+    window.addEventListener('resize', () => {
+        if (campus3DInstance && typeof campus3DInstance.resize === 'function') {
+            campus3DInstance.resize();
+        }
+    });
+</script>
+
 </body>
 </html>
