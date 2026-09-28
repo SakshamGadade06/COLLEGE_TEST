@@ -730,6 +730,11 @@
                 <svg class="icon-svg" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
                 All Subject Exams
             </div>
+            <div class="sidebar-section">Governance &amp; Audit</div>
+            <div class="sidebar-item" id="hod-nav-audit" onclick="showHodTab('audit')">
+                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+                Audit &amp; Activity Trail
+            </div>
             <div class="sidebar-section">Settings</div>
             <div class="sidebar-item" id="hod-nav-settings" onclick="showHodTab('settings')">
                 <svg class="icon-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -1041,6 +1046,28 @@
                     </div>
                 </div>
             </div>
+
+            <!-- TAB: HOD AUDIT TRAIL -->
+            <div id="hod-audit" class="tab-content">
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+                        <div>
+                            <h3 style="margin-bottom:4px;display:flex;align-items:center;gap:8px;">
+                                <svg class="icon-svg" style="color:#1e40af;" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+                                Administrative Audit Trail &amp; Activity Ledger
+                            </h3>
+                            <p style="margin:0;color:#64748b;font-size:13px;">Chronological governance logs recording examination releases, score adjustments, paper creation, and institutional policy changes.</p>
+                        </div>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <button type="button" onclick="loadHodAuditLogs()" class="btn btn-outline btn-sm">↺ Refresh Audit Trail</button>
+                        </div>
+                    </div>
+                    <input type="text" id="hodAuditSearch" class="search-bar" placeholder="Filter audit trail by action, actor, or detail keyword…" oninput="filterHodAuditLogs()">
+                    <div id="hodAuditTableContainer" style="margin-top:12px;overflow-x:auto;">
+                        <div style="color:#64748b;font-size:13px;padding:24px;text-align:center;">Loading administrative audit records…</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -1213,6 +1240,53 @@
                             <div id="faculty-student-counter" style="font-size:12px;color:#64748b;margin-top:4px;">Candidates: 0 waiting, 0 in exam</div>
                         </div>
                         <button id="facultyToggleExamBtn" onclick="toggleFacultyExam()" class="btn btn-green" style="width:auto;margin:0;padding:14px 28px;font-size:15px;">Release Exam</button>
+                    </div>
+                </div>
+
+                <!-- EXAM SCHEDULE & PARAMETERS CONFIGURATION -->
+                <div class="card" style="margin-top:20px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+                        <div>
+                            <h3 style="margin-bottom:4px;display:flex;align-items:center;gap:8px;">
+                                <svg class="icon-svg" style="color:#1e40af;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                Exam Schedule &amp; Academic Parameters
+                            </h3>
+                            <p style="margin:0;color:#64748b;font-size:13px;">Configure official paper title, time allocation, total marks, and examinee code of conduct.</p>
+                        </div>
+                        <div id="fac-exam-schedule-status" style="font-size:12px;font-weight:700;padding:4px 10px;border-radius:6px;background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;">
+                            Status: Scheduled
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:12px;">
+                        <div class="form-group" style="margin:0;">
+                            <label class="card-label" for="facExamTitle" style="font-size:12px;font-weight:700;color:#334155;display:block;margin-bottom:4px;">Paper / Exam Title</label>
+                            <input type="text" id="facExamTitle" class="input-field" placeholder="e.g. Continuous Internal Assessment I (CIA-1)">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label class="card-label" for="facExamDuration" style="font-size:12px;font-weight:700;color:#334155;display:block;margin-bottom:4px;">Duration (Minutes)</label>
+                            <input type="number" id="facExamDuration" class="input-field" value="15" min="1" max="180">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label class="card-label" for="facExamTotalMarks" style="font-size:12px;font-weight:700;color:#334155;display:block;margin-bottom:4px;">Total Marks</label>
+                            <input type="number" id="facExamTotalMarks" class="input-field" value="20" min="1" max="100">
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                        <div class="form-group" style="margin:0;">
+                            <label class="card-label" for="facExamDate" style="font-size:12px;font-weight:700;color:#334155;display:block;margin-bottom:4px;">Exam Date</label>
+                            <input type="date" id="facExamDate" class="input-field">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label class="card-label" for="facExamTime" style="font-size:12px;font-weight:700;color:#334155;display:block;margin-bottom:4px;">Scheduled Start Time</label>
+                            <input type="time" id="facExamTime" class="input-field">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom:14px;">
+                        <label class="card-label" for="facExamInstructions" style="font-size:12px;font-weight:700;color:#334155;display:block;margin-bottom:4px;">Candidate Instructions &amp; Proctoring Rules</label>
+                        <textarea id="facExamInstructions" class="input-field" rows="2" placeholder="Instructions displayed on candidate admittance ticket..." style="resize:vertical;"></textarea>
+                    </div>
+                    <div style="display:flex;justify-content:flex-end;">
+                        <button type="button" onclick="saveFacultyExamConfig()" class="btn btn-blue" style="width:auto;padding:10px 22px;font-size:13.5px;">Save Exam Schedule &amp; Rules</button>
                     </div>
                 </div>
 
@@ -2065,12 +2139,89 @@
         if (tab === 'students') loadStudentRoster('HOD');
         if (tab === 'create-hod') loadHodDirectoryList();
         if (tab === 'exams') { viewSubjectMarks('HOD'); loadHodExamStatuses(); }
+        if (tab === 'audit') loadHodAuditLogs();
         if (tab === 'live') {
             loadLiveInvigilation('HOD');
             startLiveInvigilationPolling('HOD');
         } else {
             stopLiveInvigilationPolling();
         }
+    };
+
+    let currentAuditLogs = [];
+    window.loadHodAuditLogs = async () => {
+        const container = document.getElementById('hodAuditTableContainer');
+        if (!container) return;
+        container.innerHTML = '<div style="color:#64748b;font-size:13px;padding:24px;text-align:center;">Loading audit trail records…</div>';
+        try {
+            const res = await fetch('/api/audit-logs');
+            if (!res.ok) throw new Error('Failed to load audit logs');
+            currentAuditLogs = await res.json();
+            filterHodAuditLogs();
+        } catch(e) {
+            container.innerHTML = '<div style="color:#dc2626;font-size:13px;padding:20px;text-align:center;">Failed to fetch audit log trail.</div>';
+        }
+    };
+
+    window.filterHodAuditLogs = () => {
+        const container = document.getElementById('hodAuditTableContainer');
+        if (!container) return;
+        const q = (document.getElementById('hodAuditSearch')?.value || '').toLowerCase().trim();
+        const filtered = currentAuditLogs.filter(log => {
+            const str = `${log.action} ${log.actorId} ${log.actorName} ${log.details ? JSON.stringify(log.details) : ''}`.toLowerCase();
+            return str.includes(q);
+        });
+
+        if (!filtered.length) {
+            container.innerHTML = '<div style="color:#64748b;font-size:13px;padding:24px;text-align:center;">No matching audit events found.</div>';
+            return;
+        }
+
+        let html = `
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:170px;">Timestamp</th>
+                        <th style="width:160px;">Action Category</th>
+                        <th style="width:180px;">Actor / Staff</th>
+                        <th>Activity Details &amp; Parameters</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        filtered.forEach(l => {
+            let actionBadge = `<span style="background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">${escapeHtml(l.action)}</span>`;
+            if (l.action.includes('RELEASE') || l.action.includes('START')) {
+                actionBadge = `<span style="background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">🟢 ${escapeHtml(l.action)}</span>`;
+            } else if (l.action.includes('STOP') || l.action.includes('LOCK')) {
+                actionBadge = `<span style="background:#fef2f2;color:#991b1b;border:1px solid #fecaca;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">🔴 ${escapeHtml(l.action)}</span>`;
+            } else if (l.action.includes('OVERRIDE') || l.action.includes('PENALTY') || l.action.includes('EDIT')) {
+                actionBadge = `<span style="background:#fffbeb;color:#92400e;border:1px solid #fde68a;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">⚠️ ${escapeHtml(l.action)}</span>`;
+            } else if (l.action.includes('PUBLISH')) {
+                actionBadge = `<span style="background:#faf5ff;color:#6b21a8;border:1px solid #e9d5ff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">📢 ${escapeHtml(l.action)}</span>`;
+            }
+
+            const timeStr = l.timestamp ? new Date(l.timestamp).toLocaleString() : (l.time || '—');
+            const detailsStr = typeof l.details === 'object' ? JSON.stringify(l.details) : String(l.details || '—');
+
+            html += `
+                <tr>
+                    <td style="font-size:12px;color:#64748b;white-space:nowrap;">${timeStr}</td>
+                    <td>${actionBadge}</td>
+                    <td>
+                        <strong style="color:#0f172a;font-size:12.5px;">${escapeHtml(l.actorName || l.actorId || 'System')}</strong>
+                        <div style="font-size:11px;color:#64748b;">${escapeHtml(l.actorId || '')}</div>
+                    </td>
+                    <td style="font-size:12.5px;color:#334155;word-break:break-word;">
+                        ${escapeHtml(detailsStr)}
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += `</tbody></table>`;
+        container.innerHTML = html;
     };
 
     window.loadHodExamStatuses = async () => {
@@ -2690,7 +2841,7 @@
                                  onclick="openSnapshotLightbox('${s.url}', '${rollNo}', '${new Date(s.time).toLocaleString()}', 'Photo ${idx+1} (${escapeHtml(s.subject || 'Surveillance')})')"
                                  onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'"
                                  onmouseout="this.style.transform='none';this.style.boxShadow='none'">
-                                <img src="${s.url}" alt="Capture ${idx+1}" style="width:100%;height:85px;object-fit:cover;border-radius:5px;background:#000;display:block;">
+                                 <img src="${s.url}" alt="Capture ${idx+1}" style="width:100%;height:85px;object-fit:cover;border-radius:5px;background:#000;display:block;">
                                 <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
                                     <span style="font-size:9.5px;font-weight:700;color:#475569;background:#e2e8f0;padding:1px 4px;border-radius:3px;">${escapeHtml(s.subject || 'Exam')}</span>
                                     <span style="font-size:10px;color:#64748b;">
@@ -2702,6 +2853,43 @@
                     </div>
                 `;
             }
+
+            // PROCTORING AUDIT TIMELINE
+            try {
+                const tRes = await fetch(`/api/student-proctoring-timeline?rollNo=${encodeURIComponent(rollNo)}`);
+                if (tRes.ok) {
+                    const tData = await tRes.json();
+                    const timeline = tData.timeline || [];
+                    if (timeline.length) {
+                        html += `
+                            <div style="margin-top:18px;border-top:1.5px solid #e2e8f0;padding-top:14px;">
+                                <div style="font-size:12px;font-weight:700;color:#0f172a;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em;display:flex;align-items:center;gap:6px;">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+                                    Proctoring Integrity Event Timeline (${timeline.length} Records):
+                                </div>
+                                <div style="display:flex;flex-direction:column;gap:6px;max-height:190px;overflow-y:auto;padding-right:4px;">
+                                    ${timeline.map(t => {
+                                        let sevBg = '#f1f5f9', sevCol = '#475569';
+                                        if (t.severity === 'HIGH' || t.severity === 'CRITICAL') { sevBg = '#fee2e2'; sevCol = '#991b1b'; }
+                                        else if (t.severity === 'MEDIUM') { sevBg = '#fffbeb'; sevCol = '#92400e'; }
+                                        else if (t.severity === 'LOW') { sevBg = '#eff6ff'; sevCol = '#1e40af'; }
+                                        return `
+                                            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;">
+                                                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                                    <span style="background:${sevBg};color:${sevCol};font-weight:700;font-size:10px;padding:2px 6px;border-radius:4px;">${escapeHtml(t.severity)}</span>
+                                                    <strong style="color:#0f172a;">${escapeHtml(t.eventType)}</strong>
+                                                    <span style="color:#475569;">${escapeHtml(t.description)}</span>
+                                                </div>
+                                                <span style="color:#94a3b8;font-size:11px;white-space:nowrap;">${t.time || (t.timestamp ? new Date(t.timestamp).toLocaleTimeString() : '')}</span>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+            } catch(e) {}
 
             container.innerHTML = html;
         } catch(e) {
@@ -2853,7 +3041,7 @@
         const nb = document.getElementById(`fac-nav-${tab}`);
         if (tc) tc.classList.add('active');
         if (nb) nb.classList.add('active');
-        if (tab === 'exam') loadFacultyQuestions();
+        if (tab === 'exam') { loadFacultyQuestions(); loadFacultyExamConfig(); }
         if (tab === 'students') loadStudentRoster('FAC');
         if (tab === 'marks') { loadFacultyDisclosureSettings(); searchStudents('FAC'); }
         if (tab === 'live') {
@@ -2879,6 +3067,7 @@
             if (n) n.innerText = currentUser.name || 'Faculty Member';
         }
         loadFacultyQuestions();
+        loadFacultyExamConfig();
         loadFacultyDisclosureSettings();
         loadStudentRoster('FAC');
         searchStudents('FAC');
@@ -3258,6 +3447,11 @@
         const val = document.getElementById('fac-marks-toggle')?.checked;
         if (!currentUser?.subject) return;
         try {
+            await fetch('/api/publish-exam-results', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ subject: currentUser.subject, publish: val })
+            });
             await fetch('/api/update-settings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -3265,6 +3459,77 @@
             });
             searchStudents('FAC');
         } catch(e) {}
+    };
+
+    window.loadFacultyExamConfig = async () => {
+        if (!currentUser?.subject) return;
+        try {
+            const res = await fetch('/api/exams');
+            if (!res.ok) return;
+            const exams = await res.json();
+            const ex = exams.find(e => e.subject.toUpperCase() === currentUser.subject.toUpperCase());
+            if (ex) {
+                const tEl = document.getElementById('facExamTitle');
+                const durEl = document.getElementById('facExamDuration');
+                const tmEl = document.getElementById('facExamTotalMarks');
+                const dateEl = document.getElementById('facExamDate');
+                const timeEl = document.getElementById('facExamTime');
+                const instEl = document.getElementById('facExamInstructions');
+                const statEl = document.getElementById('fac-exam-schedule-status');
+
+                if (tEl) tEl.value = ex.title || '';
+                if (durEl) durEl.value = ex.duration || 15;
+                if (tmEl) tmEl.value = ex.totalMarks || 20;
+                if (dateEl) dateEl.value = ex.date || '';
+                if (timeEl) timeEl.value = ex.time || '';
+                if (instEl) instEl.value = ex.instructions || '';
+                if (statEl) {
+                    statEl.innerText = `Status: ${ex.status || 'Scheduled'}`;
+                    if (ex.status === 'Live') {
+                        statEl.style.background = '#f0fdf4'; statEl.style.color = '#166534'; statEl.style.borderColor = '#bbf7d0';
+                    } else if (ex.status === 'Completed') {
+                        statEl.style.background = '#f8fafc'; statEl.style.color = '#475569'; statEl.style.borderColor = '#cbd5e1';
+                    } else {
+                        statEl.style.background = '#eff6ff'; statEl.style.color = '#1e40af'; statEl.style.borderColor = '#bfdbfe';
+                    }
+                }
+            }
+        } catch(e) {}
+    };
+
+    window.saveFacultyExamConfig = async () => {
+        if (!currentUser?.subject) return;
+        const title = document.getElementById('facExamTitle')?.value.trim();
+        const duration = Number(document.getElementById('facExamDuration')?.value) || 15;
+        const totalMarks = Number(document.getElementById('facExamTotalMarks')?.value) || 20;
+        const date = document.getElementById('facExamDate')?.value || '';
+        const time = document.getElementById('facExamTime')?.value || '';
+        const instructions = document.getElementById('facExamInstructions')?.value.trim() || '';
+
+        try {
+            const res = await fetch('/api/save-exam', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    subject: currentUser.subject,
+                    title,
+                    duration,
+                    totalMarks,
+                    date,
+                    time,
+                    instructions
+                })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert("Exam schedule & rules saved successfully.");
+                loadFacultyExamConfig();
+            } else {
+                alert(data.error || "Failed to save exam schedule.");
+            }
+        } catch(e) {
+            alert("Error saving exam schedule.");
+        }
     };
 
     window.toggleIndividualScore = async (studentRoll, isChecked) => {

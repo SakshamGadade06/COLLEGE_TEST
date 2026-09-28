@@ -17,6 +17,8 @@ const uploadsDir = path.join(ROOT, 'uploads', 'questions');
 const snapshotsDir = path.join(ROOT, 'snapshots');
 const examStatusFile = path.join(ROOT, 'exam_status.json');
 const cheatLogsFile = path.join(ROOT, 'cheat_logs.json');
+const examsFile = path.join(ROOT, 'exams.json');
+const auditLogsFile = path.join(ROOT, 'audit_logs.json');
 const EXAM_MS = 120 * 60 * 1000;
 const SESSION_MS = 8 * 60 * 60 * 1000;
 const sessions = new Map();
@@ -26,8 +28,67 @@ const activeStudents = new Map();
 const studentWarnings = new Map();
 const studentForceSubmits = new Set();
 const studentLiveState = new Map();
+const studentDraftAnswers = new Map();
 const logs = [];
 let globalExam = null;
+
+function logAudit(actorId, actorName, action, details) {
+    try {
+        const audit = readJSON(auditLogsFile, []);
+        audit.unshift({
+            id: token().slice(0, 12),
+            timestamp: new Date().toISOString(),
+            actorId: String(actorId || 'SYSTEM').slice(0, 50),
+            actorName: String(actorName || 'System').slice(0, 100),
+            action: String(action || 'ACTION').slice(0, 50),
+            details: String(details || '').slice(0, 500)
+        });
+        if (audit.length > 500) audit.length = 500;
+        writeJSON(auditLogsFile, audit);
+    } catch (e) {
+        console.error('Audit log error:', e);
+    }
+}
+
+function getExamsList() {
+    let exams = readJSON(examsFile, null);
+    if (!exams) {
+        exams = [
+            {
+                id: 'EXAM_DSA_AUT',
+                title: 'Data Structures & Algorithms In-Semester Examination',
+                subject: 'DSA',
+                className: 'SY-AIML',
+                division: 'ALL',
+                examDate: new Date().toISOString().split('T')[0],
+                startTime: '10:00',
+                duration: 60,
+                totalMarks: 20,
+                instructions: '1. All questions are compulsory.\n2. Do not switch tabs or minimize the browser.\n3. Face must remain centered in camera frame.\n4. Answers are auto-saved on selection.',
+                status: 'Scheduled',
+                showResults: false,
+                createdAt: new Date().toISOString()
+            },
+            {
+                id: 'EXAM_AI_AUT',
+                title: 'Artificial Intelligence & Machine Learning Mid-Term Test',
+                subject: 'AI',
+                className: 'SY-AIML',
+                division: 'ALL',
+                examDate: new Date().toISOString().split('T')[0],
+                startTime: '14:00',
+                duration: 60,
+                totalMarks: 20,
+                instructions: '1. All questions are compulsory.\n2. Maintain full focus within camera viewport.\n3. Automatic submission will trigger when timer expires.',
+                status: 'Scheduled',
+                showResults: false,
+                createdAt: new Date().toISOString()
+            }
+        ];
+        writeJSON(examsFile, exams);
+    }
+    return exams;
+}
 
 for (const dir of [questionsDir, uploadsDir, snapshotsDir]) fs.mkdirSync(dir, { recursive: true });
 app.use(express.json({ limit: '5mb' }));
@@ -623,30 +684,69 @@ app.post('/api/join', (req, res) => {
     studentSessions.set(key, participant);
     activeStudents.set(cleanSub + ':' + rawRoll.toUpperCase(), participant);
     setCookie(res, 'student_session', key, SESSION_MS);
-    res.json({ success: true, examActive: !!activeExam(cleanSub), deadline: activeExam(cleanSub)?.deadline || null });
+
+    const examDef = getExamsList().find(e => e.subject.toUpperCase() === cleanSub.toUpperCase());
+    res.json({
+        success: true,
+        examActive: !!activeExam(cleanSub),
+        deadline: activeExam(cleanSub)?.deadline || null,
+        exam: examDef ? {
+            title: examDef.title,
+            subject: examDef.subject,
+            className: examDef.className,
+            division: examDef.division,
+            examDate: examDef.examDate,
+            startTime: examDef.startTime,
+            duration: examDef.duration,
+            totalMarks: examDef.totalMarks,
+            instructions: examDef.instructions,
+            status: activeExam(cleanSub) ? 'Live' : examDef.status
+        } : {
+            title: `${cleanSub} In-Semester Examination`,
+            subject: cleanSub,
+            className: 'SY-AIML',
+            division: 'ALL',
+            duration: 60,
+            totalMarks: 20,
+            instructions: '1. All questions compulsory.\n2. Do not switch tabs or exit fullscreen.\n3. Keep face centered within mobile camera viewport.',
+            status: activeExam(cleanSub) ? 'Live' : 'Scheduled'
+        }
+    });
 });
 app.get('/api/check-status', (req, res) => {
     const participant = currentStudent(req);
     const sub = (participant && participant.subject) || req.query.subject;
     if (!sub) return res.json({ active: !!globalExam && globalExam.active && Date.now() < globalExam.deadline });
     const exam = activeExam(sub);
-    res.json({ active: !!exam, deadline: exam?.deadline || null, subject: sub });
+    const examDef = getExamsList().find(e => e.subject.toUpperCase() === sub.toUpperCase());
+    res.json({
+        active: !!exam,
+        deadline: exam?.deadline || null,
+        subject: sub,
+        examTitle: examDef ? examDef.title : `${sub} Examination`,
+        status: exam ? 'Live' : (examDef ? examDef.status : 'Scheduled')
+    });
 });
 app.get('/api/exam-statuses', staff('HOD', 'FACULTY', 'CLASS_TEACHER'), (req, res) => {
     const subjects = ['DSA', 'AI', 'DBMS', 'Web Technology'];
     const users = readJSON(usersFile, []);
     users.filter(u => u.subject).forEach(u => { if (!subjects.includes(u.subject)) subjects.push(u.subject); });
     const statuses = {};
+    const exams = getExamsList();
+
     subjects.forEach(sub => {
         const ex = activeExam(sub);
         const waiting = [...activeStudents.values()].filter(s => s.subject === sub && s.status === 'waiting').length;
         const inExam = [...activeStudents.values()].filter(s => s.subject === sub && s.status === 'in_exam').length;
+        const examDef = exams.find(e => e.subject.toUpperCase() === sub.toUpperCase());
         statuses[sub] = {
             active: !!ex,
             deadline: ex?.deadline || null,
             remainingMinutes: ex ? Math.max(0, Math.ceil((ex.deadline - Date.now()) / 60000)) : 0,
             waiting,
-            inExam
+            inExam,
+            status: ex ? 'Live' : (examDef ? examDef.status : 'Scheduled'),
+            title: examDef ? examDef.title : `${sub} Examination`
         };
     });
     res.json({
@@ -662,13 +762,29 @@ app.post('/api/start-exam', staff('HOD', 'FACULTY'), ownSubject, (req, res) => {
         globalExam = exam;
         subjects.forEach(sub => subjectExamStatus.set(sub, { ...exam, id: token() }));
         savePersistentExams();
+
+        const allExams = getExamsList();
+        allExams.forEach(e => { e.status = 'Live'; e.releasedAt = new Date().toISOString(); });
+        writeJSON(examsFile, allExams);
+        logAudit(req.staff.id, req.staff.name, 'ALL_EXAMS_RELEASED', 'Released all college subject examinations');
         return res.json({ success: true, active: true, all: true, deadline: exam.deadline });
     }
     if (subject && !validSubject(subject)) return res.sendStatus(400);
     if (!subject && req.staff.role !== 'HOD') return res.sendStatus(403);
     const exam = { id: token(), active: true, deadline: Date.now() + EXAM_MS };
-    if (subject) subjectExamStatus.set(subject, exam);
-    else globalExam = exam;
+    if (subject) {
+        subjectExamStatus.set(subject, exam);
+        const allExams = getExamsList();
+        const found = allExams.find(e => e.subject.toUpperCase() === subject.toUpperCase());
+        if (found) {
+            found.status = 'Live';
+            found.releasedAt = new Date().toISOString();
+            writeJSON(examsFile, allExams);
+        }
+        logAudit(req.staff.id, req.staff.name, 'EXAM_RELEASED', `Released examination hall for ${subject}`);
+    } else {
+        globalExam = exam;
+    }
     savePersistentExams();
     res.json({ success: true, active: true, subject, deadline: exam.deadline });
 });
@@ -678,14 +794,195 @@ app.post('/api/stop-exam', staff('HOD', 'FACULTY'), ownSubject, (req, res) => {
         globalExam = null;
         subjectExamStatus.clear();
         savePersistentExams();
+
+        const allExams = getExamsList();
+        allExams.forEach(e => { e.status = 'Completed'; e.completedAt = new Date().toISOString(); });
+        writeJSON(examsFile, allExams);
+        logAudit(req.staff.id, req.staff.name, 'ALL_EXAMS_STOPPED', 'Stopped and locked all college examinations');
         return res.json({ success: true, active: false, all: true });
     }
     if (subject && !validSubject(subject)) return res.sendStatus(400);
     if (!subject && req.staff.role !== 'HOD') return res.sendStatus(403);
-    if (subject) subjectExamStatus.set(subject, { active: false });
-    else globalExam = null;
+    if (subject) {
+        subjectExamStatus.set(subject, { active: false });
+        const allExams = getExamsList();
+        const found = allExams.find(e => e.subject.toUpperCase() === subject.toUpperCase());
+        if (found) {
+            found.status = 'Completed';
+            found.completedAt = new Date().toISOString();
+            writeJSON(examsFile, allExams);
+        }
+        logAudit(req.staff.id, req.staff.name, 'EXAM_STOPPED', `Locked / completed examination hall for ${subject}`);
+    } else {
+        globalExam = null;
+    }
     savePersistentExams();
     res.json({ success: true, active: false, subject });
+});
+
+// ============ EXAM LIFECYCLE & ANSWER AUTO-SAVE APIS ============
+app.get('/api/exams', staff('HOD', 'FACULTY', 'CLASS_TEACHER'), (req, res) => {
+    const all = getExamsList();
+    const settings = readJSON(settingsFile, {});
+
+    const enriched = all.map(ex => {
+        const live = activeExam(ex.subject);
+        const questions = getQuestions(ex.subject);
+        const totalMarks = questions.reduce((sum, q) => sum + (Number(q.marks) || 1), 0);
+        let status = ex.status;
+        if (live) status = 'Live';
+        else if (status === 'Live' && !live) status = 'Completed';
+        if (settings.subjectMarks?.[ex.subject]) status = 'Result Published';
+
+        return {
+            ...ex,
+            totalMarks: totalMarks || ex.totalMarks || 20,
+            questionCount: questions.length,
+            status,
+            active: !!live
+        };
+    });
+
+    if (req.staff.role === 'FACULTY' && req.staff.subject) {
+        return res.json(enriched.filter(e => e.subject.toUpperCase() === req.staff.subject.toUpperCase()));
+    }
+    res.json(enriched);
+});
+
+app.post('/api/save-exam', staff('HOD', 'FACULTY'), ownSubject, (req, res) => {
+    const { id, title, subject, className, division, examDate, startTime, duration, instructions, totalMarks } = req.body;
+    if (!validSubject(subject)) return res.status(400).json({ error: 'Valid subject required' });
+
+    const exams = getExamsList();
+    let exam = exams.find(e => (id && e.id === id) || e.subject.toUpperCase() === subject.toUpperCase());
+
+    if (!exam) {
+        exam = {
+            id: id || `EXAM_${subject.toUpperCase()}_${Date.now()}`,
+            subject,
+            createdAt: new Date().toISOString(),
+            status: 'Scheduled',
+            showResults: false
+        };
+        exams.push(exam);
+    }
+
+    exam.title = String(title || `${subject} Examination`).slice(0, 150);
+    exam.className = String(className || 'SY-AIML').slice(0, 50);
+    exam.division = String(division || 'ALL').slice(0, 20);
+    exam.examDate = String(examDate || new Date().toISOString().split('T')[0]).slice(0, 20);
+    exam.startTime = String(startTime || '10:00').slice(0, 10);
+    exam.duration = Math.max(10, Math.min(240, Number(duration) || 60));
+    exam.instructions = String(instructions || '1. All questions compulsory.\n2. Do not switch tabs.').slice(0, 2000);
+    if (totalMarks) exam.totalMarks = Number(totalMarks);
+
+    writeJSON(examsFile, exams);
+    logAudit(req.staff.id, req.staff.name, 'EXAM_CONFIGURED', `Configured exam parameters for ${subject}`);
+    res.json({ success: true, exam });
+});
+
+app.post('/api/publish-exam-results', staff('HOD', 'FACULTY'), ownSubject, (req, res) => {
+    const { subject, publish } = req.body;
+    if (!validSubject(subject)) return res.sendStatus(400);
+
+    const isPublish = publish !== false;
+    const settings = readJSON(settingsFile, {});
+    settings.subjectMarks = settings.subjectMarks || {};
+    settings.subjectMarks[subject] = isPublish;
+    writeJSON(settingsFile, settings);
+
+    const exams = getExamsList();
+    const exam = exams.find(e => e.subject.toUpperCase() === subject.toUpperCase());
+    if (exam) {
+        exam.status = isPublish ? 'Result Published' : 'Completed';
+        exam.showResults = isPublish;
+        writeJSON(examsFile, exams);
+    }
+
+    logAudit(req.staff.id, req.staff.name, isPublish ? 'RESULTS_PUBLISHED' : 'RESULTS_UNPUBLISHED', `${isPublish ? 'Published' : 'Concealed'} candidate results for ${subject}`);
+    res.json({ success: true, subject, published: isPublish });
+});
+
+app.post('/api/save-answer', student, (req, res) => {
+    const s = req.student;
+    const key = `${s.subject}:${s.roll.toUpperCase()}`;
+    const { questionIndex, questionId, answer, markForReview } = req.body;
+    let draft = studentDraftAnswers.get(key) || { answers: {}, markedReview: {} };
+
+    if (questionIndex !== undefined) {
+        if (answer !== undefined) draft.answers[questionIndex] = answer;
+        if (markForReview !== undefined) draft.markedReview[questionIndex] = !!markForReview;
+    }
+    if (questionId) {
+        if (answer !== undefined) draft.answers[questionId] = answer;
+        if (markForReview !== undefined) draft.markedReview[questionId] = !!markForReview;
+    }
+    draft.lastSaved = Date.now();
+    studentDraftAnswers.set(key, draft);
+
+    const live = studentLiveState.get(key);
+    if (live) {
+        live.answersCount = Object.keys(draft.answers).length;
+        if (questionIndex !== undefined) live.currentQuestion = Number(questionIndex);
+    }
+
+    res.json({ success: true, savedAt: draft.lastSaved, answersCount: Object.keys(draft.answers).length });
+});
+
+app.get('/api/get-draft-answers', student, (req, res) => {
+    const s = req.student;
+    const key = `${s.subject}:${s.roll.toUpperCase()}`;
+    const draft = studentDraftAnswers.get(key) || { answers: {}, markedReview: {} };
+    res.json({ success: true, answers: draft.answers, markedReview: draft.markedReview, lastSaved: draft.lastSaved || null });
+});
+
+app.get('/api/audit-logs', staff('HOD'), (req, res) => {
+    res.json(readJSON(auditLogsFile, []));
+});
+
+app.get('/api/student-proctoring-timeline', staff('HOD', 'FACULTY', 'CLASS_TEACHER'), (req, res) => {
+    const roll = String(req.query.rollNo || '').trim().toUpperCase();
+    const subject = String(req.query.subject || '').trim().toUpperCase();
+    if (!roll) return res.status(400).json({ error: 'Roll number required' });
+
+    const logs = readJSON(cheatLogsFile, []);
+    const studentLogs = logs.filter(l => {
+        const matchesRoll = (l.rollNo || '').toUpperCase() === roll;
+        const matchesSub = !subject || (l.subject || '').toUpperCase() === subject;
+        return matchesRoll && matchesSub;
+    }).map(l => ({
+        id: l.id || token().slice(0, 8),
+        timestamp: l.timestamp || l.time,
+        timeFormatted: l.timestamp ? new Date(l.timestamp).toLocaleTimeString() : (l.time || '—'),
+        eventType: l.eventType || (l.reason ? l.reason.toUpperCase().replace(/\s+/g, '_') : 'PROCTORING_ALERT'),
+        severity: l.severity || (l.reason && l.reason.includes('strike') ? 'HIGH' : 'MEDIUM'),
+        description: l.description || l.reason || l.message || 'Proctoring violation or movement logged',
+        snapshot: l.snapshot || l.file || null
+    }));
+
+    studentLogs.sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0));
+    res.json({ rollNo: roll, subject, timeline: studentLogs });
+});
+
+app.post('/api/log-proctoring-event', student, (req, res) => {
+    const s = req.student;
+    const { eventType, severity, description } = req.body;
+    const logs = readJSON(cheatLogsFile, []);
+    const entry = {
+        id: token().slice(0, 10),
+        rollNo: s.roll,
+        name: s.name,
+        subject: s.subject,
+        eventType: String(eventType || 'PROCTORING_EVENT').slice(0, 50),
+        severity: String(severity || 'LOW').slice(0, 20),
+        description: String(description || 'Proctoring variance').slice(0, 200),
+        timestamp: new Date().toISOString(),
+        time: new Date().toLocaleTimeString()
+    };
+    logs.unshift(entry);
+    if (logs.length > 1000) logs.length = 1000;
+    writeJSON(cheatLogsFile, logs);
+    res.json({ success: true, eventId: entry.id });
 });
 app.get('/api/waiting-students', staff('HOD', 'FACULTY', 'CLASS_TEACHER'), ownSubject, (req, res) => {
     const subject = req.query.subject;
