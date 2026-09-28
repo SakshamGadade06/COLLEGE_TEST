@@ -1,15 +1,29 @@
+# Dependencies
 node_modules/
+
+# Binaries & executables
 cloudflared.exe
+*.exe
+
+# Proctoring snapshots & logs
 snapshots/
 *.log
+cheat_logs.json
+
+# Runtime databases & state files
 users.json
 submissions.json
 exam_settings.json
+exam_status.json
 questions.json
 questions_by_subject/
 questions/
 uploads/
 tunnel_url.txt
+
+# Environment variables
 .env
 .env.*
-exam_status.json
+
+# Temporary test directories
+.security-test-*
