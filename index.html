@@ -318,10 +318,28 @@
         .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; display: inline-block; margin-right: 4px; }
 
         /* TABLES */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
         table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-        th, td { padding: 10px 14px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 13px; }
+        th, td { padding: 11px 14px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 13px; vertical-align: middle; }
         th { background: #f8fafc; color: #64748b; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
         tr:hover td { background: #f8fafc; }
+        .student-link {
+            color: #1e40af;
+            text-decoration: none;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+        .student-link:hover {
+            color: #2563eb;
+            text-decoration: underline;
+        }
         .search-bar {
             width: 100%; padding: 11px 15px; margin-bottom: 16px;
             border: 1.5px solid #cbd5e1; border-radius: 10px;
@@ -893,6 +911,10 @@
                 <svg class="icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                 Exam Control
             </div>
+            <div class="sidebar-item" id="fac-nav-students" onclick="showFacTab('students')">
+                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Student Roster &amp; Marks
+            </div>
             <div class="sidebar-item" id="fac-nav-marks" onclick="showFacTab('marks')">
                 <svg class="icon-svg" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
                 Results &amp; Disclosure
@@ -949,6 +971,50 @@
                     </div>
                     <div id="question-list">
                         <p style="color:#94a3b8;font-size:13px;">No questions uploaded yet.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: FACULTY STUDENT ROSTER & MARKS -->
+            <div id="fac-students" class="tab-content">
+                <div class="kpi-strip" id="fac-roster-kpi" style="margin-bottom:20px;">
+                    <div class="kpi-card">
+                        <div class="kpi-value" id="fac-stat-total">0</div>
+                        <div class="kpi-label">Enrolled Students</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-value" style="color:#16a34a;" id="fac-stat-given">0</div>
+                        <div class="kpi-label"><span id="fac-kpi-sub-given">Subject</span> Exam Given</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-value" style="color:#d97706;" id="fac-stat-pending">0</div>
+                        <div class="kpi-label"><span id="fac-kpi-sub-pending">Subject</span> Pending / Absent</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-value" style="color:#2563eb;" id="fac-stat-avg">0%</div>
+                        <div class="kpi-label">Average Score</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+                        <div>
+                            <h3 style="margin-bottom:4px;">Enrolled Students &amp; <span id="fac-roster-sub-title">Subject</span> Marks</h3>
+                            <p style="margin:0;color:#64748b;font-size:13px;">Complete candidate roster with individual subject marks and exam completion status displayed in front of each student name.</p>
+                        </div>
+                        <div style="display:flex;gap:10px;align-items:center;">
+                            <select id="fac-div-filter" class="input-field" style="width:150px;margin:0;" onchange="loadStudentRoster('FAC')">
+                                <option value="ALL">All Divisions</option>
+                                <option value="A">Division A</option>
+                                <option value="B">Division B</option>
+                                <option value="C">Division C</option>
+                            </select>
+                            <button onclick="loadStudentRoster('FAC')" class="btn btn-outline btn-sm">↺ Refresh</button>
+                        </div>
+                    </div>
+                    <input type="text" id="fac-roster-search" class="search-bar" placeholder="Search student by name or roll number…" oninput="loadStudentRoster('FAC')">
+                    <div id="fac-student-list">
+                        <div style="color:#64748b;font-size:13px;padding:24px;text-align:center;">Loading student roster…</div>
                     </div>
                 </div>
             </div>
@@ -1421,16 +1487,22 @@
 
     window.loadStudentRoster = async (role) => {
         const isHod = role === 'HOD';
-        const container = document.getElementById(isHod ? 'hod-student-roster-table' : 'ct-student-list');
+        const isFac = role === 'FAC';
+        const container = document.getElementById(isHod ? 'hod-student-roster-table' : (isFac ? 'fac-student-list' : 'ct-student-list'));
         if (!container) return;
 
-        const divFilter = isHod ? (document.getElementById('hod-div-filter')?.value || 'ALL') : '';
-        const searchQuery = (document.getElementById(isHod ? 'hod-stu-search' : 'ct-stu-search')?.value || '').trim().toLowerCase();
+        const divFilter = isHod ? (document.getElementById('hod-div-filter')?.value || 'ALL') : (isFac ? (document.getElementById('fac-div-filter')?.value || 'ALL') : '');
+        const searchQuery = (document.getElementById(isHod ? 'hod-stu-search' : (isFac ? 'fac-roster-search' : 'ct-stu-search'))?.value || '').trim().toLowerCase();
 
         try {
             const url = `/api/get-students${divFilter && divFilter !== 'ALL' ? '?division=' + encodeURIComponent(divFilter) : ''}`;
-            const res = await fetch(url);
-            const data = await res.json();
+            const [stuRes, setRes] = await Promise.all([
+                fetch(url),
+                fetch('/api/get-settings')
+            ]);
+            const data = await stuRes.json();
+            const settings = await setRes.json().catch(() => ({}));
+
             const students = (data.students || []).filter(s => {
                 if (!searchQuery) return true;
                 return (s.rollNo && s.rollNo.toLowerCase().includes(searchQuery)) ||
@@ -1438,33 +1510,142 @@
                        (s.className && s.className.toLowerCase().includes(searchQuery));
             });
 
-            if (!isHod) {
+            if (!isHod && !isFac) {
                 const stuCountEl = document.getElementById('ct-stat-students');
                 if (stuCountEl) stuCountEl.innerText = data.total || 0;
+            }
+
+            if (isFac) {
+                const facSub = (currentUser && currentUser.subject) ? currentUser.subject : 'DSA';
+                const elTitle = document.getElementById('fac-roster-sub-title');
+                if (elTitle) elTitle.innerText = facSub;
+
+                let givenCount = 0;
+                let scorePctSum = 0;
+                let scoreCount = 0;
+
+                students.forEach(s => {
+                    const g = (s.givenSubjects || []).find(sub => sub.subject.toUpperCase() === facSub.toUpperCase());
+                    if (g) {
+                        givenCount++;
+                        if (g.total && g.rawScore !== undefined) {
+                            scorePctSum += (g.rawScore / g.total) * 100;
+                            scoreCount++;
+                        }
+                    }
+                });
+
+                const pendingCount = students.length - givenCount;
+                const avgPct = scoreCount > 0 ? Math.round(scorePctSum / scoreCount) : 0;
+
+                const totEl = document.getElementById('fac-stat-total');
+                const givEl = document.getElementById('fac-stat-given');
+                const penEl = document.getElementById('fac-stat-pending');
+                const avgEl = document.getElementById('fac-stat-avg');
+                const kgEl = document.getElementById('fac-kpi-sub-given');
+                const kpEl = document.getElementById('fac-kpi-sub-pending');
+                if (totEl) totEl.innerText = students.length;
+                if (givEl) givEl.innerText = givenCount;
+                if (penEl) penEl.innerText = pendingCount;
+                if (avgEl) avgEl.innerText = avgPct + '%';
+                if (kgEl) kgEl.innerText = facSub;
+                if (kpEl) kpEl.innerText = facSub;
             }
 
             if (!students.length) {
                 container.innerHTML = `
                     <div style="text-align:center;padding:36px;color:#64748b;">
                         <div style="font-size:15px;font-weight:700;color:#0f172a;margin-bottom:4px;">No students found</div>
-                        <div style="font-size:13px;">Use the upload box above to import an Excel sheet of students.</div>
+                        <div style="font-size:13px;">${isFac ? 'No enrolled candidates matching selected filters.' : 'Use the upload box above to import an Excel sheet of students.'}</div>
                     </div>
                 `;
                 return;
             }
 
-            let html = `
-                <table>
-                    <thead>
+            if (isFac) {
+                const facSub = (currentUser && currentUser.subject) ? currentUser.subject : 'DSA';
+                let html = `
+                    <div class="table-responsive">
+                        <table style="min-width:760px;">
+                            <thead>
+                                <tr>
+                                    <th style="width:110px;white-space:nowrap;">Roll No</th>
+                                    <th style="min-width:180px;white-space:nowrap;">Student Name</th>
+                                    <th style="min-width:190px;white-space:nowrap;background:#f0fdf4;color:#166534;font-weight:700;">${facSub} Marks</th>
+                                    <th style="width:80px;white-space:nowrap;">Division</th>
+                                    <th style="width:120px;white-space:nowrap;">Exam Status</th>
+                                    <th style="width:150px;white-space:nowrap;text-align:center;">Individual Disclosure</th>
+                                    <th style="width:110px;white-space:nowrap;text-align:right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                students.forEach(s => {
+                    const roll = (s.rollNo || '').toUpperCase();
+                    const targetRec = (s.givenSubjects || []).find(g => g.subject.toUpperCase() === facSub.toUpperCase());
+                    const subSetting = settings.individualStudentMarks?.[facSub]?.[roll];
+                    const isDisclosed = subSetting !== undefined ? subSetting : (settings.subjectMarks?.[facSub] !== false);
+
+                    const marksBadge = targetRec
+                        ? `<span class="badge" style="background:#dcfce7;color:#166534;font-size:12.5px;font-weight:700;padding:5px 11px;border-radius:6px;border:1px solid #86efac;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                            ${targetRec.score}
+                           </span>`
+                        : `<span class="badge" style="background:#fef3c7;color:#92400e;font-size:12px;font-weight:600;padding:5px 10px;border-radius:6px;border:1px solid #fde68a;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                            Not Given / Pending
+                           </span>`;
+
+                    const statusPill = targetRec
+                        ? `<span class="status-pill-given" style="font-size:11.5px;padding:3px 10px;">Submitted</span>`
+                        : `<span class="status-pill-pending" style="font-size:11.5px;padding:3px 10px;">Pending</span>`;
+
+                    html += `
                         <tr>
-                            <th style="width:130px;">Roll Number</th>
-                            <th style="min-width:180px;">Student Name</th>
-                            <th style="width:100px;">Division</th>
-                            <th style="min-width:320px;">Exam Progression &amp; Status</th>
-                            <th style="width:140px;text-align:right;">Actions</th>
+                            <td style="white-space:nowrap;"><strong style="color:#0f172a;letter-spacing:0.02em;">${s.rollNo}</strong></td>
+                            <td style="white-space:nowrap;">
+                                <a href="javascript:void(0)" onclick="openStudentReport('${s.rollNo}')" class="student-link" title="Click to view all subject marks">
+                                    ${s.name}
+                                    <svg class="icon-svg" style="width:12px;height:12px;margin:0 0 0 3px;" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                                </a>
+                            </td>
+                            <td style="white-space:nowrap;">${marksBadge}</td>
+                            <td style="white-space:nowrap;"><span class="badge" style="display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;background:#e2e8f0;color:#334155;">${s.division || 'A'}</span></td>
+                            <td style="white-space:nowrap;">${statusPill}</td>
+                            <td style="text-align:center;white-space:nowrap;">
+                                <label class="toggle-row" style="margin:0;justify-content:center;font-size:12px;cursor:pointer;">
+                                    <input type="checkbox" onchange="toggleIndividualScore('${s.rollNo}', this.checked)" ${isDisclosed ? 'checked' : ''}>
+                                    <span style="font-weight:600;color:#334155;">Disclose</span>
+                                </label>
+                            </td>
+                            <td style="text-align:right;white-space:nowrap;">
+                                <button type="button" onclick="openStudentReport('${s.rollNo}')" class="btn btn-outline btn-sm" style="font-size:12px;padding:6px 12px;">
+                                    All Marks
+                                </button>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
+                    `;
+                });
+
+                html += `</tbody></table></div>`;
+                container.innerHTML = html;
+                return;
+            }
+
+            let html = `
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width:130px;white-space:nowrap;">Roll Number</th>
+                                <th style="min-width:180px;white-space:nowrap;">Student Name</th>
+                                <th style="width:100px;white-space:nowrap;">Division</th>
+                                <th style="min-width:320px;">Exam Progression &amp; Status</th>
+                                <th style="width:140px;text-align:right;white-space:nowrap;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
             `;
 
             students.forEach(s => {
@@ -1478,14 +1659,14 @@
 
                 html += `
                     <tr>
-                        <td><strong style="color:#0f172a;letter-spacing:0.02em;">${s.rollNo}</strong></td>
-                        <td>
+                        <td style="white-space:nowrap;"><strong style="color:#0f172a;letter-spacing:0.02em;">${s.rollNo}</strong></td>
+                        <td style="white-space:nowrap;">
                             <a href="javascript:void(0)" onclick="openStudentReport('${s.rollNo}')" class="student-link" title="Click to view all subject marks">
                                 ${s.name}
-                                <svg class="icon-svg" style="width:12px;height:12px;margin:0;" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                                <svg class="icon-svg" style="width:12px;height:12px;margin:0 0 0 3px;" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
                             </a>
                         </td>
-                        <td><span class="badge" style="display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;background:#e2e8f0;color:#334155;">${s.division || 'A'}</span></td>
+                        <td style="white-space:nowrap;"><span class="badge" style="display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;background:#e2e8f0;color:#334155;">${s.division || 'A'}</span></td>
                         <td>
                             <div class="student-status-box">
                                 <div class="status-row-given">
@@ -1498,7 +1679,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td style="text-align:right;">
+                        <td style="text-align:right;white-space:nowrap;">
                             <button type="button" onclick="openStudentReport('${s.rollNo}')" class="btn btn-outline btn-sm" style="font-size:12px;padding:6px 12px;">
                                 All Marks
                             </button>
@@ -1507,7 +1688,7 @@
                 `;
             });
 
-            html += `</tbody></table>`;
+            html += `</tbody></table></div>`;
             container.innerHTML = html;
         } catch(err) {
             container.innerHTML = `<div style="color:#dc2626;font-size:13px;padding:20px;">Failed to load student roster.</div>`;
@@ -1585,6 +1766,18 @@
     };
 
     // ============ FACULTY ============
+    window.showFacTab = (tab) => {
+        document.querySelectorAll('#fac-dash .tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('#fac-dash .sidebar .sidebar-item').forEach(b => b.classList.remove('active'));
+        const tc = document.getElementById(`fac-${tab}`);
+        const nb = document.getElementById(`fac-nav-${tab}`);
+        if (tc) tc.classList.add('active');
+        if (nb) nb.classList.add('active');
+        if (tab === 'exam') loadFacultyQuestions();
+        if (tab === 'students') loadStudentRoster('FAC');
+        if (tab === 'marks') { loadFacultyDisclosureSettings(); searchStudents('FAC'); }
+    };
+
     function initFacultyDashboard() {
         if (currentUser) {
             const s1 = document.getElementById('fac-subject-display');
@@ -1599,6 +1792,7 @@
         }
         loadFacultyQuestions();
         loadFacultyDisclosureSettings();
+        loadStudentRoster('FAC');
         searchStudents('FAC');
         pollWaitingRoom();
         if (facultyPollInterval) clearInterval(facultyPollInterval);

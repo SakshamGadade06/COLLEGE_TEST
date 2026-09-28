@@ -384,7 +384,7 @@ app.get('/api/get-students', staff('HOD', 'CLASS_TEACHER', 'FACULTY'), (req, res
     });
 });
 
-app.get('/api/student-all-marks', staff('HOD', 'CLASS_TEACHER'), (req, res) => {
+app.get('/api/student-all-marks', staff('HOD', 'CLASS_TEACHER', 'FACULTY'), (req, res) => {
     const rollNo = String(req.query.rollNo || '').trim().toUpperCase();
     if (!rollNo) return res.status(400).json({ error: 'Roll number required' });
 
