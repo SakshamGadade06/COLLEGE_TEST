@@ -23,6 +23,9 @@ const sessions = new Map();
 const studentSessions = new Map();
 const subjectExamStatus = new Map();
 const activeStudents = new Map();
+const studentWarnings = new Map();
+const studentForceSubmits = new Set();
+const studentLiveState = new Map();
 const logs = [];
 let globalExam = null;
 
@@ -943,6 +946,363 @@ app.get('/api/snapshot-image', staff('HOD', 'FACULTY', 'CLASS_TEACHER'), (req, r
     if (!fs.existsSync(target)) return res.sendStatus(404);
     res.setHeader('Content-Type', 'image/jpeg');
     res.sendFile(target);
+});
+
+// ============ LIVE INVIGILATION & REMOTE WARNING SYSTEM ============
+app.post('/api/student-heartbeat', student, (req, res) => {
+    const s = req.student;
+    const key = `${s.subject}:${s.roll.toUpperCase()}`;
+    const faceStatus = String(req.body.faceStatus || 'centered').slice(0, 50);
+    const currentQuestion = Number(req.body.currentQuestion) || 0;
+    const answersCount = Number(req.body.answersCount) || 0;
+    const strikes = Number(req.body.strikes) || 0;
+
+    studentLiveState.set(key, {
+        rollNo: s.roll,
+        subject: s.subject,
+        name: s.name,
+        division: s.division || 'A',
+        className: s.className || 'SY-AIML',
+        faceStatus,
+        currentQuestion,
+        answersCount,
+        strikes,
+        lastSeen: Date.now()
+    });
+
+    const warning = studentWarnings.get(key);
+    const forceSubmit = studentForceSubmits.has(key);
+    const exam = activeExam(s.subject);
+
+    res.json({
+        success: true,
+        active: !!exam,
+        deadline: exam?.deadline || null,
+        pendingWarning: warning && !warning.acknowledged ? warning.message : null,
+        warningTime: warning ? warning.time : null,
+        warningSentBy: warning ? warning.sentBy : null,
+        forceSubmit
+    });
+});
+
+app.post('/api/acknowledge-warning', student, (req, res) => {
+    const key = `${req.student.subject}:${req.student.roll.toUpperCase()}`;
+    const warning = studentWarnings.get(key);
+    if (warning) {
+        warning.acknowledged = true;
+        warning.acknowledgedAt = new Date().toISOString();
+    }
+    res.json({ success: true });
+});
+
+app.post('/api/send-student-warning', staff('HOD', 'FACULTY'), (req, res) => {
+    const { rollNo, subject, message } = req.body;
+    const roll = String(rollNo || '').trim().toUpperCase();
+    const sub = String(subject || '').trim();
+    const msg = String(message || 'Please remain focused and face the screen.').trim();
+
+    if (!roll || !sub) return res.status(400).json({ error: 'Roll number and subject required' });
+    if (req.staff.role === 'FACULTY' && req.staff.subject !== sub) {
+        return res.status(403).json({ error: 'You can only send warnings for your assigned subject' });
+    }
+
+    const key = `${sub}:${roll}`;
+    const warningObj = {
+        message: msg,
+        time: new Date().toISOString(),
+        sentBy: req.staff.name || req.staff.id,
+        acknowledged: false
+    };
+    studentWarnings.set(key, warningObj);
+
+    // Record in persistent cheat logs as an official caution
+    const entry = {
+        id: 'warn_' + token().slice(0, 8),
+        rollNo: roll,
+        subject: sub,
+        reason: `Invigilator Warning: "${msg}" (Sent by ${warningObj.sentBy})`,
+        strike: 0,
+        warning: true,
+        time: new Date().toISOString()
+    };
+    logs.unshift(entry);
+    const persistentLogs = readJSON(cheatLogsFile, []);
+    persistentLogs.unshift(entry);
+    writeJSON(cheatLogsFile, persistentLogs);
+
+    res.json({ success: true, message: `Warning dispatched to ${roll}` });
+});
+
+app.post('/api/broadcast-warning', staff('HOD', 'FACULTY'), (req, res) => {
+    const { subject, message } = req.body;
+    const sub = String(subject || '').trim();
+    const msg = String(message || 'Attention all candidates: Maintain exam discipline and keep your camera active.').trim();
+
+    if (!sub) return res.status(400).json({ error: 'Subject required' });
+    if (req.staff.role === 'FACULTY' && req.staff.subject !== sub) {
+        return res.status(403).json({ error: 'You can only broadcast for your assigned subject' });
+    }
+
+    let count = 0;
+    for (const [key, st] of activeStudents.entries()) {
+        if (st.subject === sub) {
+            studentWarnings.set(`${sub}:${st.roll.toUpperCase()}`, {
+                message: msg,
+                time: new Date().toISOString(),
+                sentBy: req.staff.name || req.staff.id,
+                acknowledged: false
+            });
+            count++;
+        }
+    }
+
+    res.json({ success: true, count, message: `Broadcast sent to ${count} active candidates in ${sub}` });
+});
+
+app.post('/api/force-submit-student', staff('HOD', 'FACULTY'), (req, res) => {
+    const { rollNo, subject, reason } = req.body;
+    const roll = String(rollNo || '').trim().toUpperCase();
+    const sub = String(subject || '').trim();
+    if (!roll || !sub) return res.status(400).json({ error: 'Roll number and subject required' });
+    if (req.staff.role === 'FACULTY' && req.staff.subject !== sub) {
+        return res.status(403).json({ error: 'You can only terminate exams for your assigned subject' });
+    }
+
+    const key = `${sub}:${roll}`;
+    studentForceSubmits.add(key);
+
+    const entry = {
+        id: 'term_' + token().slice(0, 8),
+        rollNo: roll,
+        subject: sub,
+        reason: `Exam Terminated by Invigilator (${req.staff.name || req.staff.id}): ${reason || 'Cheating violation'}`,
+        strike: 3,
+        time: new Date().toISOString()
+    };
+    logs.unshift(entry);
+    const persistentLogs = readJSON(cheatLogsFile, []);
+    persistentLogs.unshift(entry);
+    writeJSON(cheatLogsFile, persistentLogs);
+
+    res.json({ success: true, message: `Termination command sent for ${roll}` });
+});
+
+app.get('/api/live-invigilation', staff('HOD', 'FACULTY', 'CLASS_TEACHER'), (req, res) => {
+    const sub = String(req.query.subject || (req.staff.role === 'FACULTY' ? req.staff.subject : 'DSA')).trim();
+    const divFilter = String(req.query.division || '').trim().toUpperCase();
+
+    const submissions = readJSON(submissionsFile, []);
+    const persistentLogs = readJSON(cheatLogsFile, []);
+
+    let snapshotDirs = [];
+    try {
+        if (fs.existsSync(snapshotsDir)) snapshotDirs = fs.readdirSync(snapshotsDir);
+    } catch(e) {}
+
+    const candidates = [];
+    const now = Date.now();
+    const processedRolls = new Set();
+
+    for (const [key, part] of activeStudents.entries()) {
+        if (!sub || part.subject.toUpperCase() === sub.toUpperCase()) {
+            const rollUpper = part.roll.toUpperCase();
+            if (divFilter && divFilter !== 'ALL' && (part.division || '').toUpperCase() !== divFilter) continue;
+            processedRolls.add(rollUpper);
+
+            const liveKey = `${part.subject}:${rollUpper}`;
+            const live = studentLiveState.get(liveKey);
+            const isOnline = live ? (now - live.lastSeen < 15000) : false;
+            const subRec = submissions.find(s => s.rollNo && s.rollNo.toUpperCase() === rollUpper && s.subject.toUpperCase() === part.subject.toUpperCase());
+            const warning = studentWarnings.get(liveKey);
+            const vLogs = persistentLogs.filter(l => l.rollNo && l.rollNo.toUpperCase() === rollUpper && l.subject && l.subject.toUpperCase() === part.subject.toUpperCase());
+
+            let latestSnapshotUrl = null;
+            let totalSnapshots = 0;
+            snapshotDirs.forEach(dir => {
+                if (dir.toUpperCase().includes(rollUpper)) {
+                    try {
+                        const fullP = path.join(snapshotsDir, dir);
+                        if (fs.statSync(fullP).isDirectory()) {
+                            const files = fs.readdirSync(fullP).filter(f => f.toLowerCase().endsWith('.jpg') || f.toLowerCase().endsWith('.png')).sort().reverse();
+                            totalSnapshots += files.length;
+                            if (!latestSnapshotUrl && files.length) {
+                                latestSnapshotUrl = `/api/snapshot-image?folder=${encodeURIComponent(dir)}&file=${encodeURIComponent(files[0])}`;
+                            }
+                        }
+                    } catch(e) {}
+                }
+            });
+
+            const strikeCount = vLogs.reduce((max, l) => Math.max(max, l.strike || 0), 0);
+            let stateCategory = 'focused';
+            if (subRec) {
+                stateCategory = 'submitted';
+            } else if (!isOnline) {
+                stateCategory = 'offline';
+            } else if (strikeCount >= 1 || (live && live.faceStatus && live.faceStatus.includes('violation'))) {
+                stateCategory = 'violation';
+            } else if (live && live.faceStatus && (live.faceStatus.includes('turned') || live.faceStatus.includes('distracted') || live.faceStatus.includes('multiple'))) {
+                stateCategory = 'warning';
+            }
+
+            candidates.push({
+                rollNo: part.roll,
+                name: part.name,
+                division: part.division || 'A',
+                className: part.className || 'SY-AIML',
+                subject: part.subject,
+                status: subRec ? 'submitted' : (isOnline ? 'in_exam' : 'disconnected'),
+                stateCategory,
+                faceStatus: live ? live.faceStatus : (subRec ? 'Submitted' : 'Offline'),
+                currentQuestion: live ? live.currentQuestion : 0,
+                answersCount: live ? live.answersCount : (subRec && subRec.answers ? Object.keys(subRec.answers).length : 0),
+                isOnline,
+                lastSeen: live ? live.lastSeen : null,
+                latestSnapshotUrl,
+                totalSnapshots,
+                strikeCount,
+                violationsCount: vLogs.length,
+                pendingWarning: warning && !warning.acknowledged ? warning.message : null,
+                isWarningAcknowledged: warning ? warning.acknowledged : false,
+                isTerminated: studentForceSubmits.has(liveKey),
+                submissionScore: subRec ? subRec.score : null
+            });
+        }
+    }
+
+    const categoryOrder = { violation: 0, warning: 1, focused: 2, submitted: 3, offline: 4 };
+    candidates.sort((a, b) => (categoryOrder[a.stateCategory] ?? 5) - (categoryOrder[b.stateCategory] ?? 5));
+
+    res.json({
+        success: true,
+        subject: sub,
+        total: candidates.length,
+        stats: {
+            total: candidates.length,
+            inExam: candidates.filter(c => c.isOnline && c.status !== 'submitted').length,
+            focused: candidates.filter(c => c.stateCategory === 'focused').length,
+            warning: candidates.filter(c => c.stateCategory === 'warning').length,
+            violation: candidates.filter(c => c.stateCategory === 'violation').length,
+            submitted: candidates.filter(c => c.status === 'submitted').length
+        },
+        candidates
+    });
+});
+
+// ============ ONE-CLICK EXCEL MARKSHEET EXPORT ============
+app.get('/api/export-marks-excel', staff('HOD', 'CLASS_TEACHER', 'FACULTY'), (req, res) => {
+    const sub = String(req.query.subject || (req.staff.role === 'FACULTY' ? req.staff.subject : 'DSA')).trim();
+    const divFilter = String(req.query.division || '').trim().toUpperCase();
+
+    const students = readJSON(studentsFile, []);
+    const submissions = readJSON(submissionsFile, []);
+    const persistentLogs = readJSON(cheatLogsFile, []);
+
+    const filteredStudents = students.filter(s => {
+        if (!divFilter || divFilter === 'ALL') return true;
+        return (s.division || '').toUpperCase() === divFilter || (s.className || '').toUpperCase().includes(divFilter);
+    });
+
+    const rows = [
+        ['G. H. RAISONI COLLEGE OF ENGINEERING AND MANAGEMENT, PUNE'],
+        ['(An Autonomous Institute Affiliated to Savitribai Phule Pune University)'],
+        ['DEPARTMENT OF COMPUTER ENGINEERING & ARTIFICIAL INTELLIGENCE'],
+        ['AUTONOMOUS EXAMINATION OFFICIAL MARKSHEET & GAZETTE'],
+        [`Subject: ${sub} | Academic Year: 2026-2027 | Division: ${divFilter || 'All Divisions'} | Export Date: ${new Date().toLocaleDateString()}`],
+        [],
+        [
+            'S.No',
+            'Roll Number',
+            'Candidate Full Name',
+            'Class',
+            'Division',
+            'Department',
+            'Subject',
+            'Max Marks',
+            'Marks Obtained',
+            'Percentage (%)',
+            'Result Status',
+            'Exam Attendance',
+            'Proctoring Strikes',
+            'Integrity & Audit Remarks',
+            'Submission Time'
+        ]
+    ];
+
+    filteredStudents.forEach((st, idx) => {
+        const rollUpper = (st.rollNo || '').toUpperCase();
+        const subRec = submissions.find(s => s.rollNo && s.rollNo.toUpperCase() === rollUpper && s.subject.toUpperCase() === sub.toUpperCase());
+        const vLogs = persistentLogs.filter(l => l.rollNo && l.rollNo.toUpperCase() === rollUpper && l.subject && l.subject.toUpperCase() === sub.toUpperCase());
+
+        let maxMarks = 20;
+        let rawScore = null;
+        let pct = null;
+        let result = 'ABSENT / PENDING';
+        let attendance = 'Absent / Not Given';
+        let integrity = 'Clean';
+        let subTime = '—';
+
+        if (subRec) {
+            maxMarks = subRec.total || 20;
+            rawScore = subRec.rawScore !== undefined ? subRec.rawScore : (parseInt(subRec.score) || 0);
+            pct = Math.round((rawScore / maxMarks) * 100);
+            result = pct >= 40 ? 'PASS' : 'FAIL';
+            attendance = 'Present / Submitted';
+            if (subRec.isOverridden) {
+                integrity = `Overridden by Faculty: ${subRec.overrideReason || ''}`;
+            } else if (vLogs.length > 0) {
+                integrity = `Infractions Recorded: ${vLogs.length} incident(s)`;
+            }
+            subTime = subRec.time ? new Date(subRec.time).toLocaleString() : '—';
+        }
+
+        rows.push([
+            idx + 1,
+            st.rollNo,
+            st.name,
+            st.className || 'SY-AIML',
+            st.division || 'A',
+            st.dept || 'Computer Engineering & AI',
+            sub,
+            maxMarks,
+            rawScore !== null ? rawScore : '—',
+            pct !== null ? `${pct}%` : '—',
+            result,
+            attendance,
+            vLogs.length ? Math.max(...vLogs.map(l => l.strike || 0)) : 0,
+            integrity,
+            subTime
+        ]);
+    });
+
+    const ws = xlsx.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [
+        { wch: 6 },
+        { wch: 14 },
+        { wch: 24 },
+        { wch: 12 },
+        { wch: 10 },
+        { wch: 30 },
+        { wch: 12 },
+        { wch: 12 },
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 14 },
+        { wch: 20 },
+        { wch: 18 },
+        { wch: 35 },
+        { wch: 22 }
+    ];
+
+    const wb = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(wb, ws, 'Official_Marksheet');
+
+    const buffer = xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    const cleanFilename = `Raisoni_${sub.replace(/[^A-Za-z0-9]/g, '_')}_Marksheet_${divFilter || 'ALL'}.xlsx`;
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${cleanFilename}"`);
+    res.send(buffer);
 });
 app.use((err, _req, res, _next) => res.status(400).json({ error: err.message || 'Invalid request' }));
 if (require.main === module) app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

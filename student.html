@@ -176,6 +176,24 @@
     </div>
 </div>
 
+<!-- INVIGILATOR REMOTE WARNING MODAL -->
+<div id="invigilatorWarningModal" style="display:none;position:fixed;inset:0;width:100vw;height:100vh;background:rgba(9,13,22,0.96);z-index:100000001;flex-direction:column;justify-content:center;align-items:center;padding:20px;">
+    <div style="background:#1e293b;border:2.5px solid #f59e0b;border-radius:18px;padding:26px 20px;max-width:440px;width:92%;text-align:center;box-shadow:0 16px 40px rgba(0,0,0,0.8);">
+        <div style="font-size:46px;margin-bottom:6px;">⚠️</div>
+        <h2 style="color:#fbbf24;font-size:20px;font-weight:800;margin:0 0 8px;">Direct Invigilator Warning</h2>
+        <div id="invigilatorWarningSender" style="font-size:11.5px;color:#94a3b8;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;font-weight:700;">Official Faculty Notice</div>
+        <div style="background:#451a03;border:1.5px solid #d97706;border-radius:10px;padding:14px;margin-bottom:16px;color:#fef3c7;font-size:14px;font-weight:600;line-height:1.5;">
+            <div id="invigilatorWarningText">Please keep your eyes focused on the screen.</div>
+        </div>
+        <p style="font-size:11.5px;color:#cbd5e1;margin-bottom:16px;line-height:1.4;">
+            Your faculty invigilator is actively monitoring your examination session live. Acknowledge this warning to return to your paper.
+        </p>
+        <button type="button" onclick="window.acknowledgeInvigilatorWarning()" style="background:#f59e0b;color:#000;border:none;border-radius:10px;padding:12px 24px;font-size:14px;font-weight:800;cursor:pointer;width:100%;text-transform:uppercase;letter-spacing:0.5px;box-shadow:0 4px 12px rgba(245,158,11,0.3);">
+            ✓ I Understand &amp; Acknowledge
+        </button>
+    </div>
+</div>
+
 <!-- ==================== 1. STUDENT LOGIN ==================== -->
 <div id="login-screen" class="screen active">
     <div class="login-wrapper">
@@ -506,6 +524,7 @@
         await loadQuestions();
         if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
         try { await initAI(); startMonitoring(); takeSnapshot(); } catch(e) {}
+        startStudentHeartbeat();
     }
 
     function escapeHtml(str) {
@@ -608,23 +627,104 @@
         } catch(e) {}
     }
 
+    let lastKnownFaceStatus = 'centered';
+    let heartbeatInterval = null;
+
     function startMonitoring() {
         setInterval(async () => {
             if (!isExamStarted || !faceLandmarker) return;
             const video = document.getElementById('video'); if (video.readyState < 2) return;
             try {
                 const results = faceLandmarker.detectForVideo(video, performance.now());
-                if (!results.faceLandmarks || !results.faceLandmarks.length) { handleViolation("Face Not Detected"); }
-                else {
+                if (!results.faceLandmarks || !results.faceLandmarks.length) {
+                    lastKnownFaceStatus = 'absent';
+                    handleViolation("Face Not Detected");
+                } else if (results.faceLandmarks.length > 1) {
+                    lastKnownFaceStatus = 'multiple_faces';
+                    handleViolation("Multiple Faces Detected");
+                } else {
                     const nose = results.faceLandmarks[0][1]; const left = results.faceLandmarks[0][234]; const right = results.faceLandmarks[0][454]; const forehead = results.faceLandmarks[0][10]; const chin = results.faceLandmarks[0][152];
                     const centerX = (left.x + right.x) / 2;
-                    if (Math.abs(nose.x - centerX) > 0.055) { handleViolation("Looking Away from Screen"); }
-                    else { const fh = chin.y - forehead.y; if (fh > 0.1) { const vr = (nose.y - forehead.y) / fh; if (vr > 0.70) handleViolation("Looking Down (hidden device)"); else if (vr < 0.30) handleViolation("Looking Up (notification peek)"); } }
+                    if (Math.abs(nose.x - centerX) > 0.055) {
+                        lastKnownFaceStatus = 'turned';
+                        handleViolation("Looking Away from Screen");
+                    } else {
+                        const fh = chin.y - forehead.y;
+                        if (fh > 0.1) {
+                            const vr = (nose.y - forehead.y) / fh;
+                            if (vr > 0.70) { lastKnownFaceStatus = 'looking_down'; handleViolation("Looking Down (hidden device)"); }
+                            else if (vr < 0.30) { lastKnownFaceStatus = 'looking_up'; handleViolation("Looking Up (notification peek)"); }
+                            else { lastKnownFaceStatus = 'centered'; }
+                        } else {
+                            lastKnownFaceStatus = 'centered';
+                        }
+                    }
                 }
             } catch(e) {}
         }, 3000);
         setInterval(takeSnapshot, 60000);
     }
+
+    function startStudentHeartbeat() {
+        if (heartbeatInterval) clearInterval(heartbeatInterval);
+        heartbeatInterval = setInterval(async () => {
+            if (!isExamStarted) return;
+            try {
+                const res = await fetch('/api/student-heartbeat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        faceStatus: lastKnownFaceStatus,
+                        currentQuestion: typeof currentIdx !== 'undefined' ? currentIdx : 0,
+                        answersCount: Object.keys(studentAnswers).length,
+                        strikes: cheatCount
+                    })
+                });
+                const data = await res.json();
+                if (data.forceSubmit) {
+                    clearInterval(heartbeatInterval);
+                    alert("⚠️ EXAM TERMINATED BY INVIGILATOR\nYour examination session has been terminated by the instructor due to proctoring policy enforcement.");
+                    window.submitExam();
+                    return;
+                }
+                if (data.pendingWarning) {
+                    showInvigilatorWarning(data.pendingWarning, data.warningSentBy);
+                }
+            } catch(e) {}
+        }, 3000);
+    }
+
+    function showInvigilatorWarning(message, sentBy) {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(880, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.3);
+            gain.gain.setValueAtTime(0.5, ctx.currentTime);
+            gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.35);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.4);
+        } catch(e) {}
+
+        const modal = document.getElementById('invigilatorWarningModal');
+        const text = document.getElementById('invigilatorWarningText');
+        const sender = document.getElementById('invigilatorWarningSender');
+        if (text) text.innerText = message;
+        if (sender) sender.innerText = sentBy ? `Official Notice from Invigilator: ${sentBy}` : 'Official Proctoring Notice';
+        if (modal) modal.style.display = 'flex';
+    }
+
+    window.acknowledgeInvigilatorWarning = async function() {
+        const modal = document.getElementById('invigilatorWarningModal');
+        if (modal) modal.style.display = 'none';
+        try {
+            await fetch('/api/acknowledge-warning', { method: 'POST' });
+        } catch(e) {}
+    };
 
     async function handleViolation(reason) {
         if (!isExamStarted) return;

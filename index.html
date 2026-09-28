@@ -404,8 +404,170 @@
             .kpi-strip { grid-template-columns: 1fr 1fr; }
         }
 
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+        /* LIVE INVIGILATION MONITOR */
+        .live-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .live-card {
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: all 0.2s ease;
+        }
+        .live-card:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+        }
+        .live-card.status-alert {
+            border-color: #fca5a5;
+            background: #fffafa;
+        }
+        .live-card.status-focused {
+            border-color: #bbf7d0;
+        }
+        .live-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .live-candidate-name {
+            font-size: 14.5px;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.3;
+        }
+        .live-candidate-roll {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+        }
+        .live-cam-box {
+            position: relative;
+            width: 100%;
+            height: 150px;
+            background: #0f172a;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #334155;
+        }
+        .live-cam-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .live-cam-overlay {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(4px);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10.5px;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .live-cam-time {
+            position: absolute;
+            bottom: 6px;
+            right: 6px;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(4px);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            color: #94a3b8;
+        }
+        .live-pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            display: inline-block;
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+            animation: pulseGreen 1.8s infinite;
+        }
+        .live-pulse-dot.amber {
+            background: #f59e0b;
+            box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+            animation: pulseAmber 1.8s infinite;
+        }
+        .live-pulse-dot.red {
+            background: #ef4444;
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            animation: pulseRed 1.8s infinite;
+        }
+        @keyframes pulseGreen {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+        @keyframes pulseAmber {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+        @keyframes pulseRed {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .live-telemetry-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11.5px;
+            color: #475569;
+            background: #f8fafc;
+            padding: 6px 10px;
+            border-radius: 6px;
+        }
+        .strike-pill {
+            display: inline-flex;
+            gap: 3px;
+            align-items: center;
+        }
+        .strike-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #cbd5e1;
+        }
+        .strike-dot.active {
+            background: #ef4444;
+        }
+        .live-actions-row {
+            display: flex;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        /* PRINT STYLES FOR OFFICIAL GAZETTE */
+        @media print {
+            body { background: #ffffff !important; color: #000000 !important; margin: 0 !important; padding: 0 !important; }
+            .screen, .dash-header, .sidebar, .kpi-strip, .report-close-btn, .no-print, button, .campus-visual, .campus-login-panel { display: none !important; }
+            #officialGazetteModal { display: block !important; position: static !important; inset: auto !important; background: transparent !important; padding: 0 !important; backdrop-filter: none !important; z-index: 1 !important; }
+            #officialGazetteModal .report-modal { max-width: 100% !important; max-height: none !important; overflow: visible !important; box-shadow: none !important; border: none !important; padding: 0 !important; }
+            #officialGazetteModal .report-modal-header, #officialGazetteModal .report-modal-footer { display: none !important; }
+            #gazettePrintSheet { display: block !important; padding: 10mm !important; }
+            table { page-break-inside: auto; }
+            tr { page-break-inside: avoid; page-break-after: auto; }
+            thead { display: table-header-group; }
         }
     </style>
     <link rel="stylesheet" href="/campus_scene.css">
@@ -560,6 +722,10 @@
                 Create HOD Account
             </div>
             <div class="sidebar-section">Exams</div>
+            <div class="sidebar-item" id="hod-nav-live" onclick="showHodTab('live')">
+                <svg class="icon-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>
+                📡 Live Hall Monitor
+            </div>
             <div class="sidebar-item" id="hod-nav-exams" onclick="showHodTab('exams')">
                 <svg class="icon-svg" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
                 All Subject Exams
@@ -646,13 +812,21 @@
                             <h3>Student Master Directory &amp; Exam Progression</h3>
                             <p style="margin:0;">Click any student name to inspect all-subject evaluation scores and transcripts.</p>
                         </div>
-                        <div style="display:flex;gap:10px;align-items:center;">
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                             <select id="hod-div-filter" class="input-field" style="width:auto;margin:0;padding:8px 12px;font-size:13px;" onchange="loadStudentRoster('HOD')">
                                 <option value="ALL">All Divisions</option>
                                 <option value="A">Division A</option>
                                 <option value="B">Division B</option>
                                 <option value="C">Division C</option>
                             </select>
+                            <button type="button" onclick="exportMarksExcel('HOD')" class="btn btn-outline btn-sm" style="background:#f0fdf4;color:#166534;border-color:#bbf7d0;font-weight:700;display:inline-flex;align-items:center;gap:5px;" title="Export Excel Spreadsheet">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                📥 Export (.xlsx)
+                            </button>
+                            <button type="button" onclick="openOfficialGazette('HOD')" class="btn btn-outline btn-sm" style="background:#eff6ff;color:#1e40af;border-color:#bfdbfe;font-weight:700;display:inline-flex;align-items:center;gap:5px;" title="Print Official College Examination Gazette">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                                📄 Gazette (PDF)
+                            </button>
                             <button onclick="loadStudentRoster('HOD')" class="btn btn-outline btn-sm">↺ Refresh</button>
                         </div>
                     </div>
@@ -751,10 +925,98 @@
                             <h3>Subject Examination Records</h3>
                             <p>Review candidate performance across all subjects.</p>
                         </div>
-                        <button onclick="viewSubjectMarks('HOD')" class="btn btn-outline btn-sm">↺ Refresh</button>
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <button type="button" onclick="exportMarksExcel('HOD')" class="btn btn-outline btn-sm" style="background:#f0fdf4;color:#166534;border-color:#bbf7d0;font-weight:700;display:inline-flex;align-items:center;gap:5px;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                📥 Export (.xlsx)
+                            </button>
+                            <button type="button" onclick="openOfficialGazette('HOD')" class="btn btn-outline btn-sm" style="background:#eff6ff;color:#1e40af;border-color:#bfdbfe;font-weight:700;display:inline-flex;align-items:center;gap:5px;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                                📄 Gazette (PDF)
+                            </button>
+                            <button onclick="viewSubjectMarks('HOD')" class="btn btn-outline btn-sm">↺ Refresh</button>
+                        </div>
                     </div>
                     <input type="text" id="hod-sub-search" class="search-bar" placeholder="Search subject (e.g. DSA, AI) or student roll no…" oninput="viewSubjectMarks('HOD')">
                     <div id="hod-results-table"></div>
+                </div>
+            </div>
+
+            <!-- TAB: LIVE HALL MONITOR (HOD) -->
+            <div id="hod-live" class="tab-content">
+                <div class="kpi-strip" id="hod-live-kpi" style="margin-bottom:20px;">
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="background:#eff6ff;color:#1d4ed8;">
+                            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        </div>
+                        <div>
+                            <div class="kpi-value" id="hod-live-kpi-total">0</div>
+                            <div class="kpi-label">Active in Exam</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="background:#f0fdf4;color:#15803d;">
+                            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        </div>
+                        <div>
+                            <div class="kpi-value" style="color:#16a34a;" id="hod-live-kpi-focused">0</div>
+                            <div class="kpi-label">Centered &amp; Focused</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="background:#fffbeb;color:#b45309;">
+                            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        </div>
+                        <div>
+                            <div class="kpi-value" style="color:#d97706;" id="hod-live-kpi-warnings">0</div>
+                            <div class="kpi-label">Attention / Warnings</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="background:#fef2f2;color:#b91c1c;">
+                            <svg class="icon-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                        </div>
+                        <div>
+                            <div class="kpi-value" style="color:#dc2626;" id="hod-live-kpi-strikes">0</div>
+                            <div class="kpi-label">Strikes Logged</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+                        <div>
+                            <h3 style="margin-bottom:4px;display:flex;align-items:center;gap:8px;">
+                                <span class="live-pulse-dot"></span>
+                                Master Examination Hall Invigilation Monitor
+                            </h3>
+                            <p style="margin:0;color:#64748b;font-size:13px;">Live autonomous hall surveillance across all engineering subjects with remote intervention capabilities.</p>
+                        </div>
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <select id="hod-live-sub-filter" class="input-field" style="width:auto;margin:0;padding:8px 12px;font-size:13px;" onchange="loadLiveInvigilation('HOD')">
+                                <option value="DSA">Subject: DSA</option>
+                                <option value="AI">Subject: AI</option>
+                                <option value="CN">Subject: CN</option>
+                                <option value="OS">Subject: OS</option>
+                                <option value="DBMS">Subject: DBMS</option>
+                                <option value="SE">Subject: SE</option>
+                            </select>
+                            <select id="hod-live-div-filter" class="input-field" style="width:auto;margin:0;padding:8px 12px;font-size:13px;" onchange="loadLiveInvigilation('HOD')">
+                                <option value="ALL">All Divisions</option>
+                                <option value="A">Division A</option>
+                                <option value="B">Division B</option>
+                                <option value="C">Division C</option>
+                            </select>
+                            <button type="button" onclick="openBroadcastModal('HOD')" class="btn btn-sm btn-outline" style="background:#fffbeb;color:#92400e;border-color:#fcd34d;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                                📢 Broadcast Warning
+                            </button>
+                            <button type="button" onclick="loadLiveInvigilation('HOD')" class="btn btn-outline btn-sm">↺ Refresh</button>
+                        </div>
+                    </div>
+                    <div id="hod-live-grid" class="live-grid">
+                        <div style="color:#64748b;font-size:13px;padding:30px;text-align:center;grid-column:1/-1;">Polling live exam hall candidates…</div>
+                    </div>
                 </div>
             </div>
 
@@ -873,7 +1135,17 @@
                             <h3>My Division Student Roster &amp; Examination Status</h3>
                             <p style="margin:0;">Inspect examination status. Click any student's name to view their complete all-subject scorecard.</p>
                         </div>
-                        <button onclick="loadStudentRoster('CT')" class="btn btn-outline btn-sm">↺ Refresh</button>
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <button type="button" onclick="exportMarksExcel('CT')" class="btn btn-outline btn-sm" style="background:#f0fdf4;color:#166534;border-color:#bbf7d0;font-weight:700;display:inline-flex;align-items:center;gap:5px;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                📥 Export (.xlsx)
+                            </button>
+                            <button type="button" onclick="openOfficialGazette('CT')" class="btn btn-outline btn-sm" style="background:#eff6ff;color:#1e40af;border-color:#bfdbfe;font-weight:700;display:inline-flex;align-items:center;gap:5px;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                                📄 Gazette (PDF)
+                            </button>
+                            <button onclick="loadStudentRoster('CT')" class="btn btn-outline btn-sm">↺ Refresh</button>
+                        </div>
                     </div>
                     <input type="text" id="ct-stu-search" class="search-bar" placeholder="Search by student name or roll number…" oninput="loadStudentRoster('CT')">
                     <div id="ct-student-list">
@@ -910,6 +1182,10 @@
             <div class="sidebar-item active" id="fac-nav-exam" onclick="showFacTab('exam')">
                 <svg class="icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                 Exam Control
+            </div>
+            <div class="sidebar-item" id="fac-nav-live" onclick="showFacTab('live')">
+                <svg class="icon-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>
+                📡 Live Hall Monitor
             </div>
             <div class="sidebar-item" id="fac-nav-students" onclick="showFacTab('students')">
                 <svg class="icon-svg" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -1031,6 +1307,76 @@
                 </div>
             </div>
 
+            <!-- TAB: LIVE HALL INVIGILATION MONITOR (FACULTY) -->
+            <div id="fac-live" class="tab-content">
+                <div class="kpi-strip" id="fac-live-kpi" style="margin-bottom:20px;">
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="background:#eff6ff;color:#1d4ed8;">
+                            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        </div>
+                        <div>
+                            <div class="kpi-value" id="fac-live-kpi-total">0</div>
+                            <div class="kpi-label">Active in Exam</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="background:#f0fdf4;color:#15803d;">
+                            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        </div>
+                        <div>
+                            <div class="kpi-value" style="color:#16a34a;" id="fac-live-kpi-focused">0</div>
+                            <div class="kpi-label">Centered &amp; Focused</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="background:#fffbeb;color:#b45309;">
+                            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        </div>
+                        <div>
+                            <div class="kpi-value" style="color:#d97706;" id="fac-live-kpi-warnings">0</div>
+                            <div class="kpi-label">Attention / Warnings</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="background:#fef2f2;color:#b91c1c;">
+                            <svg class="icon-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                        </div>
+                        <div>
+                            <div class="kpi-value" style="color:#dc2626;" id="fac-live-kpi-strikes">0</div>
+                            <div class="kpi-label">Strikes Logged</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+                        <div>
+                            <h3 style="margin-bottom:4px;display:flex;align-items:center;gap:8px;">
+                                <span class="live-pulse-dot"></span>
+                                Live Hall Invigilation &amp; AI Proctoring Monitor (<span id="fac-live-subject-name">Subject</span>)
+                            </h3>
+                            <p style="margin:0;color:#64748b;font-size:13px;">Real-time candidate telemetry, camera surveillance, automatic strike alerts, and remote warning transmitter.</p>
+                        </div>
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <select id="fac-live-div-filter" class="input-field" style="width:auto;margin:0;padding:8px 12px;font-size:13px;" onchange="loadLiveInvigilation('FAC')">
+                                <option value="ALL">All Divisions</option>
+                                <option value="A">Division A</option>
+                                <option value="B">Division B</option>
+                                <option value="C">Division C</option>
+                            </select>
+                            <button type="button" onclick="openBroadcastModal('FAC')" class="btn btn-sm btn-outline" style="background:#fffbeb;color:#92400e;border-color:#fcd34d;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                                📢 Broadcast Warning
+                            </button>
+                            <button type="button" onclick="loadLiveInvigilation('FAC')" class="btn btn-outline btn-sm">↺ Refresh</button>
+                        </div>
+                    </div>
+                    <div id="fac-live-grid" class="live-grid">
+                        <div style="color:#64748b;font-size:13px;padding:30px;text-align:center;grid-column:1/-1;">Polling live exam hall candidates…</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- TAB: FACULTY STUDENT ROSTER & MARKS -->
             <div id="fac-students" class="tab-content">
                 <div class="kpi-strip" id="fac-roster-kpi" style="margin-bottom:20px;">
@@ -1058,13 +1404,21 @@
                             <h3 style="margin-bottom:4px;">Enrolled Students &amp; <span id="fac-roster-sub-title">Subject</span> Marks</h3>
                             <p style="margin:0;color:#64748b;font-size:13px;">Complete candidate roster with individual subject marks and exam completion status displayed in front of each student name.</p>
                         </div>
-                        <div style="display:flex;gap:10px;align-items:center;">
-                            <select id="fac-div-filter" class="input-field" style="width:150px;margin:0;" onchange="loadStudentRoster('FAC')">
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <select id="fac-div-filter" class="input-field" style="width:130px;margin:0;padding:8px 12px;font-size:13px;" onchange="loadStudentRoster('FAC')">
                                 <option value="ALL">All Divisions</option>
                                 <option value="A">Division A</option>
                                 <option value="B">Division B</option>
                                 <option value="C">Division C</option>
                             </select>
+                            <button type="button" onclick="exportMarksExcel('FAC')" class="btn btn-outline btn-sm" style="background:#f0fdf4;color:#166534;border-color:#bbf7d0;font-weight:700;display:inline-flex;align-items:center;gap:5px;" title="Export Excel Marksheet">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                📥 Export (.xlsx)
+                            </button>
+                            <button type="button" onclick="openOfficialGazette('FAC')" class="btn btn-outline btn-sm" style="background:#eff6ff;color:#1e40af;border-color:#bfdbfe;font-weight:700;display:inline-flex;align-items:center;gap:5px;" title="Print Official College Examination Gazette">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                                📄 Gazette (PDF)
+                            </button>
                             <button onclick="loadStudentRoster('FAC')" class="btn btn-outline btn-sm">↺ Refresh</button>
                         </div>
                     </div>
@@ -1097,7 +1451,17 @@
                             <h3>Student Results &amp; Submissions</h3>
                             <p style="margin:0;">Candidate answer sheets and scores for your subject.</p>
                         </div>
-                        <button onclick="searchStudents('FAC')" class="btn btn-outline btn-sm">↺ Refresh</button>
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <button type="button" onclick="exportMarksExcel('FAC')" class="btn btn-outline btn-sm" style="background:#f0fdf4;color:#166534;border-color:#bbf7d0;font-weight:700;display:inline-flex;align-items:center;gap:5px;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                📥 Export (.xlsx)
+                            </button>
+                            <button type="button" onclick="openOfficialGazette('FAC')" class="btn btn-outline btn-sm" style="background:#eff6ff;color:#1e40af;border-color:#bfdbfe;font-weight:700;display:inline-flex;align-items:center;gap:5px;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                                📄 Gazette (PDF)
+                            </button>
+                            <button onclick="searchStudents('FAC')" class="btn btn-outline btn-sm">↺ Refresh</button>
+                        </div>
                     </div>
                     <input type="text" id="fac-stu-search" class="search-bar" placeholder="Search student by name or roll number…" oninput="searchStudents('FAC')">
                     <div id="fac-results-table"></div>
@@ -1264,6 +1628,235 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== 8. REMOTE STUDENT WARNING MODAL ==================== -->
+<div id="sendWarningModal" class="report-modal-backdrop" onclick="if(event.target===this) closeSendWarningModal()" style="z-index:9998;">
+    <div class="report-modal" style="max-width:540px;">
+        <div class="report-modal-header" style="background:#0f172a;color:#fff;">
+            <div>
+                <h3 style="color:#fff;display:flex;align-items:center;gap:8px;margin:0 0 3px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    Send Direct Candidate Warning
+                </h3>
+                <p id="warningModalSub" style="color:#94a3b8;font-size:12.5px;margin:0;">Target: — &bull; Roll No: — &bull; Subject: —</p>
+            </div>
+            <button type="button" class="report-close-btn" onclick="closeSendWarningModal()" style="color:#fff;">&times;</button>
+        </div>
+        <div class="report-modal-body" style="padding:20px;">
+            <input type="hidden" id="warningTargetRoll">
+            <input type="hidden" id="warningTargetSubject">
+            <input type="hidden" id="warningTargetName">
+
+            <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:8px;padding:12px 14px;margin-bottom:16px;">
+                <div style="font-weight:700;color:#92400e;font-size:13px;display:flex;align-items:center;gap:6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    Real-time Phone Intervention
+                </div>
+                <div style="font-size:12px;color:#78350f;margin-top:3px;line-height:1.45;">
+                    The warning will immediately appear as an unmissable modal overlay on the student's mobile screen with an audible alert tone.
+                </div>
+            </div>
+
+            <label style="font-size:11.5px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:0.03em;display:block;margin-bottom:6px;">Quick Warning Presets:</label>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+                <button type="button" onclick="setWarningPreset('⚠️ Please center your face towards the mobile camera.')" class="btn btn-sm" style="text-align:left;background:#f8fafc;color:#1e293b;border:1px solid #cbd5e1;font-size:12px;border-radius:6px;padding:7px 10px;">
+                    🎯 "Please center your face towards the mobile camera."
+                </button>
+                <button type="button" onclick="setWarningPreset('⚠️ Looking away from screen detected. Maintain full focus on your examination.')" class="btn btn-sm" style="text-align:left;background:#f8fafc;color:#1e293b;border:1px solid #cbd5e1;font-size:12px;border-radius:6px;padding:7px 10px;">
+                    👀 "Looking away from screen detected. Maintain full focus on your examination."
+                </button>
+                <button type="button" onclick="setWarningPreset('⚠️ Looking down repeatedly detected. Ensure no unauthorized material or second device is present.')" class="btn btn-sm" style="text-align:left;background:#f8fafc;color:#1e293b;border:1px solid #cbd5e1;font-size:12px;border-radius:6px;padding:7px 10px;">
+                    📱 "Looking down repeatedly detected. Ensure no unauthorized material is present."
+                </button>
+                <button type="button" onclick="setWarningPreset('⚠️ Tab switching is strictly prohibited and logged in the invigilation audit trail.')" class="btn btn-sm" style="text-align:left;background:#f8fafc;color:#1e293b;border:1px solid #cbd5e1;font-size:12px;border-radius:6px;padding:7px 10px;">
+                    🚫 "Tab switching is strictly prohibited and logged in the audit trail."
+                </button>
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label class="card-label" for="warningCustomMsg" style="font-size:12px;font-weight:700;color:#334155;display:block;margin-bottom:5px;">Warning Message *</label>
+                <textarea id="warningCustomMsg" class="input-field" rows="3" placeholder="Type custom warning message to be transmitted to the candidate's phone..." style="margin:0;padding:8px 12px;font-size:13px;resize:vertical;"></textarea>
+            </div>
+
+            <div id="warningModalError" style="display:none;color:#dc2626;font-size:12.5px;margin-bottom:12px;background:#fef2f2;padding:8px 12px;border-radius:6px;border:1px solid #fecaca;"></div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding-top:12px;border-top:1px solid #e2e8f0;">
+                <button type="button" onclick="forceSubmitFromWarningModal()" class="btn btn-sm" style="background:#fef2f2;color:#991b1b;border:1.5px solid #fca5a5;font-weight:700;padding:7px 14px;">
+                    🛑 Force Terminate Exam
+                </button>
+                <div style="display:flex;gap:8px;">
+                    <button type="button" onclick="closeSendWarningModal()" class="btn btn-outline btn-sm">Cancel</button>
+                    <button type="button" onclick="submitStudentWarning()" class="btn btn-blue btn-sm" style="background:#0f172a;border-color:#0f172a;font-weight:700;padding:7px 18px;">
+                        Transmit Warning →
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== 9. BROADCAST WARNING MODAL ==================== -->
+<div id="broadcastWarningModal" class="report-modal-backdrop" onclick="if(event.target===this) closeBroadcastModal()" style="z-index:9998;">
+    <div class="report-modal" style="max-width:540px;">
+        <div class="report-modal-header" style="background:#0f172a;color:#fff;">
+            <div>
+                <h3 style="color:#fff;display:flex;align-items:center;gap:8px;margin:0 0 3px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    Broadcast Announcement to Hall
+                </h3>
+                <p id="broadcastModalSub" style="color:#94a3b8;font-size:12.5px;margin:0;">Target Subject Hall: —</p>
+            </div>
+            <button type="button" class="report-close-btn" onclick="closeBroadcastModal()" style="color:#fff;">&times;</button>
+        </div>
+        <div class="report-modal-body" style="padding:20px;">
+            <input type="hidden" id="broadcastTargetSubject">
+
+            <div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:8px;padding:12px 14px;margin-bottom:16px;">
+                <div style="font-weight:700;color:#1e40af;font-size:13px;">
+                    📢 Exam Hall Broadcast
+                </div>
+                <div style="font-size:12px;color:#1e3a8a;margin-top:3px;line-height:1.45;">
+                    This announcement will flash simultaneously on the screens of all candidates taking this examination.
+                </div>
+            </div>
+
+            <label style="font-size:11.5px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:0.03em;display:block;margin-bottom:6px;">Common Announcements:</label>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+                <button type="button" onclick="setBroadcastPreset('📢 Notice: 10 minutes remaining in this examination. Please review all your answers before final submission.')" class="btn btn-sm" style="text-align:left;background:#f8fafc;color:#1e293b;border:1px solid #cbd5e1;font-size:12px;border-radius:6px;padding:7px 10px;">
+                    ⏱️ "10 minutes remaining. Review all answers before final submission."
+                </button>
+                <button type="button" onclick="setBroadcastPreset('📢 Important Notice: All examinees must remain seated with face centered in camera frame. Tab switches are being recorded.')" class="btn btn-sm" style="text-align:left;background:#f8fafc;color:#1e293b;border:1px solid #cbd5e1;font-size:12px;border-radius:6px;padding:7px 10px;">
+                    📷 "Maintain camera visibility at all times. Tab switching is logged."
+                </button>
+                <button type="button" onclick="setBroadcastPreset('📢 Notice: 5 minutes remaining. Auto-submission will trigger automatically when the timer reaches zero.')" class="btn btn-sm" style="text-align:left;background:#f8fafc;color:#1e293b;border:1px solid #cbd5e1;font-size:12px;border-radius:6px;padding:7px 10px;">
+                    ⏳ "5 minutes remaining. Auto-submission will trigger at timer expiration."
+                </button>
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label class="card-label" for="broadcastCustomMsg" style="font-size:12px;font-weight:700;color:#334155;display:block;margin-bottom:5px;">Broadcast Message *</label>
+                <textarea id="broadcastCustomMsg" class="input-field" rows="3" placeholder="Enter announcement text to broadcast..." style="margin:0;padding:8px 12px;font-size:13px;resize:vertical;"></textarea>
+            </div>
+
+            <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:12px;border-top:1px solid #e2e8f0;">
+                <button type="button" onclick="closeBroadcastModal()" class="btn btn-outline btn-sm">Cancel</button>
+                <button type="button" onclick="submitBroadcastWarning()" class="btn btn-blue btn-sm" style="background:#0f172a;border-color:#0f172a;font-weight:700;padding:7px 18px;">
+                    Broadcast to Hall 📢
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== 10. OFFICIAL PRINTABLE EXAMINATION GAZETTE MODAL ==================== -->
+<div id="officialGazetteModal" class="report-modal-backdrop" onclick="if(event.target===this) closeOfficialGazette()" style="z-index:9999;">
+    <div class="report-modal" style="max-width:960px;background:#ffffff;">
+        <div class="report-modal-header no-print" style="background:#0f172a;color:#fff;">
+            <div>
+                <h3 style="color:#fff;display:flex;align-items:center;gap:8px;margin:0 0 3px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                    Official Autonomous Examination Gazette &amp; Tabulation Sheet
+                </h3>
+                <p style="color:#94a3b8;font-size:12.5px;margin:0;">GHRCEM Wagholi, Pune &bull; Office of Controller of Examinations</p>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <button type="button" onclick="window.print()" class="btn btn-outline btn-sm" style="background:#ffffff;color:#0f172a;font-weight:700;display:inline-flex;align-items:center;gap:5px;">
+                    🖨️ Print / Save as PDF
+                </button>
+                <button type="button" onclick="closeOfficialGazette()" class="report-close-btn" style="color:#fff;">&times;</button>
+            </div>
+        </div>
+
+        <div class="report-modal-body" id="gazettePrintSheet" style="padding:24px 32px;background:#ffffff;color:#0f172a;font-family:'Segoe UI',sans-serif;">
+            <!-- College Official Letterhead -->
+            <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2.5px solid #0f172a;padding-bottom:14px;margin-bottom:14px;">
+                <div style="display:flex;align-items:center;gap:16px;">
+                    <img src="/ghrce_simha_logo.webp" alt="Raisoni Emblem" style="height:62px;width:auto;">
+                    <div>
+                        <div style="font-size:18px;font-weight:800;color:#0f172a;letter-spacing:0.02em;text-transform:uppercase;">G H Raisoni College of Engineering and Management</div>
+                        <div style="font-size:12px;font-weight:700;color:#475569;">An Autonomous Institute Affiliated to Savitribai Phule Pune University (SPPU)</div>
+                        <div style="font-size:11px;color:#64748b;">Accredited by NAAC with 'A++' Grade &bull; NBA Accredited &bull; Approved by AICTE, New Delhi</div>
+                    </div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="display:inline-block;border:1.5px solid #0f172a;padding:5px 12px;border-radius:4px;font-size:11px;font-weight:800;letter-spacing:0.05em;text-transform:uppercase;">
+                        EXAMINATION CELL
+                    </div>
+                    <div style="font-size:11px;color:#64748b;margin-top:4px;">Ref: GHRCEM/COE/2026-AUT</div>
+                </div>
+            </div>
+
+            <div style="text-align:center;margin-bottom:16px;">
+                <div style="font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;color:#0f172a;">Official Tabulation Register &amp; Gazette of Marks</div>
+                <div style="font-size:12px;color:#475569;margin-top:2px;">End-Semester / Continuous In-Semester Autonomous Examination</div>
+            </div>
+
+            <!-- Exam Details Sub-Header -->
+            <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:10px;background:#f8fafc;border:1px solid #cbd5e1;padding:10px 14px;border-radius:6px;margin-bottom:16px;font-size:12px;">
+                <div><span style="color:#64748b;font-weight:600;">Subject / Course:</span> <strong id="gazetteSubjectName" style="color:#0f172a;">—</strong></div>
+                <div><span style="color:#64748b;font-weight:600;">Class / Division:</span> <strong id="gazetteDivisionName" style="color:#0f172a;">—</strong></div>
+                <div><span style="color:#64748b;font-weight:600;">Academic Session:</span> <strong style="color:#0f172a;">2025-2026</strong></div>
+                <div><span style="color:#64748b;font-weight:600;">Date of Generation:</span> <strong id="gazetteDateGenerated" style="color:#0f172a;">—</strong></div>
+            </div>
+
+            <!-- Gazette Student Scores Table -->
+            <div id="gazetteTableContainer">
+                <div style="color:#64748b;font-size:13px;text-align:center;padding:20px;">Generating examination tabulation…</div>
+            </div>
+
+            <!-- Performance Summary Bar -->
+            <div style="margin-top:16px;display:grid;grid-template-columns:repeat(5, 1fr);gap:8px;background:#f1f5f9;border:1px solid #cbd5e1;padding:10px 14px;border-radius:6px;font-size:12px;text-align:center;">
+                <div><span style="color:#64748b;display:block;font-size:11px;">Appeared</span><strong id="gazetteStatAppeared" style="font-size:14px;color:#0f172a;">0</strong></div>
+                <div><span style="color:#64748b;display:block;font-size:11px;">Passed (&ge;40%)</span><strong id="gazetteStatPassed" style="font-size:14px;color:#166534;">0</strong></div>
+                <div><span style="color:#64748b;display:block;font-size:11px;">Failed (&lt;40%)</span><strong id="gazetteStatFailed" style="font-size:14px;color:#dc2626;">0</strong></div>
+                <div><span style="color:#64748b;display:block;font-size:11px;">Pass Rate</span><strong id="gazetteStatRate" style="font-size:14px;color:#1e40af;">0%</strong></div>
+                <div><span style="color:#64748b;display:block;font-size:11px;">Class Highest</span><strong id="gazetteStatHigh" style="font-size:14px;color:#0f172a;">0</strong></div>
+            </div>
+
+            <!-- Autonomous Certification & Signatures -->
+            <div style="margin-top:40px;padding-top:20px;display:grid;grid-template-columns:repeat(4, 1fr);gap:16px;text-align:center;">
+                <div>
+                    <div style="border-bottom:1.5px solid #0f172a;height:45px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;">
+                        <span id="gazetteSigFaculty" style="font-size:12px;font-weight:700;color:#0f172a;">Dr. Faculty</span>
+                    </div>
+                    <div style="font-size:11.5px;font-weight:700;color:#0f172a;margin-top:5px;">Subject Teacher</div>
+                    <div style="font-size:10px;color:#64748b;">Signature &amp; Date</div>
+                </div>
+                <div>
+                    <div style="border-bottom:1.5px solid #0f172a;height:45px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;">
+                        <span id="gazetteSigCT" style="font-size:12px;font-weight:700;color:#0f172a;">Prof. Class Teacher</span>
+                    </div>
+                    <div style="font-size:11.5px;font-weight:700;color:#0f172a;margin-top:5px;">Class Teacher</div>
+                    <div style="font-size:10px;color:#64748b;">Signature &amp; Date</div>
+                </div>
+                <div>
+                    <div style="border-bottom:1.5px solid #0f172a;height:45px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;">
+                        <span id="gazetteSigHOD" style="font-size:12px;font-weight:700;color:#0f172a;">Head of Department</span>
+                    </div>
+                    <div style="font-size:11.5px;font-weight:700;color:#0f172a;margin-top:5px;">HOD (Comp / AI)</div>
+                    <div style="font-size:10px;color:#64748b;">Verification &amp; Seal</div>
+                </div>
+                <div>
+                    <div style="border-bottom:1.5px solid #0f172a;height:45px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;">
+                        <span style="font-size:11px;font-weight:800;color:#1e3a8a;border:1px dashed #1e3a8a;padding:2px 8px;border-radius:3px;">APPROVED (COE)</span>
+                    </div>
+                    <div style="font-size:11.5px;font-weight:700;color:#0f172a;margin-top:5px;">Controller of Examinations</div>
+                    <div style="font-size:10px;color:#64748b;">Autonomous Exam Cell</div>
+                </div>
+            </div>
+            <div style="margin-top:20px;font-size:10px;color:#94a3b8;text-align:center;">
+                Note: This is an official computer-generated autonomous examination tabulation register certified under SPPU Autonomous Regulations.
+            </div>
+        </div>
+
+        <div class="report-modal-footer no-print">
+            <button type="button" onclick="window.print()" class="btn btn-outline btn-sm" style="background:#0f172a;color:#fff;border-color:#0f172a;font-weight:700;">
+                🖨️ Print / Save as PDF
+            </button>
+            <button type="button" onclick="closeOfficialGazette()" class="btn btn-outline btn-sm">Close Gazette</button>
         </div>
     </div>
 </div>
@@ -1472,6 +2065,12 @@
         if (tab === 'students') loadStudentRoster('HOD');
         if (tab === 'create-hod') loadHodDirectoryList();
         if (tab === 'exams') { viewSubjectMarks('HOD'); loadHodExamStatuses(); }
+        if (tab === 'live') {
+            loadLiveInvigilation('HOD');
+            startLiveInvigilationPolling('HOD');
+        } else {
+            stopLiveInvigilationPolling();
+        }
     };
 
     window.loadHodExamStatuses = async () => {
@@ -2257,6 +2856,12 @@
         if (tab === 'exam') loadFacultyQuestions();
         if (tab === 'students') loadStudentRoster('FAC');
         if (tab === 'marks') { loadFacultyDisclosureSettings(); searchStudents('FAC'); }
+        if (tab === 'live') {
+            loadLiveInvigilation('FAC');
+            startLiveInvigilationPolling('FAC');
+        } else {
+            stopLiveInvigilationPolling();
+        }
     };
 
     function initFacultyDashboard() {
@@ -2265,10 +2870,12 @@
             const s2 = document.getElementById('fac-profile-subject');
             const n = document.getElementById('fac-profile-name');
             const dname = document.getElementById('fac-disclosure-subject-name');
+            const lsub = document.getElementById('fac-live-subject-name');
             const sub = currentUser.subject || 'DSA';
             if (s1) s1.innerText = sub;
             if (s2) s2.innerText = sub;
             if (dname) dname.innerText = sub;
+            if (lsub) lsub.innerText = sub;
             if (n) n.innerText = currentUser.name || 'Faculty Member';
         }
         loadFacultyQuestions();
@@ -2686,6 +3293,503 @@
             if (res.ok && result.success) { alert("Account created!"); if (role === 'CLASS_TEACHER') { document.getElementById('ctId').value='';document.getElementById('ctPass').value='';document.getElementById('ctName').value='';document.getElementById('ctClass').value=''; } else { document.getElementById('facId').value='';document.getElementById('facPass').value='';document.getElementById('facName').value='';document.getElementById('facSub').value=''; } loadHodStaffList(); }
             else alert(result.error || "Failed.");
         } catch(e) { alert("Error connecting."); }
+    };
+
+    // ============ LIVE HALL INVIGILATION MONITOR & REMOTE WARNING SYSTEM ============
+    let liveInvigilationInterval = null;
+
+    window.startLiveInvigilationPolling = (role) => {
+        if (liveInvigilationInterval) clearInterval(liveInvigilationInterval);
+        liveInvigilationInterval = setInterval(() => {
+            const isHodActive = document.getElementById('hod-live')?.classList.contains('active');
+            const isFacActive = document.getElementById('fac-live')?.classList.contains('active');
+            if (role === 'HOD' && isHodActive) {
+                loadLiveInvigilation('HOD');
+            } else if (role === 'FAC' && isFacActive) {
+                loadLiveInvigilation('FAC');
+            } else if (!isHodActive && !isFacActive) {
+                stopLiveInvigilationPolling();
+            }
+        }, 3500);
+    };
+
+    window.stopLiveInvigilationPolling = () => {
+        if (liveInvigilationInterval) {
+            clearInterval(liveInvigilationInterval);
+            liveInvigilationInterval = null;
+        }
+    };
+
+    window.loadLiveInvigilation = async (role) => {
+        let sub = '';
+        let div = 'ALL';
+
+        if (role === 'FAC') {
+            sub = currentUser?.subject || 'DSA';
+            div = document.getElementById('fac-live-div-filter')?.value || 'ALL';
+            const subTitle = document.getElementById('fac-live-subject-name');
+            if (subTitle) subTitle.innerText = sub;
+        } else {
+            sub = document.getElementById('hod-live-sub-filter')?.value || 'DSA';
+            div = document.getElementById('hod-live-div-filter')?.value || 'ALL';
+        }
+
+        const containerId = role === 'FAC' ? 'fac-live-grid' : 'hod-live-grid';
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        try {
+            const res = await fetch(`/api/live-invigilation?subject=${encodeURIComponent(sub)}&division=${encodeURIComponent(div)}`);
+            if (!res.ok) throw new Error('Live telemetry unavailable');
+            const data = await res.json();
+
+            const stats = data.stats || { total: 0, focused: 0, warning: 0, violations: 0, totalStrikes: 0 };
+            const candidates = data.candidates || [];
+
+            // Update KPI cards
+            const pfx = role === 'FAC' ? 'fac-live-kpi-' : 'hod-live-kpi-';
+            const elTotal = document.getElementById(pfx + 'total');
+            const elFocused = document.getElementById(pfx + 'focused');
+            const elWarnings = document.getElementById(pfx + 'warnings');
+            const elStrikes = document.getElementById(pfx + 'strikes');
+
+            if (elTotal) elTotal.innerText = stats.total || candidates.length;
+            if (elFocused) elFocused.innerText = stats.focused || 0;
+            if (elWarnings) elWarnings.innerText = (stats.warning || 0) + (stats.violations || 0);
+            if (elStrikes) elStrikes.innerText = stats.totalStrikes || 0;
+
+            if (!candidates.length) {
+                container.innerHTML = `
+                    <div style="grid-column:1/-1;text-align:center;padding:40px;background:#f8fafc;border:1.5px dashed #cbd5e1;border-radius:12px;">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" style="margin-bottom:8px;"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                        <h4 style="margin:0 0 4px;font-size:15px;color:#334155;">No Active Examinees Found</h4>
+                        <p style="margin:0;font-size:12.5px;color:#64748b;">There are currently no active students taking the <strong>${escapeHtml(sub)}</strong> exam in the selected division.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = candidates.map(c => {
+                let statusText = '🟢 Centered & Focused';
+                let statusBadgeClass = 'badge-green';
+                let cardClass = 'live-card status-focused';
+                let pulseColor = '';
+
+                if (c.hasSubmitted) {
+                    statusText = '🔵 Exam Submitted';
+                    statusBadgeClass = 'badge-blue';
+                    cardClass = 'live-card';
+                } else if (c.faceStatus === 'multiple_faces') {
+                    statusText = '🚨 Multiple Faces Detected';
+                    statusBadgeClass = 'badge-amber';
+                    cardClass = 'live-card status-alert';
+                    pulseColor = 'red';
+                } else if (c.faceStatus === 'absent') {
+                    statusText = '🚨 No Face in Viewport';
+                    statusBadgeClass = 'badge-amber';
+                    cardClass = 'live-card status-alert';
+                    pulseColor = 'red';
+                } else if (c.faceStatus === 'turned') {
+                    statusText = '⚠️ Looking Away / Turned';
+                    statusBadgeClass = 'badge-amber';
+                    cardClass = 'live-card status-alert';
+                    pulseColor = 'amber';
+                } else if (c.faceStatus === 'looking_down') {
+                    statusText = '⚠️ Head Tilted Down';
+                    statusBadgeClass = 'badge-amber';
+                    cardClass = 'live-card status-alert';
+                    pulseColor = 'amber';
+                } else if (c.isBlur) {
+                    statusText = '⚠️ Tab Switched / Unfocused';
+                    statusBadgeClass = 'badge-amber';
+                    cardClass = 'live-card status-alert';
+                    pulseColor = 'amber';
+                }
+
+                // Strikes visualization
+                const strikesCount = Math.min(c.strikes || 0, 3);
+                let strikeDots = '';
+                for (let i = 1; i <= 3; i++) {
+                    strikeDots += `<span class="strike-dot ${i <= strikesCount ? 'active' : ''}"></span>`;
+                }
+
+                // Camera viewport
+                let camViewport = '';
+                if (c.latestSnapshot) {
+                    camViewport = `
+                        <div class="live-cam-box">
+                            <img src="${c.latestSnapshot}" alt="Webcam Capture">
+                            <div class="live-cam-overlay">
+                                <span class="live-pulse-dot ${pulseColor}"></span>
+                                LIVE
+                            </div>
+                            <div class="live-cam-time">${escapeHtml(c.snapshotTime || 'Active')}</div>
+                        </div>
+                    `;
+                } else {
+                    camViewport = `
+                        <div class="live-cam-box" style="background:#09121f;flex-direction:column;gap:6px;padding:12px;text-align:center;">
+                            <div style="width:48px;height:48px;border-radius:50%;background:#1e293b;border:1.5px solid #334155;display:grid;place-items:center;margin:0 auto;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.8"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                            </div>
+                            <div style="font-size:11px;font-weight:700;color:#94a3b8;display:flex;align-items:center;justify-content:center;gap:5px;">
+                                <span class="live-pulse-dot ${pulseColor}"></span>
+                                TELEMETRY STREAM
+                            </div>
+                            <div style="font-size:10px;color:#64748b;">MediaPipe Face Landmark Active</div>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="${cardClass}">
+                        <div class="live-card-header">
+                            <div>
+                                <div class="live-candidate-name">${escapeHtml(c.name)}</div>
+                                <div class="live-candidate-roll">Roll: <strong>${escapeHtml(c.rollNo)}</strong> &bull; Div: <strong>${escapeHtml(c.division || 'A')}</strong></div>
+                            </div>
+                            <span class="role-badge ${statusBadgeClass}" style="font-size:10.5px;padding:3px 7px;">
+                                ${escapeHtml(statusText)}
+                            </span>
+                        </div>
+
+                        ${camViewport}
+
+                        <div class="live-telemetry-row">
+                            <div>
+                                Answers: <strong>${c.answersCount || 0} / ${c.totalQuestions || 10}</strong>
+                            </div>
+                            <div class="strike-pill" title="${c.strikes || 0} violation strike(s)">
+                                <span style="font-weight:700;color:#dc2626;font-size:11px;margin-right:2px;">Strikes:</span>
+                                ${strikeDots}
+                            </div>
+                        </div>
+
+                        ${c.pendingWarning ? `
+                            <div style="font-size:11px;background:#fffbeb;border:1px solid #fde68a;color:#92400e;padding:4px 8px;border-radius:4px;line-height:1.3;">
+                                <strong>Active Warning:</strong> "${escapeHtml(c.pendingWarning.message)}"
+                            </div>
+                        ` : ''}
+
+                        <div class="live-actions-row">
+                            <button type="button" onclick="openSendWarningModal('${escapeHtml(c.rollNo)}', '${escapeHtml(c.name)}', '${escapeHtml(c.subject)}')" class="btn btn-outline btn-sm" style="flex:1;background:#fffbeb;color:#92400e;border-color:#fcd34d;font-weight:700;font-size:11.5px;padding:6px 8px;display:inline-flex;align-items:center;justify-content:center;gap:4px;" title="Transmit warning alert directly to candidate device">
+                                ⚠️ Warn
+                            </button>
+                            <button type="button" onclick="forceSubmitCandidate('${escapeHtml(c.rollNo)}', '${escapeHtml(c.name)}', '${escapeHtml(c.subject)}')" class="btn btn-outline btn-sm" style="flex:1;background:#fef2f2;color:#991b1b;border-color:#fca5a5;font-weight:700;font-size:11.5px;padding:6px 8px;display:inline-flex;align-items:center;justify-content:center;gap:4px;" title="Terminate and submit candidate session">
+                                🛑 Terminate
+                            </button>
+                            <button type="button" onclick="openStudentReport('${escapeHtml(c.rollNo)}')" class="btn btn-outline btn-sm" style="padding:6px 8px;font-size:11.5px;" title="View all evidence, scorecard, and full photo captures">
+                                👁️ Evidence
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+        } catch (err) {
+            container.innerHTML = `<div style="color:#dc2626;font-size:13px;padding:24px;text-align:center;grid-column:1/-1;">Telemetry sync failed. Retrying...</div>`;
+        }
+    };
+
+    // ============ REMOTE STUDENT WARNING MODAL HANDLERS ============
+    window.openSendWarningModal = (rollNo, name, subject) => {
+        document.getElementById('warningTargetRoll').value = rollNo;
+        document.getElementById('warningTargetName').value = name;
+        document.getElementById('warningTargetSubject').value = subject;
+        document.getElementById('warningModalSub').innerText = `Candidate: ${name}  •  Roll No: ${rollNo}  •  Subject: ${subject}`;
+        document.getElementById('warningCustomMsg').value = '';
+        const errEl = document.getElementById('warningModalError');
+        if (errEl) errEl.style.display = 'none';
+
+        const modal = document.getElementById('sendWarningModal');
+        if (modal) modal.classList.add('active');
+    };
+
+    window.closeSendWarningModal = () => {
+        const modal = document.getElementById('sendWarningModal');
+        if (modal) modal.classList.remove('active');
+    };
+
+    window.setWarningPreset = (presetText) => {
+        const input = document.getElementById('warningCustomMsg');
+        if (input) input.value = presetText;
+    };
+
+    window.submitStudentWarning = async () => {
+        const rollNo = document.getElementById('warningTargetRoll')?.value;
+        const subject = document.getElementById('warningTargetSubject')?.value;
+        const message = document.getElementById('warningCustomMsg')?.value.trim();
+        const errEl = document.getElementById('warningModalError');
+
+        if (!message) {
+            if (errEl) { errEl.innerText = 'Please select a preset or type a warning message.'; errEl.style.display = 'block'; }
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/send-student-warning', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ rollNo, subject, message })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                closeSendWarningModal();
+                alert(`⚠️ Warning transmitted to ${rollNo} successfully!\nCandidate phone will alert immediately.`);
+                const activeRole = currentUser?.role === 'HOD' ? 'HOD' : 'FAC';
+                loadLiveInvigilation(activeRole);
+            } else {
+                if (errEl) { errEl.innerText = data.error || 'Failed to deliver warning.'; errEl.style.display = 'block'; }
+            }
+        } catch(e) {
+            if (errEl) { errEl.innerText = 'Network connection error.'; errEl.style.display = 'block'; }
+        }
+    };
+
+    window.forceSubmitFromWarningModal = () => {
+        const rollNo = document.getElementById('warningTargetRoll')?.value;
+        const name = document.getElementById('warningTargetName')?.value;
+        const subject = document.getElementById('warningTargetSubject')?.value;
+        closeSendWarningModal();
+        forceSubmitCandidate(rollNo, name, subject);
+    };
+
+    window.forceSubmitCandidate = async (rollNo, name, subject) => {
+        const confirmed = confirm(`Are you sure you want to FORCE-SUBMIT and TERMINATE the examination for ${name} (${rollNo})?\n\nThis will immediately forfeit the session on their phone.`);
+        if (!confirmed) return;
+
+        try {
+            const res = await fetch('/api/force-submit-student', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ rollNo, subject, reason: 'Terminated by Invigilator for proctoring violation' })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                alert(`🛑 Session for candidate ${rollNo} terminated and marked submitted.`);
+                const activeRole = currentUser?.role === 'HOD' ? 'HOD' : 'FAC';
+                loadLiveInvigilation(activeRole);
+            } else {
+                alert(data.error || 'Failed to force submit.');
+            }
+        } catch (e) {
+            alert('Failed to connect to examination server.');
+        }
+    };
+
+    // ============ BROADCAST WARNING MODAL HANDLERS ============
+    window.openBroadcastModal = (role) => {
+        const sub = role === 'FAC' ? (currentUser?.subject || 'DSA') : (document.getElementById('hod-live-sub-filter')?.value || 'DSA');
+        document.getElementById('broadcastTargetSubject').value = sub;
+        document.getElementById('broadcastModalSub').innerText = `Target Exam Hall: Subject ${sub}`;
+        document.getElementById('broadcastCustomMsg').value = '';
+
+        const modal = document.getElementById('broadcastWarningModal');
+        if (modal) modal.classList.add('active');
+    };
+
+    window.closeBroadcastModal = () => {
+        const modal = document.getElementById('broadcastWarningModal');
+        if (modal) modal.classList.remove('active');
+    };
+
+    window.setBroadcastPreset = (txt) => {
+        const input = document.getElementById('broadcastCustomMsg');
+        if (input) input.value = txt;
+    };
+
+    window.submitBroadcastWarning = async () => {
+        const subject = document.getElementById('broadcastTargetSubject')?.value;
+        const message = document.getElementById('broadcastCustomMsg')?.value.trim();
+        if (!message) {
+            alert('Please select or type an announcement message.');
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/broadcast-warning', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ subject, message })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                closeBroadcastModal();
+                alert(`📢 Broadcast delivered to all active examinees in ${subject}!`);
+            } else {
+                alert(data.error || 'Failed to broadcast warning.');
+            }
+        } catch(e) {
+            alert('Failed to communicate with examination server.');
+        }
+    };
+
+    // ============ ONE-CLICK EXCEL (.xlsx) EXPORT ============
+    window.exportMarksExcel = (role) => {
+        let sub = '';
+        let div = 'ALL';
+
+        if (role === 'FAC') {
+            sub = currentUser?.subject || 'DSA';
+            div = document.getElementById('fac-div-filter')?.value || 'ALL';
+        } else if (role === 'CT') {
+            div = currentUser?.className?.split(' ')?.pop() || 'ALL';
+            sub = 'ALL';
+        } else if (role === 'HOD') {
+            sub = document.getElementById('hod-live-sub-filter')?.value || 'ALL';
+            div = document.getElementById('hod-div-filter')?.value || 'ALL';
+        }
+
+        const url = `/api/export-marks-excel?subject=${encodeURIComponent(sub)}&division=${encodeURIComponent(div)}&role=${role}`;
+        window.location.href = url;
+    };
+
+    // ============ OFFICIAL AUTONOMOUS EXAMINATION GAZETTE (PDF) ============
+    window.openOfficialGazette = async (role) => {
+        let sub = '';
+        let div = 'ALL';
+
+        if (role === 'FAC') {
+            sub = currentUser?.subject || 'DSA';
+            div = document.getElementById('fac-div-filter')?.value || 'ALL';
+        } else if (role === 'CT') {
+            div = currentUser?.className?.split(' ')?.pop() || 'ALL';
+            sub = 'ALL';
+        } else if (role === 'HOD') {
+            sub = document.getElementById('hod-live-sub-filter')?.value || 'ALL';
+            div = document.getElementById('hod-div-filter')?.value || 'ALL';
+        }
+
+        document.getElementById('gazetteSubjectName').innerText = sub === 'ALL' ? 'All College Subjects' : sub;
+        document.getElementById('gazetteDivisionName').innerText = div === 'ALL' ? 'All Divisions (A, B, C)' : `Division ${div}`;
+        document.getElementById('gazetteDateGenerated').innerText = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+        if (currentUser) {
+            if (role === 'FAC') {
+                document.getElementById('gazetteSigFaculty').innerText = currentUser.name || 'Subject Faculty';
+            } else if (role === 'CT') {
+                document.getElementById('gazetteSigCT').innerText = currentUser.name || 'Class Teacher';
+            } else if (role === 'HOD') {
+                document.getElementById('gazetteSigHOD').innerText = currentUser.name || 'Head of Department';
+            }
+        }
+
+        const modal = document.getElementById('officialGazetteModal');
+        if (modal) modal.classList.add('active');
+
+        const tableContainer = document.getElementById('gazetteTableContainer');
+        tableContainer.innerHTML = '<div style="color:#64748b;font-size:13px;text-align:center;padding:24px;">Generating official examination register…</div>';
+
+        try {
+            const res = await fetch(`/api/get-all-student-marks?division=${encodeURIComponent(div)}`);
+            const data = await res.json();
+            const students = data.students || [];
+
+            let appeared = 0;
+            let passed = 0;
+            let failed = 0;
+            let highest = 0;
+
+            let html = `
+                <table style="width:100%;border-collapse:collapse;margin-top:10px;font-size:12px;border:1px solid #cbd5e1;">
+                    <thead>
+                        <tr style="background:#f1f5f9;border-bottom:2px solid #0f172a;">
+                            <th style="padding:8px 10px;border:1px solid #cbd5e1;text-align:center;width:40px;">Sr.</th>
+                            <th style="padding:8px 10px;border:1px solid #cbd5e1;text-align:left;">Roll Number</th>
+                            <th style="padding:8px 10px;border:1px solid #cbd5e1;text-align:left;">Candidate Name</th>
+                            <th style="padding:8px 10px;border:1px solid #cbd5e1;text-align:center;width:50px;">Div</th>
+                            <th style="padding:8px 10px;border:1px solid #cbd5e1;text-align:center;">Max</th>
+                            <th style="padding:8px 10px;border:1px solid #cbd5e1;text-align:center;">Obtained</th>
+                            <th style="padding:8px 10px;border:1px solid #cbd5e1;text-align:center;">Percentage</th>
+                            <th style="padding:8px 10px;border:1px solid #cbd5e1;text-align:center;">Result</th>
+                            <th style="padding:8px 10px;border:1px solid #cbd5e1;text-align:left;">Proctoring Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            if (!students.length) {
+                html += `<tr><td colspan="9" style="text-align:center;padding:20px;color:#64748b;">No candidate records found for this scope.</td></tr>`;
+            } else {
+                students.forEach((s, idx) => {
+                    const subMarks = s.subjectMarks || {};
+                    let scoreDisplay = '—';
+                    let maxMarks = 20;
+                    let pct = 0;
+                    let isPass = false;
+                    let hasGiven = false;
+                    let remarks = 'Compliant (Verified)';
+
+                    if (sub !== 'ALL') {
+                        const m = subMarks[sub];
+                        if (m && m.hasGiven) {
+                            hasGiven = true;
+                            scoreDisplay = m.score;
+                            maxMarks = m.total || 20;
+                            pct = Math.round((m.rawScore / maxMarks) * 100);
+                            isPass = pct >= 40;
+                            if (m.isOverridden) {
+                                remarks = `⚠️ Score Adjusted: ${escapeHtml(m.overrideReason || '')}`;
+                            }
+                            if (m.rawScore > highest) highest = m.rawScore;
+                        } else {
+                            remarks = 'Absent / Not Appeared';
+                        }
+                    } else {
+                        // All subjects aggregate
+                        if (s.examsGiven > 0) {
+                            hasGiven = true;
+                            scoreDisplay = `${s.examsGiven} Subjects Given`;
+                            pct = s.averagePercentage || 0;
+                            isPass = pct >= 40;
+                            remarks = `Completed: ${s.examsGiven}/${s.totalSubjects} subjects`;
+                            if (pct > highest) highest = pct;
+                        } else {
+                            remarks = 'Absent in all subjects';
+                        }
+                    }
+
+                    if (hasGiven) {
+                        appeared++;
+                        if (isPass) passed++;
+                        else failed++;
+                    }
+
+                    html += `
+                        <tr style="border-bottom:1px solid #cbd5e1;">
+                            <td style="padding:6px 10px;border:1px solid #cbd5e1;text-align:center;color:#64748b;">${idx + 1}</td>
+                            <td style="padding:6px 10px;border:1px solid #cbd5e1;font-weight:700;">${escapeHtml(s.rollNo)}</td>
+                            <td style="padding:6px 10px;border:1px solid #cbd5e1;">${escapeHtml(s.name)}</td>
+                            <td style="padding:6px 10px;border:1px solid #cbd5e1;text-align:center;">${escapeHtml(s.division || 'A')}</td>
+                            <td style="padding:6px 10px;border:1px solid #cbd5e1;text-align:center;">${maxMarks}</td>
+                            <td style="padding:6px 10px;border:1px solid #cbd5e1;text-align:center;font-weight:700;">${scoreDisplay}</td>
+                            <td style="padding:6px 10px;border:1px solid #cbd5e1;text-align:center;">${hasGiven ? pct + '%' : '—'}</td>
+                            <td style="padding:6px 10px;border:1px solid #cbd5e1;text-align:center;">
+                                ${hasGiven ? (isPass ? '<span style="color:#166534;font-weight:700;">PASS</span>' : '<span style="color:#dc2626;font-weight:700;">FAIL</span>') : '<span style="color:#64748b;">ABSENT</span>'}
+                            </td>
+                            <td style="padding:6px 10px;border:1px solid #cbd5e1;font-size:11px;color:#475569;">${remarks}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            html += `</tbody></table>`;
+            tableContainer.innerHTML = html;
+
+            document.getElementById('gazetteStatAppeared').innerText = appeared;
+            document.getElementById('gazetteStatPassed').innerText = passed;
+            document.getElementById('gazetteStatFailed').innerText = failed;
+            document.getElementById('gazetteStatRate').innerText = appeared ? `${Math.round((passed / appeared) * 100)}%` : '0%';
+            document.getElementById('gazetteStatHigh').innerText = highest;
+
+        } catch (e) {
+            tableContainer.innerHTML = '<div style="color:#dc2626;font-size:13px;padding:24px;text-align:center;">Failed to generate gazette. Please retry.</div>';
+        }
+    };
+
+    window.closeOfficialGazette = () => {
+        const modal = document.getElementById('officialGazetteModal');
+        if (modal) modal.classList.remove('active');
     };
 
     // ============ KEYBOARD SHORTCUT ============
