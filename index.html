@@ -674,7 +674,7 @@
                 <p>ID: <span id="hod-profile-id">HOD001</span></p>
             </div>
             <div class="user-avatar-initials">HOD</div>
-            <button class="btn-logout" onclick="location.reload()">Sign Out</button>
+            <button class="btn-logout" onclick="logoutStaff()">Sign Out</button>
         </div>
     </header>
 
@@ -741,7 +741,7 @@
                 Academic Controls
             </div>
             <div class="sidebar-spacer"></div>
-            <div class="sidebar-item" style="color:#fca5a5;" onclick="location.reload()">
+            <div class="sidebar-item" style="color:#fca5a5;" onclick="logoutStaff()">
                 <svg class="icon-svg" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                 Sign Out
             </div>
@@ -1088,7 +1088,7 @@
                 <p id="ct-profile-div">—</p>
             </div>
             <div class="user-avatar-initials">CT</div>
-            <button class="btn-logout" onclick="location.reload()">Sign Out</button>
+            <button class="btn-logout" onclick="logoutStaff()">Sign Out</button>
         </div>
     </header>
     <div class="kpi-strip">
@@ -1118,7 +1118,7 @@
                 Class Student List &amp; Exams
             </div>
             <div class="sidebar-spacer"></div>
-            <div class="sidebar-item" style="color:#fca5a5;" onclick="location.reload()">
+            <div class="sidebar-item" style="color:#fca5a5;" onclick="logoutStaff()">
                 <svg class="icon-svg" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                 Sign Out
             </div>
@@ -1200,7 +1200,7 @@
                 <p>Subject: <span id="fac-profile-subject">—</span></p>
             </div>
             <div class="user-avatar-initials">FAC</div>
-            <button class="btn-logout" onclick="location.reload()">Sign Out</button>
+            <button class="btn-logout" onclick="logoutStaff()">Sign Out</button>
         </div>
     </header>
     <div class="dash-body">
@@ -1223,7 +1223,7 @@
                 Results &amp; Disclosure
             </div>
             <div class="sidebar-spacer"></div>
-            <div class="sidebar-item" style="color:#fca5a5;" onclick="location.reload()">
+            <div class="sidebar-item" style="color:#fca5a5;" onclick="logoutStaff()">
                 <svg class="icon-svg" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                 Sign Out
             </div>
@@ -1974,6 +1974,63 @@
         }
     };
 
+    window.launchStaffDashboard = (user) => {
+        if (!user) return;
+        currentUser = user;
+        const userRole = currentUser.role || currentRole;
+
+        document.querySelectorAll('.screen').forEach(s => {
+            s.classList.remove('active');
+            s.style.display = 'none';
+        });
+
+        if (window.campus3DInstance && typeof window.campus3DInstance.pause === 'function') {
+            window.campus3DInstance.pause();
+        }
+
+        if (userRole === 'HOD') {
+            const hodDash = document.getElementById('hod-dash');
+            if (hodDash) {
+                hodDash.classList.add('active');
+                hodDash.style.display = 'flex';
+            }
+            try { initHodDashboard(); } catch(err) { console.error('HOD init error:', err); }
+        } else if (userRole === 'CLASS_TEACHER') {
+            const ctDash = document.getElementById('ct-dash');
+            if (ctDash) {
+                ctDash.classList.add('active');
+                ctDash.style.display = 'flex';
+            }
+            try { initCtDashboard(); } catch(err) { console.error('CT init error:', err); }
+        } else {
+            const facDash = document.getElementById('fac-dash');
+            if (facDash) {
+                facDash.classList.add('active');
+                facDash.style.display = 'flex';
+            }
+            try { initFacultyDashboard(); } catch(err) { console.error('Faculty init error:', err); }
+        }
+
+        window.scrollTo({ top: 0, behavior: 'instant' });
+    };
+
+    window.logoutStaff = async () => {
+        try { await fetch('/api/logout', { method: 'POST' }); } catch(e) {}
+        location.reload();
+    };
+
+    window.addEventListener('load', async () => {
+        try {
+            const res = await fetch('/api/me');
+            if (res.ok) {
+                const data = await res.json();
+                if (data.authenticated && data.user) {
+                    window.launchStaffDashboard(data.user);
+                }
+            }
+        } catch(e) {}
+    });
+
     window.handleLogin = async () => {
         const errorEl = document.getElementById('loginError');
         const loginBtn = document.getElementById('loginBtn');
@@ -1999,46 +2056,7 @@
             });
             const result = await res.json();
             if (res.ok && result.success) {
-                currentUser = result.user;
-                const userRole = currentUser.role || currentRole;
-
-                // Completely hide all screens, especially the login screen
-                document.querySelectorAll('.screen').forEach(s => {
-                    s.classList.remove('active');
-                    s.style.display = 'none';
-                });
-
-                // Pause 3D background animation while in dashboard
-                if (window.campus3DInstance && typeof window.campus3DInstance.pause === 'function') {
-                    window.campus3DInstance.pause();
-                }
-
-                // Show only the appropriate destination dashboard
-                if (userRole === 'HOD') {
-                    const hodDash = document.getElementById('hod-dash');
-                    if (hodDash) {
-                        hodDash.classList.add('active');
-                        hodDash.style.display = 'flex';
-                    }
-                    try { initHodDashboard(); } catch(err) { console.error('HOD init error:', err); }
-                } else if (userRole === 'CLASS_TEACHER') {
-                    const ctDash = document.getElementById('ct-dash');
-                    if (ctDash) {
-                        ctDash.classList.add('active');
-                        ctDash.style.display = 'flex';
-                    }
-                    try { initCtDashboard(); } catch(err) { console.error('CT init error:', err); }
-                } else {
-                    const facDash = document.getElementById('fac-dash');
-                    if (facDash) {
-                        facDash.classList.add('active');
-                        facDash.style.display = 'flex';
-                    }
-                    try { initFacultyDashboard(); } catch(err) { console.error('Faculty init error:', err); }
-                }
-
-                // Scroll to top of the dashboard page
-                window.scrollTo({ top: 0, behavior: 'instant' });
+                window.launchStaffDashboard(result.user);
             } else {
                 throw new Error(result.error || 'Invalid Credentials or Role');
             }
@@ -3126,16 +3144,6 @@
             const d = await res.json(); facultyExamActive = !!d.active; updateFacultySwitchUI({ isExamActive: d.active, waiting: 0, in_exam: 0 }); pollWaitingRoom();
         } catch(e) { alert("Error toggling exam."); }
     };
-
-    function escapeHtml(str) {
-        if (!str) return '';
-        return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
-    }
 
     let currentQuestionMode = 'text';
     window.setQuestionMode = (mode) => {

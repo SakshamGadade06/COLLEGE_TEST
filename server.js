@@ -146,16 +146,19 @@ function staff(...roles) {
         if (!user) return res.status(401).json({ error: 'Staff login required' });
         if (roles.length && !roles.includes(user.role)) return res.status(403).json({ error: 'Role not permitted' });
         req.staff = user;
+        req.user = user;
         next();
     };
 }
 function student(req, res, next) {
     req.student = currentStudent(req);
     if (!req.student) return res.status(401).json({ error: 'Join the exam first' });
+    req.user = req.student;
     next();
 }
 function ownSubject(req, res, next) {
-    if (req.staff.role === 'FACULTY' && req.staff.subject !== (req.body.subject || req.query.subject))
+    const sub = String(req.body?.subject || req.query?.subject || '').trim().toUpperCase();
+    if (req.staff.role === 'FACULTY' && req.staff.subject && sub && req.staff.subject.toUpperCase() !== sub)
         return res.status(403).json({ error: 'This is not your subject' });
     next();
 }
@@ -283,6 +286,12 @@ app.post('/api/logout', (req, res) => {
     sessions.delete(cookie(req, 'staff_session'));
     res.clearCookie('staff_session', { path: '/' });
     res.json({ success: true });
+});
+app.get('/api/me', staff(), (req, res) => {
+    res.json({ authenticated: true, user: publicUser(req.staff) });
+});
+app.get('/api/auth', staff(), (req, res) => {
+    res.json({ authenticated: true, user: publicUser(req.staff) });
 });
 app.post('/api/create-user', staff('HOD', 'CLASS_TEACHER'), (req, res) => {
     const { id, password, role, name, subject, className, dept } = req.body;
@@ -686,31 +695,38 @@ app.post('/api/join', (req, res) => {
     setCookie(res, 'student_session', key, SESSION_MS);
 
     const examDef = getExamsList().find(e => e.subject.toUpperCase() === cleanSub.toUpperCase());
+    const examMeta = examDef ? {
+        title: examDef.title,
+        subject: examDef.subject,
+        className: examDef.className,
+        division: examDef.division,
+        examDate: examDef.examDate,
+        startTime: examDef.startTime,
+        duration: examDef.duration,
+        totalMarks: examDef.totalMarks,
+        instructions: examDef.instructions,
+        status: activeExam(cleanSub) ? 'Live' : examDef.status
+    } : {
+        title: `${cleanSub} In-Semester Examination`,
+        subject: cleanSub,
+        className: 'SY-AIML',
+        division: 'ALL',
+        duration: 15,
+        totalMarks: 20,
+        instructions: '1. All questions compulsory.\n2. Do not switch tabs or exit fullscreen.\n3. Keep face centered within mobile camera viewport.',
+        status: activeExam(cleanSub) ? 'Live' : 'Scheduled'
+    };
+
     res.json({
         success: true,
+        status: 'joined',
         examActive: !!activeExam(cleanSub),
         deadline: activeExam(cleanSub)?.deadline || null,
-        exam: examDef ? {
-            title: examDef.title,
-            subject: examDef.subject,
-            className: examDef.className,
-            division: examDef.division,
-            examDate: examDef.examDate,
-            startTime: examDef.startTime,
-            duration: examDef.duration,
-            totalMarks: examDef.totalMarks,
-            instructions: examDef.instructions,
-            status: activeExam(cleanSub) ? 'Live' : examDef.status
-        } : {
-            title: `${cleanSub} In-Semester Examination`,
-            subject: cleanSub,
-            className: 'SY-AIML',
-            division: 'ALL',
-            duration: 60,
-            totalMarks: 20,
-            instructions: '1. All questions compulsory.\n2. Do not switch tabs or exit fullscreen.\n3. Keep face centered within mobile camera viewport.',
-            status: activeExam(cleanSub) ? 'Live' : 'Scheduled'
-        }
+        examTitle: examMeta.title,
+        duration: examMeta.duration,
+        totalMarks: examMeta.totalMarks,
+        instructions: examMeta.instructions,
+        exam: examMeta
     });
 });
 app.get('/api/check-status', (req, res) => {
@@ -1076,17 +1092,18 @@ app.get('/api/get-submissions', staff('HOD', 'CLASS_TEACHER', 'FACULTY'), ownSub
     res.json(enriched);
 });
 
-app.post('/api/edit-student-marks', staff('HOD', 'FACULTY'), (req, res) => {
-    const { rollNo, subject, rawScore, total, reason } = req.body;
+const handleMarksOverride = (req, res) => {
+    const { rollNo, subject, rawScore, newScore, total, reason } = req.body;
     const roll = String(rollNo || '').trim().toUpperCase();
     const sub = String(subject || '').trim();
     if (!roll || !sub) return res.status(400).json({ error: 'Roll number and subject are required' });
 
-    if (req.staff.role === 'FACULTY' && req.staff.subject !== sub) {
+    if (req.staff.role === 'FACULTY' && req.staff.subject && req.staff.subject.toUpperCase() !== sub.toUpperCase()) {
         return res.status(403).json({ error: 'You are only authorized to edit marks for your assigned subject (' + req.staff.subject + ')' });
     }
 
-    const parsedScore = Number(rawScore);
+    const scoreToSet = rawScore !== undefined ? rawScore : newScore;
+    const parsedScore = Number(scoreToSet);
     const parsedTotal = Number(total) || 20;
     if (isNaN(parsedScore) || parsedScore < 0 || parsedScore > parsedTotal) {
         return res.status(400).json({ error: `Score must be a number between 0 and ${parsedTotal}` });
@@ -1126,8 +1143,19 @@ app.post('/api/edit-student-marks', staff('HOD', 'FACULTY'), (req, res) => {
     }
 
     writeJSON(submissionsFile, submissions);
+
+    logAudit(req.staff.id, req.staff.name, 'MARKS_OVERRIDE', {
+        rollNo: roll,
+        subject: sub,
+        newScore: target.score,
+        reason: target.overrideReason
+    });
+
     res.json({ success: true, submission: target, message: `Marks for ${roll} in ${sub} updated to ${target.score}` });
-});
+};
+
+app.post('/api/edit-student-marks', staff('HOD', 'FACULTY'), handleMarksOverride);
+app.post('/api/override-marks', staff('HOD', 'FACULTY'), handleMarksOverride);
 app.post('/api/log-cheat', student, (req, res) => {
     const reason = String(req.body.reason || 'Unusual activity detected').slice(0, 150);
     const strike = Number(req.body.strike) || 1;

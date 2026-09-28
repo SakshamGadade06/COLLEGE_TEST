@@ -881,10 +881,13 @@
                 if (wClass) wClass.innerText = `${studentData.className || 'SY'} - Div ${studentData.division || 'A'}  •  ${studentData.dept || 'Engineering'}`;
                 const wSub = document.getElementById('waitSubject');
                 if (wSub) wSub.innerText = studentData.subject;
+                const exMeta = data.exam || {};
                 const wTitle = document.getElementById('waitExamTitle');
-                if (wTitle) wTitle.innerText = data.examTitle || `${studentData.subject} Examination`;
+                if (wTitle) wTitle.innerText = data.examTitle || exMeta.title || `${studentData.subject} Examination`;
                 const wDurMarks = document.getElementById('waitDurationMarks');
-                if (wDurMarks) wDurMarks.innerText = `${data.duration || 15} Minutes  •  ${data.totalMarks || 20} Marks`;
+                const durVal = data.duration || exMeta.duration || 15;
+                const tmVal = data.totalMarks || exMeta.totalMarks || 20;
+                if (wDurMarks) wDurMarks.innerText = `${durVal} Minutes  •  ${tmVal} Marks`;
 
                 const sDisp = document.getElementById('studentDisplay');
                 if (sDisp) sDisp.innerText = `${studentData.name} — ${studentData.subject}`;
