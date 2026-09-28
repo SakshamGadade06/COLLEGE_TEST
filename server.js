@@ -453,14 +453,31 @@ const storage = multer.diskStorage({
 const upload = multer({ storage, limits: { fileSize: 3 * 1024 * 1024 }, fileFilter: (_req, file, cb) =>
     cb(null, ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'].includes(file.mimetype)) });
 app.post('/api/upload-question', staff('HOD', 'FACULTY'), upload.single('questionImage'), ownSubject, (req, res) => {
-    const { subject, correctOption, marks } = req.body;
-    if (!validSubject(subject) || !req.file || !/^[A-D]$/i.test(correctOption || ''))
-        return res.status(400).json({ error: 'Subject, image and correct option A–D required' });
+    const { subject, correctOption, marks, type, questionText, optionA, optionB, optionC, optionD } = req.body;
+    if (!validSubject(subject) || !/^[A-D]$/i.test(correctOption || ''))
+        return res.status(400).json({ error: 'Valid subject and correct option A–D required' });
+
+    const isTextMode = type === 'text' || (!req.file && Boolean(questionText));
+    if (!isTextMode && !req.file) {
+        return res.status(400).json({ error: 'Question image or question text is required' });
+    }
+    if (isTextMode && !questionText?.trim()) {
+        return res.status(400).json({ error: 'Question text statement is required' });
+    }
+
     const parsedMarks = Math.max(1, parseInt(marks) || 1);
     const questions = getQuestions(subject);
     const newQ = {
         id: 'Q_' + token().slice(0, 12),
-        image: '/uploads/questions/' + req.file.filename,
+        type: isTextMode ? 'text' : 'image',
+        text: (questionText || '').trim(),
+        options: isTextMode ? {
+            A: (optionA || '').trim(),
+            B: (optionB || '').trim(),
+            C: (optionC || '').trim(),
+            D: (optionD || '').trim()
+        } : null,
+        image: req.file ? ('/uploads/questions/' + req.file.filename) : null,
         correct: correctOption.toUpperCase(),
         marks: parsedMarks,
         createdAt: new Date().toISOString()
@@ -491,7 +508,10 @@ app.get('/api/get-questions', (req, res) => {
     res.json(getQuestions(subject).map((q, index) => ({
         id: q.id,
         index,
-        image: q.image,
+        type: q.type || (q.text ? 'text' : 'image'),
+        text: q.text || '',
+        options: q.options || null,
+        image: q.image || '',
         marks: q.marks !== undefined ? Number(q.marks) : 1,
         ...(user ? { correct: q.correct } : {})
     })));

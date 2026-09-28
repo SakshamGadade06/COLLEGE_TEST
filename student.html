@@ -508,6 +508,16 @@
         try { await initAI(); startMonitoring(); takeSnapshot(); } catch(e) {}
     }
 
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
     async function loadQuestions() {
         const container = document.getElementById('question-container');
         try {
@@ -527,10 +537,63 @@
             }
             const watermark = `${studentData.rollNo} • ${studentData.subject} • PROCTORED\n`.repeat(6);
             questions.forEach((q, idx) => {
-                const card = document.createElement('div'); card.className = 'mcq-card';
-                const imgSrc = q.image.startsWith('/') ? q.image : '/' + q.image;
+                const card = document.createElement('div');
+                card.className = 'mcq-card';
                 const qMarks = q.marks !== undefined ? Number(q.marks) : 1;
-                card.innerHTML = `<div class="mcq-header"><h3 style="display:flex;align-items:center;gap:8px;">Question ${idx + 1} <span style="font-size:12px;font-weight:700;color:#1e3a8a;background:#eff6ff;border:1px solid #bfdbfe;padding:2px 8px;border-radius:6px;">${qMarks} ${qMarks === 1 ? 'Mark' : 'Marks'}</span></h3><span class="shield"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Anti-OCR Protected</span></div><div class="img-wrapper"><img src="${imgSrc}" class="question-img" alt="Q${idx+1}"><div class="watermark-overlay"><div class="watermark-text">${watermark}</div></div></div><div class="option" onclick="window.ans(${idx},'A',this)">Option A</div><div class="option" onclick="window.ans(${idx},'B',this)">Option B</div><div class="option" onclick="window.ans(${idx},'C',this)">Option C</div><div class="option" onclick="window.ans(${idx},'D',this)">Option D</div>`;
+                const hasImage = Boolean(q.image && q.image.trim());
+                const imgSrc = hasImage ? (q.image.startsWith('/') ? q.image : '/' + q.image) : '';
+                const hasText = Boolean(q.text && q.text.trim());
+                const hasOptions = q.options && (q.options.A || q.options.B);
+
+                let contentHtml = `
+                    <div class="mcq-header">
+                        <h3 style="display:flex;align-items:center;gap:8px;">
+                            Question ${idx + 1}
+                            <span style="font-size:12px;font-weight:700;color:#1e3a8a;background:#eff6ff;border:1px solid #bfdbfe;padding:2px 8px;border-radius:6px;">
+                                ${qMarks} ${qMarks === 1 ? 'Mark' : 'Marks'}
+                            </span>
+                        </h3>
+                        <span class="shield">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            Anti-OCR Protected
+                        </span>
+                    </div>
+                `;
+
+                if (hasText) {
+                    contentHtml += `
+                        <div class="mcq-statement" style="font-size:15.5px;font-weight:600;color:#0f172a;line-height:1.6;margin:14px 0 16px;white-space:pre-wrap;">
+                            ${escapeHtml(q.text)}
+                        </div>
+                    `;
+                }
+
+                if (hasImage) {
+                    contentHtml += `
+                        <div class="img-wrapper">
+                            <img src="${imgSrc}" class="question-img" alt="Q${idx+1}">
+                            <div class="watermark-overlay"><div class="watermark-text">${watermark}</div></div>
+                        </div>
+                    `;
+                }
+
+                if (hasOptions) {
+                    ['A', 'B', 'C', 'D'].forEach(opt => {
+                        const optText = q.options[opt] || '';
+                        contentHtml += `
+                            <div class="option" onclick="window.ans(${idx},'${opt}',this)" style="display:flex;align-items:flex-start;gap:8px;text-align:left;">
+                                <strong style="color:#1e3a8a;font-size:14px;min-width:24px;">${opt})</strong>
+                                <span style="flex:1;">${escapeHtml(optText || ('Option ' + opt))}</span>
+                            </div>
+                        `;
+                    });
+                } else {
+                    ['A', 'B', 'C', 'D'].forEach(opt => {
+                        contentHtml += `<div class="option" onclick="window.ans(${idx},'${opt}',this)">Option ${opt}</div>`;
+                    });
+                }
+
+                card.innerHTML = contentHtml;
                 container.appendChild(card);
             });
         } catch(err) { console.error("Failed to load questions:", err); }

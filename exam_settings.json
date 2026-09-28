@@ -1,10 +1,12 @@
 {
   "showMarks": false,
   "examActive": false,
-  "subjectMarks": {},
+  "subjectMarks": {
+    "DSA": false
+  },
   "individualStudentMarks": {
     "DSA": {
-      "23AIML001": true
+      "23AIML001": false
     }
   }
 }

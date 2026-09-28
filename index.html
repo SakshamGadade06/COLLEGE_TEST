@@ -941,23 +941,79 @@
                 </div>
 
                 <div class="card" style="margin-top:20px;">
-                    <h3>Upload Question &amp; Set Marks</h3>
-                    <p style="margin-bottom:16px;color:#64748b;font-size:13px;">Upload question images with correct answer option and allocate marks weightage for each question.</p>
-                    <div class="form-group">
-                        <label class="card-label" for="qImg" style="font-size:12px;font-weight:700;color:#334155;display:block;margin-bottom:6px;">Question Image</label>
-                        <input type="file" id="qImg" accept="image/*" class="input-field" required>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+                        <div>
+                            <h3 style="margin-bottom:4px;">Add Exam Question &amp; Set Marks</h3>
+                            <p style="color:#64748b;font-size:13px;margin:0;">Create questions using either text statements with options or upload question images.</p>
+                        </div>
+                        <div style="display:inline-flex;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:10px;padding:3px;gap:4px;">
+                            <button type="button" id="btnQModeText" onclick="setQuestionMode('text')" class="btn btn-sm" style="margin:0;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:700;background:#0f172a;color:#ffffff;border:none;">
+                                <svg class="icon-svg" style="width:13px;height:13px;margin-right:4px;" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+                                Text Question &amp; Options
+                            </button>
+                            <button type="button" id="btnQModeImage" onclick="setQuestionMode('image')" class="btn btn-sm" style="margin:0;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;background:transparent;color:#475569;border:none;">
+                                <svg class="icon-svg" style="width:13px;height:13px;margin-right:4px;" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                Image Question
+                            </button>
+                        </div>
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+
+                    <!-- TEXT QUESTION MODE -->
+                    <div id="qModeTextSection">
+                        <div class="form-group">
+                            <label class="card-label" for="qText" style="font-size:12px;font-weight:700;color:#334155;display:block;margin-bottom:6px;">Question Statement</label>
+                            <textarea id="qText" class="input-field" rows="3" placeholder="Enter question statement here (e.g. Which of the following is a non-linear data structure?)" style="resize:vertical;"></textarea>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+                            <div class="form-group" style="margin:0;">
+                                <label class="card-label" for="qOptA" style="font-size:12px;font-weight:700;color:#334155;display:block;margin-bottom:4px;">Option A Text</label>
+                                <input type="text" id="qOptA" class="input-field" placeholder="Option A text (e.g. Array)">
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label class="card-label" for="qOptB" style="font-size:12px;font-weight:700;color:#334155;display:block;margin-bottom:4px;">Option B Text</label>
+                                <input type="text" id="qOptB" class="input-field" placeholder="Option B text (e.g. Linked List)">
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label class="card-label" for="qOptC" style="font-size:12px;font-weight:700;color:#334155;display:block;margin-bottom:4px;">Option C Text</label>
+                                <input type="text" id="qOptC" class="input-field" placeholder="Option C text (e.g. Binary Tree)">
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label class="card-label" for="qOptD" style="font-size:12px;font-weight:700;color:#334155;display:block;margin-bottom:4px;">Option D Text</label>
+                                <input type="text" id="qOptD" class="input-field" placeholder="Option D text (e.g. Stack)">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="card-label" for="qTextImg" style="font-size:12px;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Optional Reference Diagram / Image</label>
+                            <input type="file" id="qTextImg" accept="image/*" class="input-field">
+                        </div>
+                    </div>
+
+                    <!-- IMAGE QUESTION MODE -->
+                    <div id="qModeImageSection" style="display:none;">
+                        <div class="form-group">
+                            <label class="card-label" for="qImg" style="font-size:12px;font-weight:700;color:#334155;display:block;margin-bottom:6px;">Upload Question Image (Containing question statement and options)</label>
+                            <input type="file" id="qImg" accept="image/*" class="input-field">
+                        </div>
+                    </div>
+
+                    <!-- COMMON FIELDS: CORRECT OPTION & MARKS ALLOCATION -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px;">
                         <div class="form-group">
                             <label class="card-label" for="qCorrect" style="font-size:12px;font-weight:700;color:#334155;display:block;margin-bottom:6px;">Correct Option</label>
-                            <input type="text" id="qCorrect" class="input-field" placeholder="Correct Option (A, B, C, or D)" maxlength="1">
+                            <select id="qCorrect" class="input-field">
+                                <option value="">Select Correct Option (A, B, C, or D)</option>
+                                <option value="A">Option A</option>
+                                <option value="B">Option B</option>
+                                <option value="C">Option C</option>
+                                <option value="D">Option D</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label class="card-label" for="qMarks" style="font-size:12px;font-weight:700;color:#334155;display:block;margin-bottom:6px;">Marks for this Question</label>
                             <input type="number" id="qMarks" class="input-field" placeholder="Marks (e.g. 1, 2, 4, 5)" min="1" max="100" value="1">
                         </div>
                     </div>
-                    <button onclick="uploadQuestion()" class="btn btn-blue" style="margin-top:8px;">Upload Question</button>
+                    <button onclick="uploadQuestion()" class="btn btn-blue" style="margin-top:8px;" id="btnSubmitQuestion">Save Question</button>
                 </div>
 
                 <div class="card">
@@ -1850,6 +1906,36 @@
         } catch(e) { alert("Error toggling exam."); }
     };
 
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    let currentQuestionMode = 'text';
+    window.setQuestionMode = (mode) => {
+        currentQuestionMode = mode;
+        const textSec = document.getElementById('qModeTextSection');
+        const imgSec = document.getElementById('qModeImageSection');
+        const btnText = document.getElementById('btnQModeText');
+        const btnImg = document.getElementById('btnQModeImage');
+        if (mode === 'text') {
+            if (textSec) textSec.style.display = 'block';
+            if (imgSec) imgSec.style.display = 'none';
+            if (btnText) { btnText.style.background = '#0f172a'; btnText.style.color = '#ffffff'; btnText.style.fontWeight = '700'; }
+            if (btnImg) { btnImg.style.background = 'transparent'; btnImg.style.color = '#475569'; btnImg.style.fontWeight = '600'; }
+        } else {
+            if (textSec) textSec.style.display = 'none';
+            if (imgSec) imgSec.style.display = 'block';
+            if (btnImg) { btnImg.style.background = '#0f172a'; btnImg.style.color = '#ffffff'; btnImg.style.fontWeight = '700'; }
+            if (btnText) { btnText.style.background = 'transparent'; btnText.style.color = '#475569'; btnText.style.fontWeight = '600'; }
+        }
+    };
+
     async function loadFacultyQuestions() {
         if (!currentUser?.subject) return;
         try {
@@ -1859,7 +1945,7 @@
             const totalBadge = document.getElementById('qTotalMarksBadge');
             if (!c) return;
             if (!questions || !questions.length) {
-                c.innerHTML = '<p style="color:#94a3b8;font-size:13px;">No questions uploaded yet for this subject.</p>';
+                c.innerHTML = '<p style="color:#94a3b8;font-size:13px;padding:12px 0;">No questions uploaded yet for this subject.</p>';
                 if (totalBadge) totalBadge.style.display = 'none';
                 return;
             }
@@ -1871,25 +1957,47 @@
             }
             c.innerHTML = questions.map((q, i) => {
                 const qMarks = q.marks !== undefined ? Number(q.marks) : 1;
+                const isTextQ = q.type === 'text' || (q.text && !q.image);
+                const hasOptions = q.options && (q.options.A || q.options.B);
+
+                const optionsHtml = hasOptions ? `
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:6px;margin:8px 0;background:#f8fafc;padding:10px 14px;border-radius:8px;border:1px solid #e2e8f0;font-size:12.5px;">
+                        <div><strong style="color:${q.correct === 'A' ? '#166534' : '#1e3a8a'};">A:</strong> ${escapeHtml(q.options.A || '—')}</div>
+                        <div><strong style="color:${q.correct === 'B' ? '#166534' : '#1e3a8a'};">B:</strong> ${escapeHtml(q.options.B || '—')}</div>
+                        <div><strong style="color:${q.correct === 'C' ? '#166534' : '#1e3a8a'};">C:</strong> ${escapeHtml(q.options.C || '—')}</div>
+                        <div><strong style="color:${q.correct === 'D' ? '#166534' : '#1e3a8a'};">D:</strong> ${escapeHtml(q.options.D || '—')}</div>
+                    </div>
+                ` : '';
+
+                const imagePreview = q.image ? `
+                    <div style="text-align:center;">
+                        <a href="${q.image}" target="_blank" title="View question image">
+                            <img src="${q.image}" alt="Q${i+1}" style="max-width:130px;max-height:90px;border-radius:8px;border:1px solid #e2e8f0;object-fit:contain;background:#f8fafc;display:block;">
+                        </a>
+                        <span style="font-size:10.5px;color:#64748b;display:block;margin-top:2px;">Click to view</span>
+                    </div>
+                ` : '';
+
                 return `
-                <div class="question-card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;background:#ffffff;border:1.5px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
-                    <div style="flex:1;min-width:210px;">
-                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                <div class="question-card" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;background:#ffffff;border:1.5px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+                    <div style="flex:1;min-width:240px;">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
                             <strong style="font-size:15px;color:#0f172a;">Question ${i+1}</strong>
+                            <span style="background:${isTextQ ? '#f3e8ff' : '#eff6ff'};color:${isTextQ ? '#6b21a8' : '#1e40af'};border:1px solid ${isTextQ ? '#d8b4fe' : '#bfdbfe'};padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">
+                                ${isTextQ ? 'Text MCQ' : 'Image MCQ'}
+                            </span>
                             <span style="background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:700;">${qMarks} ${qMarks === 1 ? 'Mark' : 'Marks'}</span>
-                            <span style="font-size:12px;color:#64748b;">(Correct: <strong style="color:#166534;background:#dcfce7;padding:1px 6px;border-radius:4px;">${q.correct || '—'}</strong>)</span>
+                            <span style="font-size:12px;color:#64748b;">(Correct: <strong style="color:#166534;background:#dcfce7;padding:1px 6px;border-radius:4px;border:1px solid #bbf7d0;">Option ${q.correct || '—'}</strong>)</span>
                         </div>
-                        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+                        ${q.text ? `<div style="font-size:14px;font-weight:600;color:#0f172a;line-height:1.5;margin:8px 0;white-space:pre-wrap;">${escapeHtml(q.text)}</div>` : ''}
+                        ${optionsHtml}
+                        <div style="display:flex;align-items:center;gap:8px;margin-top:10px;">
                             <label for="markInput_${q.id}" style="font-size:12px;font-weight:700;color:#334155;">Marks Box:</label>
                             <input type="number" id="markInput_${q.id}" class="input-field" value="${qMarks}" min="1" max="100" style="width:75px;padding:5px 8px;font-size:13px;font-weight:700;text-align:center;margin:0;" title="Marks for Question ${i+1}">
                             <button type="button" onclick="updateQuestionMarks('${q.id}')" class="btn btn-blue btn-sm" style="width:auto;margin:0;padding:6px 12px;font-size:12px;" title="Save marks for this question">Save Marks</button>
                         </div>
                     </div>
-                    <div>
-                        <a href="${q.image}" target="_blank" title="View question image">
-                            <img src="${q.image}" alt="Q${i+1}" style="max-width:120px;max-height:85px;border-radius:8px;border:1px solid #e2e8f0;object-fit:contain;background:#f8fafc;">
-                        </a>
-                    </div>
+                    ${imagePreview}
                     <div>
                         <button type="button" onclick="deleteQuestion('${q.id}')" class="btn btn-outline btn-sm" style="width:auto;margin:0;color:#dc2626;border-color:#fecaca;" title="Delete Question">
                             <svg class="icon-svg" style="width:14px;height:14px;margin:0;" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
@@ -1923,27 +2031,79 @@
     };
 
     window.uploadQuestion = async () => {
-        const fileInput = document.getElementById('qImg');
         const correctInput = document.getElementById('qCorrect');
         const marksInput = document.getElementById('qMarks');
-        if (!fileInput.files?.length) { alert("Select a question image."); return; }
-        if (!correctInput.value.trim()) { alert("Specify correct option (A–D)."); return; }
+        const correctOption = (correctInput?.value || '').trim().toUpperCase();
+        if (!/^[A-D]$/.test(correctOption)) {
+            alert("Please select the correct option (A, B, C, or D).");
+            return;
+        }
         const marks = parseInt(marksInput?.value) || 1;
         const fd = new FormData();
-        fd.append('questionImage', fileInput.files[0]);
-        fd.append('correctOption', correctInput.value.trim().toUpperCase());
+        fd.append('correctOption', correctOption);
         fd.append('marks', Math.max(1, marks));
         fd.append('subject', currentUser.subject);
+        fd.append('type', currentQuestionMode);
+
+        if (currentQuestionMode === 'text') {
+            const qText = (document.getElementById('qText')?.value || '').trim();
+            const optA = (document.getElementById('qOptA')?.value || '').trim();
+            const optB = (document.getElementById('qOptB')?.value || '').trim();
+            const optC = (document.getElementById('qOptC')?.value || '').trim();
+            const optD = (document.getElementById('qOptD')?.value || '').trim();
+            const textImgFile = document.getElementById('qTextImg')?.files?.[0];
+
+            if (!qText) {
+                alert("Please enter the question statement.");
+                return;
+            }
+            if (!optA || !optB) {
+                alert("Please provide at least Option A and Option B.");
+                return;
+            }
+
+            fd.append('questionText', qText);
+            fd.append('optionA', optA);
+            fd.append('optionB', optB);
+            fd.append('optionC', optC);
+            fd.append('optionD', optD);
+            if (textImgFile) {
+                fd.append('questionImage', textImgFile);
+            }
+        } else {
+            const imgFile = document.getElementById('qImg')?.files?.[0];
+            if (!imgFile) {
+                alert("Please select a question image.");
+                return;
+            }
+            fd.append('questionImage', imgFile);
+        }
+
+        const btnSubmit = document.getElementById('btnSubmitQuestion');
+        if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.innerText = "Saving Question…"; }
         try {
             const res = await fetch('/api/upload-question', { method: 'POST', body: fd });
-            if (res.ok) {
-                alert("Question uploaded successfully with marks weightage.");
-                fileInput.value = '';
-                correctInput.value = '';
+            const result = await res.json();
+            if (res.ok && result.success) {
+                alert("Question saved successfully with marks allocation.");
+                if (document.getElementById('qText')) document.getElementById('qText').value = '';
+                if (document.getElementById('qOptA')) document.getElementById('qOptA').value = '';
+                if (document.getElementById('qOptB')) document.getElementById('qOptB').value = '';
+                if (document.getElementById('qOptC')) document.getElementById('qOptC').value = '';
+                if (document.getElementById('qOptD')) document.getElementById('qOptD').value = '';
+                if (document.getElementById('qTextImg')) document.getElementById('qTextImg').value = '';
+                if (document.getElementById('qImg')) document.getElementById('qImg').value = '';
+                if (correctInput) correctInput.value = '';
                 if (marksInput) marksInput.value = '1';
                 loadFacultyQuestions();
-            } else alert("Failed to upload.");
-        } catch(e) { alert("Error connecting."); }
+            } else {
+                alert(result.error || "Failed to upload question.");
+            }
+        } catch(e) {
+            alert("Error connecting to server.");
+        } finally {
+            if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerText = "Save Question"; }
+        }
     };
 
     window.deleteQuestion = async (id) => {
