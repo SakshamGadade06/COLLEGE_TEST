@@ -333,6 +333,21 @@ app.get('/api/get-students', staff('HOD', 'CLASS_TEACHER', 'FACULTY'), (req, res
     const submissions = readJSON(submissionsFile, []);
     const users = readJSON(usersFile, []);
     
+    // Automatically include any student who submitted an exam
+    const knownRolls = new Set(students.map(s => (s.rollNo || '').toUpperCase()));
+    submissions.forEach(sub => {
+        if (sub.rollNo && !knownRolls.has(sub.rollNo.toUpperCase())) {
+            students.push({
+                rollNo: sub.rollNo,
+                name: sub.name || ('Candidate ' + sub.rollNo),
+                className: 'SY-AIML A',
+                division: 'A',
+                dept: 'Computer Engineering & AI'
+            });
+            knownRolls.add(sub.rollNo.toUpperCase());
+        }
+    });
+
     // Discover all available subjects
     const subjectsSet = new Set(['DSA', 'AI', 'DBMS', 'Web Technology']);
     users.filter(u => u.subject).forEach(u => subjectsSet.add(u.subject));
@@ -342,6 +357,17 @@ app.get('/api/get-students', staff('HOD', 'CLASS_TEACHER', 'FACULTY'), (req, res
     const divFilter = (req.query.division || req.query.className || '').trim().toUpperCase();
     const isCT = req.staff.role === 'CLASS_TEACHER';
     const ctClass = (req.staff.className || '').toUpperCase();
+    const isFac = req.staff.role === 'FACULTY';
+    const facSub = (req.staff.subject || '').toUpperCase();
+
+    // Cache snapshots and cheat logs
+    const persistentLogs = readJSON(cheatLogsFile, []);
+    let snapshotDirs = [];
+    try {
+        if (fs.existsSync(snapshotsDir)) {
+            snapshotDirs = fs.readdirSync(snapshotsDir);
+        }
+    } catch(e) {}
 
     const enriched = students.filter(s => {
         if (divFilter && divFilter !== 'ALL') {
@@ -355,16 +381,42 @@ app.get('/api/get-students', staff('HOD', 'CLASS_TEACHER', 'FACULTY'), (req, res
         }
         return true;
     }).map(st => {
-        const studentSubs = submissions.filter(sub => sub.rollNo.toUpperCase() === st.rollNo.toUpperCase());
+        const rollUpper = (st.rollNo || '').toUpperCase();
+        const studentSubs = submissions.filter(sub => sub.rollNo && sub.rollNo.toUpperCase() === rollUpper);
         const givenSubjects = studentSubs.map(s => ({
             subject: s.subject,
             score: s.score,
             rawScore: s.rawScore,
             total: s.total,
-            time: s.time
+            time: s.time,
+            isOverridden: !!s.isOverridden,
+            overrideReason: s.overrideReason || null,
+            overriddenBy: s.overriddenBy || null,
+            overriddenAt: s.overriddenAt || null
         }));
         const givenSubjectNames = new Set(givenSubjects.map(g => g.subject.toUpperCase()));
         const pendingSubjects = allKnownSubjects.filter(sub => !givenSubjectNames.has(sub.toUpperCase()));
+
+        let studentSnapshots = 0;
+        let subjectSnapshots = 0;
+        snapshotDirs.forEach(dir => {
+            const dirUpper = dir.toUpperCase();
+            if (dirUpper.includes(rollUpper)) {
+                try {
+                    const fullP = path.join(snapshotsDir, dir);
+                    if (fs.statSync(fullP).isDirectory()) {
+                        const count = fs.readdirSync(fullP).filter(f => f.toLowerCase().endsWith('.jpg') || f.toLowerCase().endsWith('.png')).length;
+                        studentSnapshots += count;
+                        if (facSub && dirUpper.includes(facSub)) {
+                            subjectSnapshots += count;
+                        }
+                    }
+                } catch(e) {}
+            }
+        });
+
+        const studentLogs = persistentLogs.filter(l => l.rollNo && l.rollNo.toUpperCase() === rollUpper);
+        const subjectLogs = facSub ? studentLogs.filter(l => l.subject && l.subject.toUpperCase() === facSub) : studentLogs;
 
         return {
             ...st,
@@ -372,7 +424,13 @@ app.get('/api/get-students', staff('HOD', 'CLASS_TEACHER', 'FACULTY'), (req, res
             givenCount: givenSubjects.length,
             pendingCount: pendingSubjects.length,
             givenSubjects,
-            pendingSubjects
+            pendingSubjects,
+            snapshotCount: studentSnapshots,
+            subjectSnapshotCount: facSub ? (subjectSnapshots || studentSnapshots) : studentSnapshots,
+            violationCount: studentLogs.length,
+            subjectViolationCount: facSub ? subjectLogs.length : studentLogs.length,
+            hasViolations: (studentLogs.length > 0 || studentSnapshots > 0),
+            hasSubjectViolations: (subjectLogs.length > 0 || subjectSnapshots > 0 || (facSub ? studentSnapshots > 0 : false))
         };
     });
 
@@ -415,7 +473,11 @@ app.get('/api/student-all-marks', staff('HOD', 'CLASS_TEACHER', 'FACULTY'), (req
                 rawScore: raw,
                 total: tot,
                 percentage: pct,
-                time: sub.time
+                time: sub.time,
+                isOverridden: !!sub.isOverridden,
+                overrideReason: sub.overrideReason || null,
+                overriddenBy: sub.overriddenBy || null,
+                overriddenAt: sub.overriddenAt || null
             };
         } else {
             return {
@@ -427,7 +489,11 @@ app.get('/api/student-all-marks', staff('HOD', 'CLASS_TEACHER', 'FACULTY'), (req
                 rawScore: null,
                 total: 20,
                 percentage: null,
-                time: null
+                time: null,
+                isOverridden: false,
+                overrideReason: null,
+                overriddenBy: null,
+                overriddenAt: null
             };
         }
     });
@@ -676,8 +742,91 @@ app.post('/api/update-settings', staff('HOD', 'FACULTY'), (req, res) => {
     res.json({ success: true, settings: current });
 });
 app.get('/api/get-submissions', staff('HOD', 'CLASS_TEACHER', 'FACULTY'), ownSubject, (req, res) => {
-    const all = readJSON(submissionsFile);
-    res.json(req.query.subject ? all.filter(s => s.subject === req.query.subject) : all);
+    const all = readJSON(submissionsFile, []);
+    const filtered = req.query.subject ? all.filter(s => s.subject === req.query.subject) : all;
+    
+    const persistentLogs = readJSON(cheatLogsFile, []);
+    let snapshotDirs = [];
+    try {
+        if (fs.existsSync(snapshotsDir)) snapshotDirs = fs.readdirSync(snapshotsDir);
+    } catch(e) {}
+
+    const enriched = filtered.map(sub => {
+        const rollUpper = (sub.rollNo || '').toUpperCase();
+        let snaps = 0;
+        snapshotDirs.forEach(dir => {
+            if (dir.toUpperCase().includes(rollUpper)) {
+                try {
+                    const fullP = path.join(snapshotsDir, dir);
+                    if (fs.statSync(fullP).isDirectory()) {
+                        snaps += fs.readdirSync(fullP).filter(f => f.toLowerCase().endsWith('.jpg') || f.toLowerCase().endsWith('.png')).length;
+                    }
+                } catch(e) {}
+            }
+        });
+        const vLogs = persistentLogs.filter(l => l.rollNo && l.rollNo.toUpperCase() === rollUpper);
+        return {
+            ...sub,
+            snapshotCount: snaps,
+            violationCount: vLogs.length,
+            hasViolations: (snaps > 0 || vLogs.length > 0)
+        };
+    });
+
+    res.json(enriched);
+});
+
+app.post('/api/edit-student-marks', staff('HOD', 'FACULTY'), (req, res) => {
+    const { rollNo, subject, rawScore, total, reason } = req.body;
+    const roll = String(rollNo || '').trim().toUpperCase();
+    const sub = String(subject || '').trim();
+    if (!roll || !sub) return res.status(400).json({ error: 'Roll number and subject are required' });
+
+    if (req.staff.role === 'FACULTY' && req.staff.subject !== sub) {
+        return res.status(403).json({ error: 'You are only authorized to edit marks for your assigned subject (' + req.staff.subject + ')' });
+    }
+
+    const parsedScore = Number(rawScore);
+    const parsedTotal = Number(total) || 20;
+    if (isNaN(parsedScore) || parsedScore < 0 || parsedScore > parsedTotal) {
+        return res.status(400).json({ error: `Score must be a number between 0 and ${parsedTotal}` });
+    }
+
+    const submissions = readJSON(submissionsFile, []);
+    let target = submissions.find(s => s.rollNo && s.rollNo.toUpperCase() === roll && s.subject && s.subject.toUpperCase() === sub.toUpperCase());
+
+    const students = readJSON(studentsFile, []);
+    const studentObj = students.find(s => s.rollNo && s.rollNo.toUpperCase() === roll);
+    const studentName = studentObj ? studentObj.name : (target ? target.name : 'Student ' + roll);
+
+    const overrideEntry = {
+        rawScore: parsedScore,
+        total: parsedTotal,
+        score: `${parsedScore}/${parsedTotal}`,
+        isOverridden: true,
+        overrideReason: String(reason || 'Mark adjustment by faculty').trim(),
+        overriddenBy: req.staff.name || req.staff.id,
+        overriddenAt: new Date().toISOString()
+    };
+
+    if (target) {
+        Object.assign(target, overrideEntry);
+    } else {
+        target = {
+            collegeId: studentObj?.collegeId || roll,
+            rollNo: roll,
+            name: studentName,
+            subject: sub,
+            examId: 'MANUAL_OVERRIDE_' + Date.now(),
+            answers: {},
+            ...overrideEntry,
+            time: new Date().toISOString()
+        };
+        submissions.unshift(target);
+    }
+
+    writeJSON(submissionsFile, submissions);
+    res.json({ success: true, submission: target, message: `Marks for ${roll} in ${sub} updated to ${target.score}` });
 });
 app.post('/api/log-cheat', student, (req, res) => {
     const reason = String(req.body.reason || 'Unusual activity detected').slice(0, 150);
@@ -729,6 +878,7 @@ app.post('/api/upload-snapshot', student, (req, res) => {
 app.get('/api/student-snapshots', staff('HOD', 'FACULTY', 'CLASS_TEACHER'), (req, res) => {
     const roll = String(req.query.rollNo || '').trim().toUpperCase();
     if (!roll) return res.status(400).json({ error: 'Roll number required' });
+    const targetSubject = String(req.query.subject || (req.staff.role === 'FACULTY' ? req.staff.subject : '')).trim().toUpperCase();
 
     const snapshots = [];
     try {
@@ -736,6 +886,14 @@ app.get('/api/student-snapshots', staff('HOD', 'FACULTY', 'CLASS_TEACHER'), (req
         for (const dir of allDirs) {
             const upper = dir.toUpperCase();
             if (upper.includes(roll)) {
+                let detectedSub = '';
+                const known = ['DSA', 'AI', 'DBMS', 'Web Technology'];
+                for (const k of known) {
+                    if (upper.includes(k.toUpperCase())) {
+                        detectedSub = k;
+                        break;
+                    }
+                }
                 const fullFolderPath = path.join(snapshotsDir, dir);
                 if (fs.statSync(fullFolderPath).isDirectory()) {
                     const files = fs.readdirSync(fullFolderPath).filter(f => f.toLowerCase().endsWith('.jpg') || f.toLowerCase().endsWith('.png'));
@@ -745,6 +903,8 @@ app.get('/api/student-snapshots', staff('HOD', 'FACULTY', 'CLASS_TEACHER'), (req
                         snapshots.push({
                             folder: dir,
                             filename: f,
+                            subject: detectedSub || targetSubject || 'Surveillance',
+                            isTargetSubject: !!(targetSubject && detectedSub && detectedSub.toUpperCase() === targetSubject),
                             url: `/api/snapshot-image?folder=${encodeURIComponent(dir)}&file=${encodeURIComponent(f)}`,
                             time: stat.mtime.toISOString(),
                             size: stat.size
@@ -755,10 +915,24 @@ app.get('/api/student-snapshots', staff('HOD', 'FACULTY', 'CLASS_TEACHER'), (req
         }
     } catch(e) {}
 
+    // Sort to prioritize requested subject, then newest first
+    snapshots.sort((a, b) => {
+        if (a.isTargetSubject && !b.isTargetSubject) return -1;
+        if (!a.isTargetSubject && b.isTargetSubject) return 1;
+        return new Date(b.time) - new Date(a.time);
+    });
+
     const persistentLogs = readJSON(cheatLogsFile, []);
     const studentLogs = persistentLogs.filter(l => l.rollNo && l.rollNo.toUpperCase() === roll);
 
-    res.json({ rollNo: roll, snapshots, logs: studentLogs, total: snapshots.length });
+    res.json({
+        rollNo: roll,
+        subject: targetSubject || null,
+        snapshots,
+        logs: studentLogs,
+        total: snapshots.length,
+        violations: studentLogs.length
+    });
 });
 
 app.get('/api/snapshot-image', staff('HOD', 'FACULTY', 'CLASS_TEACHER'), (req, res) => {

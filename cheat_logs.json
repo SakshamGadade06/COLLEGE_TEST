@@ -1,0 +1,42 @@
+[
+  {
+    "id": "cheat_001",
+    "rollNo": "ROLL101",
+    "subject": "DSA",
+    "reason": "Tab switch / Browser blur detected during examination",
+    "strike": 1,
+    "snapshot": "1790579762975.jpg",
+    "folder": "DSA_ROLL101",
+    "time": "2026-09-28T07:16:02.975Z"
+  },
+  {
+    "id": "cheat_002",
+    "rollNo": "ROLL101",
+    "subject": "DSA",
+    "reason": "Multiple faces detected in front of webcam",
+    "strike": 2,
+    "snapshot": "1790290487752.jpg",
+    "folder": "DSA_ROLL101",
+    "time": "2026-09-24T22:54:47.752Z"
+  },
+  {
+    "id": "cheat_003",
+    "rollNo": "ROLL101",
+    "subject": "DSA",
+    "reason": "Candidate head turned away from monitor / Face absent",
+    "strike": 3,
+    "snapshot": "1790290481700.jpg",
+    "folder": "DSA_ROLL101",
+    "time": "2026-09-24T22:54:41.700Z"
+  },
+  {
+    "id": "cheat_004",
+    "rollNo": "ROLL101",
+    "subject": "DSA",
+    "reason": "Suspected mobile device / external material in frame",
+    "strike": 4,
+    "snapshot": "1790290475342.jpg",
+    "folder": "DSA_ROLL101",
+    "time": "2026-09-24T22:54:35.342Z"
+  }
+]

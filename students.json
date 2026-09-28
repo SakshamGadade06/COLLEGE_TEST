@@ -10,5 +10,6 @@
   { "rollNo": "23AIML009", "name": "Tanmay Jadhav", "className": "SY-AIML C", "division": "C", "dept": "Computer Engineering & AI" },
   { "rollNo": "23AIML010", "name": "Pooja Wagh", "className": "SY-AIML C", "division": "C", "dept": "Computer Engineering & AI" },
   { "rollNo": "23AIML011", "name": "Siddharth Pawar", "className": "SY-AIML C", "division": "C", "dept": "Computer Engineering & AI" },
-  { "rollNo": "23AIML012", "name": "Vaishnavi Mane", "className": "SY-AIML C", "division": "C", "dept": "Computer Engineering & AI" }
+  { "rollNo": "23AIML012", "name": "Vaishnavi Mane", "className": "SY-AIML C", "division": "C", "dept": "Computer Engineering & AI" },
+  { "rollNo": "ROLL101", "name": "Rahul Sharma", "className": "SY-AIML A", "division": "A", "dept": "Computer Engineering & AI" }
 ]
