@@ -755,6 +755,125 @@
             tr { page-break-inside: avoid; page-break-after: auto; }
             thead { display: table-header-group; }
         }
+
+        /* INSTITUTIONAL TOAST NOTIFICATIONS */
+        .inst-toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .inst-toast {
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-left: 4px solid var(--inst-blue);
+            border-radius: var(--radius-md);
+            padding: 12px 18px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            font-size: 13.5px;
+            font-weight: 500;
+            color: #0f172a;
+            min-width: 280px;
+            max-width: 440px;
+            animation: instToastIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .inst-toast.toast-success { border-left-color: #16a34a; }
+        .inst-toast.toast-error { border-left-color: #dc2626; }
+        .inst-toast.toast-warning { border-left-color: #d97706; }
+        .inst-toast.toast-info { border-left-color: #2563eb; }
+
+        .inst-toast-icon {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .inst-toast.toast-success .inst-toast-icon { background: #dcfce7; color: #15803d; }
+        .inst-toast.toast-error .inst-toast-icon { background: #fee2e2; color: #b91c1c; }
+        .inst-toast.toast-warning .inst-toast-icon { background: #fef3c7; color: #b45309; }
+        .inst-toast.toast-info .inst-toast-icon { background: #dbeafe; color: #1d4ed8; }
+
+        .inst-toast-msg { flex: 1; line-height: 1.4; word-break: break-word; }
+        .inst-toast-close {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 16px;
+            line-height: 1;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        .inst-toast-close:hover { color: #334155; background: #f1f5f9; }
+
+        @keyframes instToastIn {
+            from { opacity: 0; transform: translateX(20px) scale(0.96); }
+            to { opacity: 1; transform: translateX(0) scale(1); }
+        }
+
+        /* INSTITUTIONAL CONFIRMATION MODAL */
+        #instConfirmModal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 99998;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(2px);
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        #instConfirmModal .inst-confirm-card {
+            background: #ffffff;
+            border-radius: var(--radius-lg);
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            max-width: 440px;
+            width: 100%;
+            overflow: hidden;
+            animation: instToastIn 0.2s ease-out;
+        }
+        #instConfirmModal .inst-confirm-header {
+            padding: 18px 20px 14px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        #instConfirmModal .inst-confirm-header h4 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        #instConfirmModal .inst-confirm-body {
+            padding: 18px 20px;
+            font-size: 13.5px;
+            color: #475569;
+            line-height: 1.5;
+        }
+        #instConfirmModal .inst-confirm-footer {
+            padding: 14px 20px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
     </style>
     <link rel="stylesheet" href="/campus_scene.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -2158,6 +2277,23 @@
     </div>
 </div>
 
+<!-- ==================== INSTITUTIONAL TOAST & CONFIRMATION CONTAINERS ==================== -->
+<div id="instToastContainer" class="inst-toast-container" aria-live="polite"></div>
+
+<div id="instConfirmModal" role="dialog" aria-modal="true">
+    <div class="inst-confirm-card">
+        <div class="inst-confirm-header">
+            <div id="instConfirmIcon" class="inst-toast-icon" style="background:#fee2e2;color:#b91c1c;">⚠</div>
+            <h4 id="instConfirmTitle">Confirmation Required</h4>
+        </div>
+        <div class="inst-confirm-body" id="instConfirmMsg">Are you sure you want to proceed?</div>
+        <div class="inst-confirm-footer">
+            <button type="button" class="btn btn-outline" style="width:auto;padding:8px 16px;" id="instConfirmCancelBtn">Cancel</button>
+            <button type="button" class="btn btn-blue" style="width:auto;padding:8px 18px;" id="instConfirmOkBtn">Confirm</button>
+        </div>
+    </div>
+</div>
+
 <script>
     function escapeHtml(str) {
         if (!str) return '';
@@ -2168,6 +2304,72 @@
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
     }
+
+    // INSTITUTIONAL TOAST SYSTEM
+    window.showToast = (msg, type = 'info', duration = 3500) => {
+        const container = document.getElementById('instToastContainer');
+        if (!container) {
+            console.log(`[Toast ${type}] ${msg}`);
+            return;
+        }
+        const toast = document.createElement('div');
+        toast.className = `inst-toast toast-${type}`;
+        const iconChar = type === 'success' ? '✓' : (type === 'error' ? '✕' : (type === 'warning' ? '⚠' : 'ℹ'));
+        toast.innerHTML = `
+            <div class="inst-toast-icon">${iconChar}</div>
+            <div class="inst-toast-msg">${escapeHtml(msg)}</div>
+            <button type="button" class="inst-toast-close" title="Dismiss">&times;</button>
+        `;
+        const dismiss = () => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(20px)';
+            setTimeout(() => { if (toast.parentNode) toast.remove(); }, 200);
+        };
+        const closeBtn = toast.querySelector('.inst-toast-close');
+        if (closeBtn) closeBtn.onclick = dismiss;
+        container.appendChild(toast);
+        if (duration > 0) setTimeout(dismiss, duration);
+    };
+
+    // INSTITUTIONAL MODAL CONFIRMATION PROMISE
+    window.showConfirm = (title, message, confirmBtnText = 'Confirm', isDestructive = false) => {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('instConfirmModal');
+            const titleEl = document.getElementById('instConfirmTitle');
+            const msgEl = document.getElementById('instConfirmMsg');
+            const okBtn = document.getElementById('instConfirmOkBtn');
+            const cancelBtn = document.getElementById('instConfirmCancelBtn');
+            const iconEl = document.getElementById('instConfirmIcon');
+            if (!modal) return resolve(window.confirm(message));
+
+            titleEl.innerText = title;
+            msgEl.innerText = message;
+            okBtn.innerText = confirmBtnText;
+            if (isDestructive) {
+                okBtn.className = 'btn btn-red';
+                okBtn.style.background = '#dc2626';
+                okBtn.style.color = '#ffffff';
+                if (iconEl) { iconEl.style.background = '#fee2e2'; iconEl.style.color = '#b91c1c'; iconEl.innerText = '⚠'; }
+            } else {
+                okBtn.className = 'btn btn-blue';
+                okBtn.style.background = 'var(--inst-navy)';
+                okBtn.style.color = '#ffffff';
+                if (iconEl) { iconEl.style.background = '#dbeafe'; iconEl.style.color = '#1d4ed8'; iconEl.innerText = 'ℹ'; }
+            }
+
+            modal.style.display = 'flex';
+
+            const cleanup = (val) => {
+                modal.style.display = 'none';
+                okBtn.onclick = null;
+                cancelBtn.onclick = null;
+                resolve(val);
+            };
+
+            okBtn.onclick = () => cleanup(true);
+            cancelBtn.onclick = () => cleanup(false);
+        });
+    };
 
     // ============ AUTH & ROLE ============
     let currentUser = null;
@@ -2337,24 +2539,36 @@
         const name = document.getElementById('newHodName').value.trim();
         const dept = document.getElementById('newHodDept').value;
         const title = document.getElementById('newHodTitle').value.trim();
-        if (!id || !pass || !name) { alert("Please fill all required fields."); return; }
+        if (!id || !pass || !name) { showToast("Please fill all required administrator fields.", "warning"); return; }
         try {
             const res = await fetch('/api/create-user', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, password: pass, role: 'HOD', name, dept, className: title }) });
             const result = await res.json();
-            if (res.ok && result.success) { alert(`HOD Account for ${name} created!`); document.getElementById('newHodId').value = ''; document.getElementById('newHodPass').value = ''; document.getElementById('newHodName').value = ''; loadHodStaffList(); loadHodDirectoryList(); }
-            else alert(result.error || "Failed to create.");
-        } catch (e) { alert("Error connecting to server."); }
+            if (res.ok && result.success) {
+                showToast(`HOD Account for ${name} created successfully!`, "success");
+                document.getElementById('newHodId').value = '';
+                document.getElementById('newHodPass').value = '';
+                document.getElementById('newHodName').value = '';
+                loadHodStaffList();
+                loadHodDirectoryList();
+            } else {
+                showToast(result.error || "Failed to create HOD account.", "error");
+            }
+        } catch (e) { showToast("Error connecting to server.", "error"); }
     };
 
     window.resetStaffPassword = async () => {
         const id = document.getElementById('resetStaffId').value.trim();
         const pass = document.getElementById('resetStaffPass').value;
-        if (!id || pass.length < 12) { alert('Enter ID and new password (12+ chars).'); return; }
+        if (!id || pass.length < 12) { showToast("Enter Staff ID and new password (minimum 12 characters).", "warning"); return; }
         try {
             const res = await fetch('/api/reset-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, password: pass }) });
-            if (res.ok) { document.getElementById('resetStaffPass').value = ''; alert('Password reset.'); }
-            else alert('Could not reset password.');
-        } catch(e) { alert(e.message); }
+            if (res.ok) {
+                document.getElementById('resetStaffPass').value = '';
+                showToast(`Password for ${id} reset successfully.`, "success");
+            } else {
+                showToast('Could not reset password.', "error");
+            }
+        } catch(e) { showToast(e.message || 'Error resetting password', "error"); }
     };
 
     window.loadHodDirectoryList = async () => {
@@ -2514,6 +2728,15 @@
     };
 
     window.hodToggleAllExams = async (start) => {
+        if (!start) {
+            const ok = await showConfirm(
+                "Lock All Subject Examinations",
+                "Are you sure you want to stop and lock ALL subject examinations across the entire institution? Candidates will no longer be able to submit new answers.",
+                "Lock All Exams",
+                true
+            );
+            if (!ok) return;
+        }
         const ep = start ? '/api/start-exam' : '/api/stop-exam';
         try {
             const res = await fetch(ep, {
@@ -2523,12 +2746,23 @@
             });
             if (res.ok) {
                 await loadHodExamStatuses();
-                alert(start ? "All subject exams are now LIVE & RELEASED!" : "All exams have been LOCKED.");
+                showToast(start ? "All subject exams are now LIVE & RELEASED!" : "All subject examinations have been LOCKED.", start ? "success" : "info");
+            } else {
+                showToast("Failed to update exam status", "error");
             }
-        } catch(e) { alert("Error connecting to server."); }
+        } catch(e) { showToast("Error connecting to server.", "error"); }
     };
 
     window.hodToggleSubjectExam = async (subject, currentActive) => {
+        if (currentActive) {
+            const ok = await showConfirm(
+                `Lock Exam: ${subject}`,
+                `Are you sure you want to lock the active examination for ${subject}?`,
+                "Lock Exam",
+                true
+            );
+            if (!ok) return;
+        }
         const ep = currentActive ? '/api/stop-exam' : '/api/start-exam';
         try {
             const res = await fetch(ep, {
@@ -2538,8 +2772,11 @@
             });
             if (res.ok) {
                 await loadHodExamStatuses();
+                showToast(currentActive ? `Exam for ${subject} locked.` : `Exam for ${subject} is now LIVE!`, currentActive ? "info" : "success");
+            } else {
+                showToast("Failed to toggle subject exam", "error");
             }
-        } catch(e) { alert("Error toggling exam."); }
+        } catch(e) { showToast("Error toggling exam.", "error"); }
     };
 
     window.viewSubjectMarks = (role) => {
@@ -2620,7 +2857,7 @@
         const input = document.getElementById(inputId);
         const statusEl = document.getElementById(role === 'HOD' ? 'hodUploadStatus' : 'ctUploadStatus');
         if (!input || !input.files || !input.files.length) {
-            alert("Please select an Excel (.xlsx, .xls) or CSV file to upload.");
+            showToast("Please select an Excel (.xlsx, .xls) or CSV file to upload.", "warning");
             return;
         }
         const file = input.files[0];
@@ -2634,6 +2871,7 @@
                 statusEl.style.color = '#166534';
                 statusEl.innerText = `Success: ${result.added || 0} added, ${result.updated || 0} updated (Total: ${result.total || 0})`;
             }
+            showToast(`Roster updated: ${result.added || 0} added, ${result.updated || 0} updated.`, "success");
             input.value = '';
             loadStudentRoster(role);
         };
@@ -2643,7 +2881,7 @@
                 statusEl.style.color = '#dc2626';
                 statusEl.innerText = err || 'Upload failed.';
             }
-            alert(err || 'Upload failed.');
+            showToast(err || 'Spreadsheet upload failed.', "error");
         };
 
         if (window.XLSX) {
@@ -3041,7 +3279,7 @@
                 }, 150);
             }
         } catch (e) {
-            alert("Failed to load student scorecard.");
+            showToast("Failed to load candidate scorecard.", "error");
         }
     };
 
@@ -3266,7 +3504,7 @@
             }
 
             closeEditMarksModal();
-            alert(`✅ ${data.message || 'Marks updated successfully!'}`);
+            showToast(data.message || 'Marks updated successfully!', 'success');
 
             if (typeof loadStudentRoster === 'function') {
                 if (currentUser?.role === 'FACULTY') loadStudentRoster('FAC');
@@ -3284,7 +3522,7 @@
                 errEl.innerText = err.message || 'Failed to update marks';
                 errEl.style.display = 'block';
             } else {
-                alert(err.message || 'Failed to update marks');
+                showToast(err.message || 'Failed to update marks', 'error');
             }
         } finally {
             if (btn) { btn.disabled = false; btn.innerText = 'Save & Update Marks'; }
@@ -3394,11 +3632,35 @@
     }
 
     window.toggleFacultyExam = async () => {
+        if (facultyExamActive) {
+            const ok = await showConfirm(
+                `Lock Examination: ${currentUser?.subject || 'Subject'}`,
+                `Are you sure you want to STOP and LOCK the active examination for ${currentUser?.subject || 'this subject'}? Candidates will no longer be able to submit new answers.`,
+                "Lock Exam",
+                true
+            );
+            if (!ok) return;
+        }
+        const btn = document.getElementById('facultyExamToggleBtn');
+        const prevText = btn ? btn.innerText : '';
+        if (btn) { btn.disabled = true; btn.innerText = 'Updating...'; }
         const ep = facultyExamActive ? '/api/stop-exam' : '/api/start-exam';
         try {
-            const res = await fetch(ep, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subject: currentUser.subject }) });
-            const d = await res.json(); facultyExamActive = !!d.active; updateFacultySwitchUI({ isExamActive: d.active, waiting: 0, in_exam: 0 }); pollWaitingRoom();
-        } catch(e) { alert("Error toggling exam."); }
+            const res = await fetch(ep, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ subject: currentUser.subject })
+            });
+            const d = await res.json();
+            facultyExamActive = !!d.active;
+            updateFacultySwitchUI({ isExamActive: d.active, waiting: 0, in_exam: 0 });
+            pollWaitingRoom();
+            showToast(facultyExamActive ? `Examination for ${currentUser.subject} is now RELEASED and LIVE!` : `Examination for ${currentUser.subject} is now LOCKED.`, facultyExamActive ? "success" : "info");
+        } catch(e) {
+            showToast("Error toggling exam status.", "error");
+        } finally {
+            if (btn) btn.disabled = false;
+        }
     };
 
     let currentQuestionMode = 'text';
@@ -3497,7 +3759,7 @@
     window.updateQuestionMarks = async (id) => {
         const input = document.getElementById('markInput_' + id);
         const marks = parseInt(input?.value) || 1;
-        if (marks < 1) { alert("Marks must be at least 1"); return; }
+        if (marks < 1) { showToast("Marks must be at least 1", "warning"); return; }
         try {
             const res = await fetch('/api/update-question-marks', {
                 method: 'POST',
@@ -3506,12 +3768,13 @@
             });
             const data = await res.json();
             if (data.success) {
+                showToast("Marks updated successfully.", "success");
                 loadFacultyQuestions();
             } else {
-                alert(data.error || "Failed to update question marks");
+                showToast(data.error || "Failed to update question marks", "error");
             }
         } catch(e) {
-            alert("Error updating question marks");
+            showToast("Error updating question marks", "error");
         }
     };
 
@@ -3520,7 +3783,7 @@
         const marksInput = document.getElementById('qMarks');
         const correctOption = (correctInput?.value || '').trim().toUpperCase();
         if (!/^[A-D]$/.test(correctOption)) {
-            alert("Please select the correct option (A, B, C, or D).");
+            showToast("Please select the correct option (A, B, C, or D).", "warning");
             return;
         }
         const marks = parseInt(marksInput?.value) || 1;
@@ -3539,11 +3802,11 @@
             const textImgFile = document.getElementById('qTextImg')?.files?.[0];
 
             if (!qText) {
-                alert("Please enter the question statement.");
+                showToast("Please enter the question statement.", "warning");
                 return;
             }
             if (!optA || !optB) {
-                alert("Please provide at least Option A and Option B.");
+                showToast("Please provide at least Option A and Option B.", "warning");
                 return;
             }
 
@@ -3558,7 +3821,7 @@
         } else {
             const imgFile = document.getElementById('qImg')?.files?.[0];
             if (!imgFile) {
-                alert("Please select a question image.");
+                showToast("Please select a question diagram image.", "warning");
                 return;
             }
             fd.append('questionImage', imgFile);
@@ -3570,7 +3833,7 @@
             const res = await fetch('/api/upload-question', { method: 'POST', body: fd });
             const result = await res.json();
             if (res.ok && result.success) {
-                alert("Question saved successfully with marks allocation.");
+                showToast("Question saved successfully with marks allocation.", "success");
                 if (document.getElementById('qText')) document.getElementById('qText').value = '';
                 if (document.getElementById('qOptA')) document.getElementById('qOptA').value = '';
                 if (document.getElementById('qOptB')) document.getElementById('qOptB').value = '';
@@ -3582,21 +3845,39 @@
                 if (marksInput) marksInput.value = '1';
                 loadFacultyQuestions();
             } else {
-                alert(result.error || "Failed to upload question.");
+                showToast(result.error || "Failed to upload question.", "error");
             }
         } catch(e) {
-            alert("Error connecting to server.");
+            showToast("Error connecting to server.", "error");
         } finally {
             if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerText = "Save Question"; }
         }
     };
 
     window.deleteQuestion = async (id) => {
-        if (!confirm("Delete this question?")) return;
+        const ok = await showConfirm(
+            "Delete Examination Question",
+            "Are you sure you want to permanently delete this question from the active subject question bank?",
+            "Delete Question",
+            true
+        );
+        if (!ok) return;
         try {
-            const res = await fetch('/api/delete-question', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subject: currentUser.subject, id }) });
-            if (res.ok) loadFacultyQuestions();
-        } catch(e) {}
+            const res = await fetch('/api/delete-question', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ subject: currentUser.subject, id })
+            });
+            if (res.ok) {
+                showToast("Question removed from subject exam.", "info");
+                loadFacultyQuestions();
+            } else {
+                const data = await res.json().catch(() => ({}));
+                showToast(data.error || "Failed to delete question.", "error");
+            }
+        } catch(e) {
+            showToast("Error communicating with server.", "error");
+        }
     };
 
     // ============ SEARCH & MARKS DISCLOSURE ============
@@ -3722,7 +4003,10 @@
                 body: JSON.stringify({ subject: currentUser.subject, showMarks: val })
             });
             searchStudents('FAC');
-        } catch(e) {}
+            showToast(val ? `Official marks for ${currentUser.subject} are now PUBLISHED to candidates!` : `Official marks for ${currentUser.subject} are now WITHHELD.`, val ? "success" : "info");
+        } catch(e) {
+            showToast("Failed to update result publication status", "error");
+        }
     };
 
     window.loadFacultyExamConfig = async () => {
@@ -3770,6 +4054,9 @@
         const time = document.getElementById('facExamTime')?.value || '';
         const instructions = document.getElementById('facExamInstructions')?.value.trim() || '';
 
+        const btnSave = document.getElementById('facSaveConfigBtn');
+        if (btnSave) { btnSave.disabled = true; btnSave.innerText = 'Saving Schedule…'; }
+
         try {
             const res = await fetch('/api/save-exam', {
                 method: 'POST',
@@ -3786,13 +4073,15 @@
             });
             const data = await res.json();
             if (res.ok) {
-                alert("Exam schedule & rules saved successfully.");
+                showToast("Exam schedule and academic rules saved successfully.", "success");
                 loadFacultyExamConfig();
             } else {
-                alert(data.error || "Failed to save exam schedule.");
+                showToast(data.error || "Failed to save exam schedule.", "error");
             }
         } catch(e) {
-            alert("Error saving exam schedule.");
+            showToast("Error saving exam schedule.", "error");
+        } finally {
+            if (btnSave) { btnSave.disabled = false; btnSave.innerText = 'Save Exam Settings'; }
         }
     };
 
@@ -3815,13 +4104,22 @@
         const data = role === 'CLASS_TEACHER'
             ? { id: document.getElementById('ctId').value.trim(), password: document.getElementById('ctPass').value.trim(), name: document.getElementById('ctName').value.trim(), className: document.getElementById('ctClass').value.trim(), role }
             : { id: document.getElementById('facId').value.trim(), password: document.getElementById('facPass').value.trim(), name: document.getElementById('facName').value.trim(), subject: document.getElementById('facSub').value.trim(), role };
-        if (!data.id || !data.password) { alert("Enter ID and Password."); return; }
+        if (!data.id || !data.password) { showToast("Please enter both ID and Password.", "warning"); return; }
         try {
             const res = await fetch('/api/create-user', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
             const result = await res.json();
-            if (res.ok && result.success) { alert("Account created!"); if (role === 'CLASS_TEACHER') { document.getElementById('ctId').value='';document.getElementById('ctPass').value='';document.getElementById('ctName').value='';document.getElementById('ctClass').value=''; } else { document.getElementById('facId').value='';document.getElementById('facPass').value='';document.getElementById('facName').value='';document.getElementById('facSub').value=''; } loadHodStaffList(); }
-            else alert(result.error || "Failed.");
-        } catch(e) { alert("Error connecting."); }
+            if (res.ok && result.success) {
+                showToast(`Staff account for ${data.name || data.id} created successfully!`, "success");
+                if (role === 'CLASS_TEACHER') {
+                    document.getElementById('ctId').value='';document.getElementById('ctPass').value='';document.getElementById('ctName').value='';document.getElementById('ctClass').value='';
+                } else {
+                    document.getElementById('facId').value='';document.getElementById('facPass').value='';document.getElementById('facName').value='';document.getElementById('facSub').value='';
+                }
+                loadHodStaffList();
+            } else {
+                showToast(result.error || "Failed to create account.", "error");
+            }
+        } catch(e) { showToast("Error connecting to server.", "error"); }
     };
 
     // ============ LIVE HALL INVIGILATION MONITOR & REMOTE WARNING SYSTEM ============
@@ -4064,7 +4362,7 @@
             const data = await res.json();
             if (res.ok && data.success) {
                 closeSendWarningModal();
-                alert(`⚠️ Warning transmitted to ${rollNo} successfully!\nCandidate phone will alert immediately.`);
+                showToast(`Warning transmitted to ${rollNo}. Candidate screen alerted.`, "warning");
                 const activeRole = currentUser?.role === 'HOD' ? 'HOD' : 'FAC';
                 loadLiveInvigilation(activeRole);
             } else {
@@ -4084,7 +4382,12 @@
     };
 
     window.forceSubmitCandidate = async (rollNo, name, subject) => {
-        const confirmed = confirm(`Are you sure you want to FORCE-SUBMIT and TERMINATE the examination for ${name} (${rollNo})?\n\nThis will immediately forfeit the session on their phone.`);
+        const confirmed = await showConfirm(
+            "Terminating Candidate Session",
+            `Are you sure you want to FORCE-SUBMIT and TERMINATE the examination for ${name} (${rollNo})?\n\nThis will immediately forfeit the session on their device.`,
+            "Force Submit Exam",
+            true
+        );
         if (!confirmed) return;
 
         try {
@@ -4095,14 +4398,14 @@
             });
             const data = await res.json();
             if (res.ok && data.success) {
-                alert(`🛑 Session for candidate ${rollNo} terminated and marked submitted.`);
+                showToast(`Session for candidate ${rollNo} terminated and marked submitted.`, "error");
                 const activeRole = currentUser?.role === 'HOD' ? 'HOD' : 'FAC';
                 loadLiveInvigilation(activeRole);
             } else {
-                alert(data.error || 'Failed to force submit.');
+                showToast(data.error || 'Failed to force submit candidate.', "error");
             }
         } catch (e) {
-            alert('Failed to connect to examination server.');
+            showToast('Failed to connect to examination server.', "error");
         }
     };
 
@@ -4131,7 +4434,7 @@
         const subject = document.getElementById('broadcastTargetSubject')?.value;
         const message = document.getElementById('broadcastCustomMsg')?.value.trim();
         if (!message) {
-            alert('Please select or type an announcement message.');
+            showToast('Please select or type an announcement message.', "warning");
             return;
         }
 
@@ -4144,12 +4447,12 @@
             const data = await res.json();
             if (res.ok && data.success) {
                 closeBroadcastModal();
-                alert(`📢 Broadcast delivered to all active examinees in ${subject}!`);
+                showToast(`Broadcast delivered to all active examinees in ${subject}!`, "warning");
             } else {
-                alert(data.error || 'Failed to broadcast warning.');
+                showToast(data.error || 'Failed to broadcast warning.', "error");
             }
         } catch(e) {
-            alert('Failed to communicate with examination server.');
+            showToast('Failed to communicate with examination server.', "error");
         }
     };
 

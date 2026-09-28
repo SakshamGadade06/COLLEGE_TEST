@@ -964,10 +964,20 @@
         </table>
         <div style="display:flex;gap:10px;">
             <button type="button" onclick="window.closeSubmitModal()" class="btn btn-outline" style="flex:1;">Return to Exam</button>
-            <button type="button" onclick="window.confirmSubmitFinal()" class="btn btn-green" style="flex:1;">Yes, Submit Exam</button>
+            <button type="button" id="btnConfirmSubmitFinal" onclick="window.confirmSubmitFinal()" class="btn btn-green" style="flex:1;">Yes, Submit Exam</button>
         </div>
     </div>
 </div>
+
+<!-- SUBMISSION PROCESSING OVERLAY -->
+<div id="submittingOverlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.85);backdrop-filter:blur(4px);z-index:99999;flex-direction:column;align-items:center;justify-content:center;color:#ffffff;text-align:center;padding:24px;">
+    <div style="width:44px;height:44px;border:3px solid rgba(255,255,255,0.2);border-top-color:#38bdf8;border-radius:50%;animation:spinOverlay 0.8s linear infinite;margin-bottom:16px;"></div>
+    <h3 style="font-size:18px;font-weight:700;margin:0 0 6px;color:#ffffff;">Submitting Examination Paper...</h3>
+    <p style="font-size:13px;color:#94a3b8;margin:0;max-width:380px;">Encrypting candidate responses and locking exam session. Please do not navigate away.</p>
+</div>
+<style>
+@keyframes spinOverlay { to { transform: rotate(360deg); } }
+</style>
 
 <!-- ==================== 1. STUDENT LOGIN ==================== -->
 <div id="login-screen" class="screen active">
@@ -1883,6 +1893,9 @@
         if (timerInterval) clearInterval(timerInterval);
         if (heartbeatInterval) clearInterval(heartbeatInterval);
 
+        const overlay = document.getElementById('submittingOverlay');
+        if (overlay) overlay.style.display = 'flex';
+
         let data = null;
         try {
             const res = await fetch('/api/submit-exam', {
@@ -1900,6 +1913,7 @@
             data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Submission failed');
         } catch(err) {
+            if (overlay) overlay.style.display = 'none';
             alert(err.message + '. Please notify your faculty invigilator.');
             return;
         }
@@ -1919,6 +1933,8 @@
             const camBox = document.getElementById('camContainer');
             if (camBox) camBox.style.display = 'none';
         } catch(e) {}
+
+        if (overlay) overlay.style.display = 'none';
 
         // Hide CBT exam screen and display official Submission Receipt
         const examScr = document.getElementById('exam-screen');
