@@ -641,18 +641,30 @@
         if (camBox) camBox.classList.add('violating');
         if (banner) { banner.style.display = 'block'; banner.innerText = `VIOLATION: ${reason} (Strike ${cheatCount}/3)`; }
         pendingViolation = { reason, strike: cheatCount };
-        showViolationModal(reason, cheatCount); takeSnapshot();
-        try { await fetch('/api/log-cheat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ studentId: studentData.collegeId, rollNo: studentData.rollNo, reason, strike: cheatCount }) }); } catch(e) {}
+        showViolationModal(reason, cheatCount);
+        takeSnapshot(reason, cheatCount);
+        try { await fetch('/api/log-cheat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ studentId: studentData.collegeId, rollNo: studentData.rollNo, subject: studentData.subject, reason, strike: cheatCount }) }); } catch(e) {}
         if (cheatCount >= 3) { setTimeout(() => { alert("3 VIOLATIONS REACHED!\nExam locked and auto-submitted."); window.submitExam(); }, 800); }
         setTimeout(() => { if (banner) banner.style.display = 'none'; if (camBox) camBox.classList.remove('violating'); }, 5000);
     }
 
-    function takeSnapshot() {
+    function takeSnapshot(reason, strike) {
         const video = document.getElementById('video'); if (!video || !video.videoWidth) return;
         const canvas = document.createElement('canvas'); canvas.width = video.videoWidth; canvas.height = video.videoHeight;
         canvas.getContext('2d').drawImage(video, 0, 0);
         const data = canvas.toDataURL('image/jpeg', 0.6);
-        fetch('/api/upload-snapshot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ studentId: `${studentData.rollNo}_${studentData.subject}`, image: data }) }).catch(() => {});
+        fetch('/api/upload-snapshot', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                studentId: `${studentData.rollNo}_${studentData.subject}`,
+                rollNo: studentData.rollNo,
+                subject: studentData.subject,
+                reason: reason || 'Periodic Surveillance Snapshot',
+                strike: strike || 0,
+                image: data
+            })
+        }).catch(() => {});
     }
 
     window.submitExam = async function() {

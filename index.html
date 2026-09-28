@@ -1138,10 +1138,49 @@
             </div>
             <h4 style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:12px;">Subject-wise Marks &amp; Exam Status</h4>
             <div id="modalMarksTable"></div>
+
+            <!-- AI PROCTORING SURVEILLANCE & CAMERA CAPTURES -->
+            <div style="margin-top:24px;border-top:1.5px solid #e2e8f0;padding-top:16px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+                    <div>
+                        <h4 style="font-size:14px;font-weight:700;color:#0f172a;margin:0;display:flex;align-items:center;gap:6px;">
+                            <svg class="icon-svg" style="width:16px;height:16px;color:#dc2626;" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                            AI Proctoring Camera Photos &amp; Suspicious Activity Captures
+                        </h4>
+                        <p style="font-size:12px;color:#64748b;margin:2px 0 0;">Automatic webcam photos taken whenever strikes occur (tab switch, looking away, multiple faces) or periodically.</p>
+                    </div>
+                    <span id="modalSnapshotsBadge" style="font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:20px;background:#fef2f2;color:#991b1b;border:1px solid #fecaca;">
+                        0 Snapshots
+                    </span>
+                </div>
+                <div id="modalSnapshotsContainer" style="margin-top:10px;">
+                    <div style="color:#94a3b8;font-size:12.5px;text-align:center;padding:16px;">Loading camera captures…</div>
+                </div>
+            </div>
         </div>
         <div class="report-modal-footer">
             <button type="button" onclick="window.print()" class="btn btn-outline btn-sm">Print / Save PDF</button>
             <button type="button" onclick="closeStudentReport()" class="btn btn-blue btn-sm">Close Transcript</button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== 6. SNAPSHOT LIGHTBOX MODAL ==================== -->
+<div id="snapshotLightboxModal" class="report-modal-backdrop" onclick="if(event.target===this) closeSnapshotLightbox()" style="z-index:9999;">
+    <div class="report-modal" style="max-width:680px;">
+        <div class="report-modal-header" style="background:#0f172a;color:#fff;">
+            <div>
+                <h3 id="lightboxTitle" style="color:#fff;">Camera Evidence Capture</h3>
+                <p id="lightboxSub" style="color:#94a3b8;">Timestamp: — &bull; Roll No: —</p>
+            </div>
+            <button type="button" class="report-close-btn" onclick="closeSnapshotLightbox()" style="color:#fff;">&times;</button>
+        </div>
+        <div class="report-modal-body" style="text-align:center;padding:16px;background:#0b1322;">
+            <img id="lightboxImg" src="" alt="Proctoring Snapshot" style="max-width:100%;max-height:70vh;border-radius:8px;border:1.5px solid rgba(255,255,255,0.2);box-shadow:0 12px 30px rgba(0,0,0,0.5);">
+        </div>
+        <div class="report-modal-footer">
+            <a id="lightboxDownloadBtn" href="" download="snapshot.jpg" class="btn btn-outline btn-sm">Download Photo</a>
+            <button type="button" onclick="closeSnapshotLightbox()" class="btn btn-blue btn-sm">Close Preview</button>
         </div>
     </div>
 </div>
@@ -1811,6 +1850,9 @@
 
             const modal = document.getElementById('studentMarksModal');
             if (modal) modal.classList.add('active');
+
+            // Load and display camera snapshots and violation logs
+            loadStudentSnapshots(rollNo);
         } catch (e) {
             alert("Failed to load student scorecard.");
         }
@@ -1818,6 +1860,92 @@
 
     window.closeStudentReport = () => {
         const modal = document.getElementById('studentMarksModal');
+        if (modal) modal.classList.remove('active');
+    };
+
+    window.loadStudentSnapshots = async (rollNo) => {
+        const container = document.getElementById('modalSnapshotsContainer');
+        const badge = document.getElementById('modalSnapshotsBadge');
+        if (!container) return;
+        container.innerHTML = '<div style="color:#64748b;font-size:12.5px;text-align:center;padding:14px;">Loading camera captures…</div>';
+        try {
+            const res = await fetch(`/api/student-snapshots?rollNo=${encodeURIComponent(rollNo)}`);
+            const data = await res.json();
+            const snapshots = data.snapshots || [];
+            const logs = data.logs || [];
+            if (badge) badge.innerText = `${snapshots.length} Photo${snapshots.length === 1 ? '' : 's'} Captured`;
+
+            if (!snapshots.length && !logs.length) {
+                container.innerHTML = `
+                    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:16px;text-align:center;color:#166534;font-size:13px;">
+                        <svg class="icon-svg" style="width:16px;height:16px;margin-right:4px;" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        <strong>Clean Integrity Record:</strong> No strikes, tab switches, or suspicious webcam captures recorded for candidate <strong>${rollNo}</strong>.
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            if (logs.length) {
+                html += `
+                    <div style="margin-bottom:14px;">
+                        <div style="font-size:12px;font-weight:700;color:#991b1b;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em;">Recorded Suspicious Events &amp; Strikes (${logs.length}):</div>
+                        <div style="display:flex;flex-direction:column;gap:6px;max-height:140px;overflow-y:auto;">
+                            ${logs.map(l => `
+                                <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:6px 12px;font-size:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+                                    <div>
+                                        <span style="background:#dc2626;color:#fff;padding:1px 6px;border-radius:4px;font-weight:700;font-size:10.5px;margin-right:6px;">Strike ${l.strike || 1}</span>
+                                        <strong style="color:#7f1d1d;">${escapeHtml(l.reason || 'Unusual activity')}</strong>
+                                    </div>
+                                    <span style="color:#64748b;font-size:11px;">${new Date(l.time).toLocaleTimeString()}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (snapshots.length) {
+                html += `
+                    <div style="font-size:12px;font-weight:700;color:#0f172a;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em;">Camera Evidence Photos (${snapshots.length}) — Click to view:</div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(130px, 1fr));gap:10px;">
+                        ${snapshots.map((s, idx) => `
+                            <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px;padding:6px;text-align:center;cursor:pointer;transition:transform 0.15s, box-shadow 0.15s;" 
+                                 onclick="openSnapshotLightbox('${s.url}', '${rollNo}', '${new Date(s.time).toLocaleString()}', 'Photo ${idx+1}')"
+                                 onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'"
+                                 onmouseout="this.style.transform='none';this.style.boxShadow='none'">
+                                <img src="${s.url}" alt="Capture ${idx+1}" style="width:100%;height:85px;object-fit:cover;border-radius:5px;background:#000;display:block;">
+                                <div style="font-size:10.5px;color:#64748b;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                    ${new Date(s.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'})}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        } catch(e) {
+            container.innerHTML = '<div style="color:#dc2626;font-size:12.5px;padding:10px;">Failed to load camera captures.</div>';
+        }
+    };
+
+    window.openSnapshotLightbox = (imgUrl, rollNo, timeStr, title) => {
+        const modal = document.getElementById('snapshotLightboxModal');
+        const img = document.getElementById('lightboxImg');
+        const titleEl = document.getElementById('lightboxTitle');
+        const subEl = document.getElementById('lightboxSub');
+        const downloadBtn = document.getElementById('lightboxDownloadBtn');
+        if (!modal || !img) return;
+        img.src = imgUrl;
+        if (titleEl) titleEl.innerText = title || "Camera Evidence Capture";
+        if (subEl) subEl.innerText = `Roll No: ${rollNo} • Captured: ${timeStr}`;
+        if (downloadBtn) downloadBtn.href = imgUrl;
+        modal.classList.add('active');
+    };
+
+    window.closeSnapshotLightbox = () => {
+        const modal = document.getElementById('snapshotLightboxModal');
         if (modal) modal.classList.remove('active');
     };
 

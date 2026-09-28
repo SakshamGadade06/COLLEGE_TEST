@@ -16,6 +16,7 @@ const questionsDir = path.join(ROOT, 'questions_by_subject');
 const uploadsDir = path.join(ROOT, 'uploads', 'questions');
 const snapshotsDir = path.join(ROOT, 'snapshots');
 const examStatusFile = path.join(ROOT, 'exam_status.json');
+const cheatLogsFile = path.join(ROOT, 'cheat_logs.json');
 const EXAM_MS = 120 * 60 * 1000;
 const SESSION_MS = 8 * 60 * 60 * 1000;
 const sessions = new Map();
@@ -679,16 +680,95 @@ app.get('/api/get-submissions', staff('HOD', 'CLASS_TEACHER', 'FACULTY'), ownSub
     res.json(req.query.subject ? all.filter(s => s.subject === req.query.subject) : all);
 });
 app.post('/api/log-cheat', student, (req, res) => {
-    logs.unshift({ rollNo: req.student.roll, reason: String(req.body.reason || '').slice(0, 150), time: new Date().toISOString() });
+    const reason = String(req.body.reason || 'Unusual activity detected').slice(0, 150);
+    const strike = Number(req.body.strike) || 1;
+    const entry = {
+        id: token().slice(0, 10),
+        rollNo: req.student.roll,
+        subject: req.student.subject,
+        reason,
+        strike,
+        time: new Date().toISOString()
+    };
+    logs.unshift(entry);
+    const persistentLogs = readJSON(cheatLogsFile, []);
+    persistentLogs.unshift(entry);
+    writeJSON(cheatLogsFile, persistentLogs);
     res.sendStatus(200);
 });
+
 app.post('/api/upload-snapshot', student, (req, res) => {
     const image = req.body.image;
     if (typeof image !== 'string' || !/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(image))
         return res.sendStatus(400);
-    const dir = path.join(snapshotsDir, req.student.subject + '_' + req.student.roll);
+    const folder = req.student ? `${req.student.subject}_${req.student.roll}` : String(req.body.studentId || 'unknown').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const dir = path.join(snapshotsDir, folder);
     fs.mkdirSync(dir, { recursive: true });
-    fs.writeFile(path.join(dir, Date.now() + '.jpg'), image.split(',')[1], 'base64', () => res.sendStatus(200));
+    const filename = Date.now() + '.jpg';
+    fs.writeFile(path.join(dir, filename), image.split(',')[1], 'base64', () => {
+        if (req.body.reason) {
+            const entry = {
+                id: token().slice(0, 10),
+                rollNo: req.student?.roll || req.body.rollNo,
+                subject: req.student?.subject || req.body.subject,
+                reason: String(req.body.reason).slice(0, 150),
+                strike: Number(req.body.strike) || 1,
+                snapshot: filename,
+                folder,
+                time: new Date().toISOString()
+            };
+            logs.unshift(entry);
+            const persistentLogs = readJSON(cheatLogsFile, []);
+            persistentLogs.unshift(entry);
+            writeJSON(cheatLogsFile, persistentLogs);
+        }
+        res.sendStatus(200);
+    });
+});
+
+app.get('/api/student-snapshots', staff('HOD', 'FACULTY', 'CLASS_TEACHER'), (req, res) => {
+    const roll = String(req.query.rollNo || '').trim().toUpperCase();
+    if (!roll) return res.status(400).json({ error: 'Roll number required' });
+
+    const snapshots = [];
+    try {
+        const allDirs = fs.readdirSync(snapshotsDir);
+        for (const dir of allDirs) {
+            const upper = dir.toUpperCase();
+            if (upper.includes(roll)) {
+                const fullFolderPath = path.join(snapshotsDir, dir);
+                if (fs.statSync(fullFolderPath).isDirectory()) {
+                    const files = fs.readdirSync(fullFolderPath).filter(f => f.toLowerCase().endsWith('.jpg') || f.toLowerCase().endsWith('.png'));
+                    files.sort().reverse();
+                    files.forEach(f => {
+                        const stat = fs.statSync(path.join(fullFolderPath, f));
+                        snapshots.push({
+                            folder: dir,
+                            filename: f,
+                            url: `/api/snapshot-image?folder=${encodeURIComponent(dir)}&file=${encodeURIComponent(f)}`,
+                            time: stat.mtime.toISOString(),
+                            size: stat.size
+                        });
+                    });
+                }
+            }
+        }
+    } catch(e) {}
+
+    const persistentLogs = readJSON(cheatLogsFile, []);
+    const studentLogs = persistentLogs.filter(l => l.rollNo && l.rollNo.toUpperCase() === roll);
+
+    res.json({ rollNo: roll, snapshots, logs: studentLogs, total: snapshots.length });
+});
+
+app.get('/api/snapshot-image', staff('HOD', 'FACULTY', 'CLASS_TEACHER'), (req, res) => {
+    const folder = path.basename(String(req.query.folder || ''));
+    const file = path.basename(String(req.query.file || ''));
+    if (!folder || !file) return res.sendStatus(400);
+    const target = path.join(snapshotsDir, folder, file);
+    if (!fs.existsSync(target)) return res.sendStatus(404);
+    res.setHeader('Content-Type', 'image/jpeg');
+    res.sendFile(target);
 });
 app.use((err, _req, res, _next) => res.status(400).json({ error: err.message || 'Invalid request' }));
 if (require.main === module) app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
