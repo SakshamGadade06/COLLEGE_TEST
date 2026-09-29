@@ -1516,6 +1516,205 @@ app.get('/api/live-invigilation', staff('HOD', 'FACULTY', 'CLASS_TEACHER'), (req
 
 // ============ ONE-CLICK EXCEL MARKSHEET EXPORT ============
 app.get('/api/export-marks-excel', staff('HOD', 'CLASS_TEACHER', 'FACULTY'), (req, res) => {
+    // ----------------------------------------------------
+    // 1. CLASS TEACHER EXPORT: Consolidated Subject-Wise Marksheet
+    // ----------------------------------------------------
+    if (req.staff.role === 'CLASS_TEACHER') {
+        const teacherClassRaw = (req.staff.className || '').trim();
+        const teacherDivRaw = (req.staff.division || '').trim();
+        // Server-side enforcement: determine the assigned division and class from the authenticated session
+        const teacherDiv = teacherDivRaw || (teacherClassRaw ? teacherClassRaw.split(/\s+/).pop() : '');
+        const teacherClass = teacherClassRaw || (teacherDiv ? `SY-AIML ${teacherDiv}` : 'SY-AIML');
+
+        const students = readJSON(studentsFile, []);
+        const submissions = readJSON(submissionsFile, []);
+
+        // Server-enforced scope: Include ONLY students from the Class Teacher's assigned class/division.
+        // We strictly ignore any division query parameter sent in the URL.
+        const classTeacherStudents = students.filter(s => {
+            const sDiv = (s.division || '').trim().toUpperCase();
+            const sClass = (s.className || '').trim().toUpperCase();
+            const tDivUpper = teacherDiv.toUpperCase();
+            const tClassUpper = teacherClass.toUpperCase();
+
+            // Extract student division from division field, or from end of className (e.g. "SY-AIML B" -> "B")
+            const derivedStudentDiv = sDiv || (sClass ? sClass.split(/\s+/).pop() : '');
+
+            // 1. If teacher division is known (e.g. "B") and student division is known, they MUST match
+            if (tDivUpper && derivedStudentDiv) {
+                return derivedStudentDiv === tDivUpper;
+            }
+
+            // 2. Exact class name match (e.g. "SY-AIML B" === "SY-AIML B")
+            if (tClassUpper && sClass && sClass === tClassUpper) {
+                return true;
+            }
+
+            // 3. Fallback: check if student's class name ends with teacher's division
+            if (tDivUpper && sClass && sClass.endsWith(' ' + tDivUpper)) {
+                return true;
+            }
+
+            return false;
+        });
+
+        // Deduplicate students by roll number and sort naturally
+        const seenRolls = new Set();
+        const uniqueCTStudents = [];
+        for (const st of classTeacherStudents) {
+            const r = (st.rollNo || '').trim().toUpperCase();
+            if (!r || seenRolls.has(r)) continue;
+            seenRolls.add(r);
+            uniqueCTStudents.push(st);
+        }
+        uniqueCTStudents.sort((a, b) => (a.rollNo || '').localeCompare(b.rollNo || '', undefined, { numeric: true }));
+
+        // Dynamic subject discovery: Collect every configured or recorded subject across exams, faculty, questions, submissions & settings
+        const subjectsSet = new Set();
+
+        const exams = getExamsList();
+        exams.forEach(e => {
+            if (e.subject && typeof e.subject === 'string' && e.subject.trim()) {
+                subjectsSet.add(e.subject.trim());
+            }
+        });
+
+        const users = readJSON(usersFile, []);
+        users.forEach(u => {
+            if (u.subject && typeof u.subject === 'string' && u.subject.trim()) {
+                subjectsSet.add(u.subject.trim());
+            }
+        });
+
+        try {
+            if (fs.existsSync(questionsDir)) {
+                fs.readdirSync(questionsDir).forEach(f => {
+                    if (f.endsWith('.json')) {
+                        const subName = path.basename(f, '.json').trim();
+                        if (subName) subjectsSet.add(subName);
+                    }
+                });
+            }
+        } catch (e) {}
+
+        submissions.forEach(s => {
+            if (s.subject && typeof s.subject === 'string' && s.subject.trim()) {
+                subjectsSet.add(s.subject.trim());
+            }
+        });
+
+        const settings = readJSON(settingsFile, {});
+        if (settings.subjectMarks && typeof settings.subjectMarks === 'object') {
+            Object.keys(settings.subjectMarks).forEach(k => {
+                if (k && k.trim()) subjectsSet.add(k.trim());
+            });
+        }
+
+        const subjectList = Array.from(subjectsSet).sort((a, b) => a.localeCompare(b));
+
+        // Rule: If a student has multiple submissions for one subject, use the latest submission by timestamp
+        function getLatestSubmission(subs) {
+            if (!subs || !subs.length) return null;
+            return subs.slice().sort((a, b) => {
+                const timeA = a.time ? new Date(a.time).getTime() : 0;
+                const timeB = b.time ? new Date(b.time).getTime() : 0;
+                return timeB - timeA; // Descending: latest timestamp first
+            })[0];
+        }
+
+        // Build Excel worksheet rows with standard institutional header
+        const rows = [
+            ['G. H. RAISONI COLLEGE OF ENGINEERING AND MANAGEMENT, PUNE'],
+            ['(An Autonomous Institute Affiliated to Savitribai Phule Pune University)'],
+            ['DEPARTMENT OF COMPUTER ENGINEERING & ARTIFICIAL INTELLIGENCE'],
+            ['AUTONOMOUS EXAMINATION OFFICIAL MARKSHEET & GAZETTE'],
+            [`Subject: ALL | Academic Year: 2026-2027 | Class: ${teacherClass} | Division: ${teacherDiv || 'All'} | Export Date: ${new Date().toLocaleDateString()}`],
+            [],
+            [
+                'Roll Number',
+                'Candidate Full Name',
+                'Class',
+                'Division',
+                ...subjectList
+            ]
+        ];
+
+        uniqueCTStudents.forEach(st => {
+            const rollUpper = (st.rollNo || '').trim().toUpperCase();
+            const studentRow = [
+                st.rollNo,
+                st.name,
+                st.className || teacherClass,
+                st.division || teacherDiv
+            ];
+
+            subjectList.forEach(subName => {
+                const matches = submissions.filter(s =>
+                    s.rollNo && s.rollNo.trim().toUpperCase() === rollUpper &&
+                    s.subject && s.subject.trim().toUpperCase() === subName.toUpperCase()
+                );
+
+                const latestSub = getLatestSubmission(matches);
+
+                if (latestSub) {
+                    // Determine maximum marks
+                    let maxMarks = latestSub.total !== undefined ? latestSub.total : null;
+                    if (maxMarks === null && latestSub.score && typeof latestSub.score === 'string' && latestSub.score.includes('/')) {
+                        const parts = latestSub.score.split('/');
+                        maxMarks = Number(parts[1]);
+                    }
+                    if (maxMarks === null || isNaN(maxMarks)) {
+                        const ex = exams.find(e => e.subject && e.subject.toUpperCase() === subName.toUpperCase());
+                        maxMarks = ex && ex.totalMarks ? ex.totalMarks : 20;
+                    }
+
+                    // Determine obtained marks (preserving 0 as a valid score)
+                    let rawScore = null;
+                    if (latestSub.rawScore !== undefined && latestSub.rawScore !== null) {
+                        rawScore = Number(latestSub.rawScore);
+                    } else if (latestSub.score && typeof latestSub.score === 'string' && latestSub.score.includes('/')) {
+                        rawScore = Number(latestSub.score.split('/')[0]);
+                    } else if (latestSub.score !== undefined && latestSub.score !== null) {
+                        rawScore = Number(latestSub.score);
+                    }
+
+                    if (rawScore !== null && !isNaN(rawScore)) {
+                        studentRow.push(`${rawScore}/${maxMarks}`);
+                    } else {
+                        studentRow.push('—');
+                    }
+                } else {
+                    studentRow.push('—');
+                }
+            });
+
+            rows.push(studentRow);
+        });
+
+        const ws = xlsx.utils.aoa_to_sheet(rows);
+        const colWidths = [
+            { wch: 15 },
+            { wch: 28 },
+            { wch: 14 },
+            { wch: 10 }
+        ];
+        subjectList.forEach(() => colWidths.push({ wch: 14 }));
+        ws['!cols'] = colWidths;
+
+        const wb = xlsx.utils.book_new();
+        xlsx.utils.book_append_sheet(wb, ws, 'Official_Marksheet');
+
+        const buffer = xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
+        const cleanFilename = `Raisoni_ALL_Marksheet_${teacherDiv || 'ALL'}.xlsx`;
+
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename="${cleanFilename}"`);
+        return res.send(buffer);
+    }
+
+    // ----------------------------------------------------
+    // 2. HOD & FACULTY EXPORT: Single-Subject Detailed Marksheet (Unchanged)
+    // ----------------------------------------------------
     const sub = String(req.query.subject || (req.staff.role === 'FACULTY' ? req.staff.subject : 'DSA')).trim();
     const divFilter = String(req.query.division || '').trim().toUpperCase();
 
