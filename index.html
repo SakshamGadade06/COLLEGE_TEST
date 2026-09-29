@@ -1048,7 +1048,14 @@
                 <svg class="icon-svg" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
                 All Subject Exams
             </div>
-            <div class="sidebar-section">Governance &amp; Audit</div>
+            <div class="sidebar-section">Governance &amp; Approvals</div>
+            <div class="sidebar-item" id="hod-nav-marks-requests" onclick="showHodTab('marks-requests')" style="display:flex;align-items:center;justify-content:space-between;">
+                <span style="display:flex;align-items:center;gap:10px;">
+                    <svg class="icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+                    Marks Requests
+                </span>
+                <span id="hod-pending-requests-badge" style="display:none;background:#f59e0b;color:#fff;font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:9999px;">0</span>
+            </div>
             <div class="sidebar-item" id="hod-nav-audit" onclick="showHodTab('audit')">
                 <svg class="icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
                 Audit &amp; Activity Trail
@@ -1365,6 +1372,33 @@
                 </div>
             </div>
 
+            <!-- TAB: HOD MARKS REQUESTS -->
+            <div id="hod-marks-requests" class="tab-content">
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+                        <div>
+                            <h3 style="margin-bottom:4px;display:flex;align-items:center;gap:8px;">
+                                <svg class="icon-svg" style="color:#1e40af;" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+                                Faculty Marks Alteration Proposals &amp; Approval Queue
+                            </h3>
+                            <p style="margin:0;color:#64748b;font-size:13px;">Review faculty-submitted score modification proposals. Alterations take effect on official student scorecards and gazettes only upon HOD approval.</p>
+                        </div>
+                        <div style="display:flex;gap:10px;align-items:center;">
+                            <select id="hodMarksReqFilter" class="input-field" style="width:auto;margin:0;padding:6px 12px;font-size:12.5px;" onchange="filterHodMarksRequests()">
+                                <option value="PENDING" selected>⏳ Pending Review</option>
+                                <option value="APPROVED">✅ Approved</option>
+                                <option value="REJECTED">❌ Rejected</option>
+                                <option value="ALL">All Proposals</option>
+                            </select>
+                            <button type="button" onclick="loadHodMarksRequests()" class="btn btn-outline btn-sm">↺ Refresh Proposals</button>
+                        </div>
+                    </div>
+                    <div id="hodMarksRequestsContainer" style="margin-top:12px;overflow-x:auto;">
+                        <div style="color:#64748b;font-size:13px;padding:24px;text-align:center;">Loading marks change proposals…</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- TAB: HOD AUDIT TRAIL -->
             <div id="hod-audit" class="tab-content">
                 <div class="card">
@@ -1563,6 +1597,10 @@
             <div class="sidebar-item" id="fac-nav-marks" onclick="showFacTab('marks')">
                 <svg class="icon-svg" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
                 Results &amp; Disclosure
+            </div>
+            <div class="sidebar-item" id="fac-nav-requests" onclick="showFacTab('requests')">
+                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+                Marks Proposals
             </div>
             <div class="sidebar-spacer"></div>
             <div class="sidebar-item" style="color:#fca5a5;" onclick="logoutStaff()">
@@ -1883,6 +1921,27 @@
                     <div id="fac-results-table"></div>
                 </div>
             </div>
+
+            <!-- TAB: FACULTY MARKS PROPOSALS -->
+            <div id="fac-requests" class="tab-content">
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+                        <div>
+                            <h3 style="margin-bottom:4px;display:flex;align-items:center;gap:8px;">
+                                <svg class="icon-svg" style="color:#2563eb;" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+                                Marks Alteration Proposals &amp; HOD Review Status
+                            </h3>
+                            <p style="margin:0;color:#64748b;font-size:13px;">Track score modification proposals submitted for Head of Department review. Alterations apply to official student records only upon HOD approval.</p>
+                        </div>
+                        <div>
+                            <button type="button" onclick="loadFacultyMarksRequests()" class="btn btn-outline btn-sm">↺ Refresh Proposals</button>
+                        </div>
+                    </div>
+                    <div id="facMarksRequestsContainer" style="margin-top:12px;overflow-x:auto;">
+                        <div style="color:#64748b;font-size:13px;padding:24px;text-align:center;">Loading submitted marks alteration proposals…</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -1985,6 +2044,11 @@
             <button type="button" class="report-close-btn" onclick="closeEditMarksModal()" style="color:#fff;">&times;</button>
         </div>
         <div class="report-modal-body" style="padding:20px;">
+            <!-- Institutional Governance Notice -->
+            <div id="editMarksGovernanceNotice" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#1e40af;">
+                <strong>🏛️ Institutional Governance Protocol:</strong> Submitting this form proposes a score change. Official student scorecards, gazettes, and exports will update <strong>only after Head of Department (HOD) review and approval</strong>.
+            </div>
+
             <!-- Current score info callout -->
             <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
                 <div>
@@ -2509,6 +2573,7 @@
         loadHodStaffList();
         loadHodDirectoryList();
         loadHodSubmissionsCount();
+        loadHodMarksRequests();
     };
 
     window.loadHodStaffList = async () => {
@@ -2597,6 +2662,7 @@
             'create-hod': 'Create Academic Administrator',
             'live': 'Live Hall Invigilation Monitor',
             'exams': 'All Subject Exams & Assessment',
+            'marks-requests': 'Pending Faculty Marks Proposals',
             'audit': 'Audit & Governance Trail',
             'settings': 'Academic Controls & Exam Settings'
         };
@@ -2607,6 +2673,7 @@
         if (tab === 'students') loadStudentRoster('HOD');
         if (tab === 'create-hod') loadHodDirectoryList();
         if (tab === 'exams') { viewSubjectMarks('HOD'); loadHodExamStatuses(); }
+        if (tab === 'marks-requests') loadHodMarksRequests();
         if (tab === 'audit') loadHodAuditLogs();
         if (tab === 'live') {
             loadLiveInvigilation('HOD');
@@ -3424,6 +3491,14 @@
         document.getElementById('editMarksSubject').value = subject;
         document.getElementById('editMarksOriginalScore').value = currentRawScore !== undefined ? currentRawScore : 0;
 
+        const isFaculty = currentUser?.role === 'FACULTY';
+        const titleEl = document.getElementById('editMarksTitle');
+        if (titleEl) {
+            titleEl.innerHTML = isFaculty
+                ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Propose Score Alteration (Requires HOD Approval)`
+                : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Administrative Score Adjustment / Direct Override`;
+        }
+
         const subTitle = document.getElementById('editMarksSubtitle');
         if (subTitle) subTitle.innerText = `Candidate: ${studentName || rollNo}  •  Roll No: ${rollNo}  •  Subject: ${subject}`;
 
@@ -3438,6 +3513,16 @@
 
         const reasonInput = document.getElementById('editMarksReason');
         if (reasonInput) reasonInput.value = '';
+
+        const noticeEl = document.getElementById('editMarksGovernanceNotice');
+        if (noticeEl) {
+            noticeEl.style.display = isFaculty ? 'block' : 'none';
+        }
+
+        const submitBtn = document.getElementById('saveMarksSubmitBtn');
+        if (submitBtn) {
+            submitBtn.innerText = isFaculty ? 'Submit Proposal for HOD Approval' : 'Save & Update Marks (HOD Override)';
+        }
 
         const errEl = document.getElementById('editMarksError');
         if (errEl) errEl.style.display = 'none';
@@ -3479,32 +3564,57 @@
         const subject = document.getElementById('editMarksSubject')?.value;
         const newScore = document.getElementById('editMarksNewScore')?.value;
         const total = document.getElementById('editMarksTotal')?.value;
-        const reason = document.getElementById('editMarksReason')?.value;
+        const reason = document.getElementById('editMarksReason')?.value?.trim();
         const btn = document.getElementById('saveMarksSubmitBtn');
         const errEl = document.getElementById('editMarksError');
 
         if (errEl) errEl.style.display = 'none';
-        if (btn) { btn.disabled = true; btn.innerText = 'Saving…'; }
+
+        if (!reason || reason.length < 5) {
+            if (errEl) {
+                errEl.innerText = "Please provide a meaningful reason / justification (minimum 5 characters).";
+                errEl.style.display = 'block';
+            }
+            return;
+        }
+
+        const isFaculty = currentUser?.role === 'FACULTY';
+        if (btn) { btn.disabled = true; btn.innerText = isFaculty ? 'Submitting Proposal…' : 'Saving…'; }
 
         try {
-            const res = await fetch('/api/edit-student-marks', {
+            const endpoint = isFaculty ? '/api/request-marks-change' : '/api/edit-student-marks';
+            const payload = isFaculty ? {
+                rollNo,
+                subject,
+                proposedScore: Number(newScore),
+                totalMarks: Number(total),
+                reason
+            } : {
+                rollNo,
+                subject,
+                rawScore: Number(newScore),
+                total: Number(total),
+                reason
+            };
+
+            const res = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    rollNo,
-                    subject,
-                    rawScore: Number(newScore),
-                    total: Number(total),
-                    reason: reason || 'Score adjusted by faculty'
-                })
+                body: JSON.stringify(payload)
             });
             const data = await res.json();
             if (!res.ok || !data.success) {
-                throw new Error(data.error || 'Failed to update marks');
+                throw new Error(data.error || 'Failed to submit marks change');
             }
 
             closeEditMarksModal();
-            showToast(data.message || 'Marks updated successfully!', 'success');
+            showToast(data.message || (isFaculty ? 'Marks alteration proposal submitted for HOD review!' : 'Marks updated successfully!'), 'success');
+
+            if (isFaculty) {
+                if (typeof loadFacultyMarksRequests === 'function') loadFacultyMarksRequests();
+            } else {
+                if (typeof loadHodMarksRequests === 'function') loadHodMarksRequests();
+            }
 
             if (typeof loadStudentRoster === 'function') {
                 if (currentUser?.role === 'FACULTY') loadStudentRoster('FAC');
@@ -3519,18 +3629,293 @@
             }
         } catch(err) {
             if (errEl) {
-                errEl.innerText = err.message || 'Failed to update marks';
+                errEl.innerText = err.message || 'Failed to submit marks change';
                 errEl.style.display = 'block';
             } else {
-                showToast(err.message || 'Failed to update marks', 'error');
+                showToast(err.message || 'Failed to submit marks change', 'error');
             }
         } finally {
-            if (btn) { btn.disabled = false; btn.innerText = 'Save & Update Marks'; }
+            if (btn) { btn.disabled = false; btn.innerText = isFaculty ? 'Submit Proposal for HOD Approval' : 'Save & Update Marks (HOD Override)'; }
         }
     };
 
     window.openCheatingEvidenceModal = (rollNo, studentName, subject) => {
         openStudentReport(rollNo, true);
+    };
+
+    // ============ HOD MARKS REQUESTS ============
+    let currentHodMarksRequests = [];
+
+    window.loadHodMarksRequests = async () => {
+        const container = document.getElementById('hodMarksRequestsContainer');
+        const badge = document.getElementById('hod-pending-requests-badge');
+        if (!container && !badge) return;
+
+        try {
+            const res = await fetch('/api/marks-requests');
+            const data = await res.json();
+            currentHodMarksRequests = data.requests || [];
+
+            const pendingCount = data.pendingCount || 0;
+            if (badge) {
+                badge.innerText = pendingCount;
+                badge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+            }
+
+            if (container) filterHodMarksRequests();
+        } catch (err) {
+            console.error('Failed to load marks requests:', err);
+            if (container) container.innerHTML = `<div style="color:#dc2626;padding:20px;text-align:center;">Failed to load marks proposals: ${err.message}</div>`;
+        }
+    };
+
+    window.filterHodMarksRequests = () => {
+        const container = document.getElementById('hodMarksRequestsContainer');
+        const filterVal = document.getElementById('hodMarksReqFilter')?.value || 'PENDING';
+        if (!container) return;
+
+        let filtered = currentHodMarksRequests;
+        if (filterVal !== 'ALL') {
+            filtered = currentHodMarksRequests.filter(r => r.status === filterVal);
+        }
+
+        if (!filtered.length) {
+            container.innerHTML = `
+                <div style="text-align:center;padding:40px 20px;color:#64748b;background:#f8fafc;border-radius:8px;border:1px dashed #cbd5e1;">
+                    <div style="font-size:28px;margin-bottom:8px;">📋</div>
+                    <strong style="color:#334155;font-size:14px;">No ${filterVal === 'ALL' ? '' : filterVal.toLowerCase()} marks alteration proposals</strong>
+                    <p style="margin:4px 0 0;font-size:12.5px;">All marks alteration requests submitted by faculty will appear here for review and decision.</p>
+                </div>
+            `;
+            return;
+        }
+
+        let html = `
+            <table class="table" style="font-size:12.5px;width:100%;border-collapse:collapse;">
+                <thead>
+                    <tr style="background:#f1f5f9;text-align:left;color:#475569;font-size:11.5px;text-transform:uppercase;letter-spacing:0.04em;">
+                        <th style="padding:10px 12px;">Candidate</th>
+                        <th style="padding:10px 12px;">Subject</th>
+                        <th style="padding:10px 12px;">Recorded → Proposed</th>
+                        <th style="padding:10px 12px;">Faculty Justification</th>
+                        <th style="padding:10px 12px;">Proposed By</th>
+                        <th style="padding:10px 12px;">Status</th>
+                        <th style="padding:10px 12px;text-align:right;">Governance Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        filtered.forEach(reqItem => {
+            let statusBadge = '';
+            if (reqItem.status === 'PENDING') {
+                statusBadge = '<span style="background:#fef3c7;color:#92400e;font-weight:700;padding:3px 8px;border-radius:9999px;font-size:11px;">⏳ Pending HOD Review</span>';
+            } else if (reqItem.status === 'APPROVED') {
+                statusBadge = '<span style="background:#dcfce7;color:#15803d;font-weight:700;padding:3px 8px;border-radius:9999px;font-size:11px;">✅ Approved</span>';
+            } else if (reqItem.status === 'REJECTED') {
+                statusBadge = '<span style="background:#fee2e2;color:#991b1b;font-weight:700;padding:3px 8px;border-radius:9999px;font-size:11px;">❌ Rejected</span>';
+            } else if (reqItem.status === 'CONFLICT') {
+                statusBadge = '<span style="background:#fee2e2;color:#991b1b;font-weight:700;padding:3px 8px;border-radius:9999px;font-size:11px;">⚠️ Stale Conflict</span>';
+            }
+
+            const diff = reqItem.proposedScore - reqItem.currentScore;
+            const diffTag = diff > 0 
+                ? `<span style="color:#16a34a;font-weight:700;">(+${diff})</span>`
+                : (diff < 0 ? `<span style="color:#dc2626;font-weight:700;">(${diff})</span>` : '<span style="color:#64748b;">(0)</span>');
+
+            const isPubTag = reqItem.isCurrentlyPublished
+                ? `<div style="display:inline-block;margin-top:3px;background:#fef2f2;color:#991b1b;border:1px solid #fecaca;padding:2px 6px;border-radius:4px;font-size:10.5px;font-weight:700;">⚠️ Published Gazette</div>`
+                : '';
+
+            const conflictNotice = reqItem.hasConflict
+                ? `<div style="margin-top:4px;color:#dc2626;font-size:11px;font-weight:700;">⚠️ Live score changed to ${reqItem.liveScoreDisplay}</div>`
+                : '';
+
+            let actionCol = '';
+            if (reqItem.status === 'PENDING') {
+                actionCol = `
+                    <div style="display:flex;gap:6px;justify-content:flex-end;">
+                        <button type="button" class="btn btn-sm" style="background:#16a34a;color:#fff;padding:4px 10px;font-size:11.5px;font-weight:700;border-radius:5px;" onclick="approveMarksRequest('${reqItem.id}', ${reqItem.isCurrentlyPublished})">
+                            Approve
+                        </button>
+                        <button type="button" class="btn btn-outline btn-sm" style="color:#dc2626;border-color:#fca5a5;padding:4px 10px;font-size:11.5px;font-weight:700;border-radius:5px;" onclick="rejectMarksRequest('${reqItem.id}')">
+                            Reject
+                        </button>
+                    </div>
+                `;
+            } else if (reqItem.status === 'APPROVED') {
+                actionCol = `<div style="font-size:11px;color:#64748b;text-align:right;">By: ${escapeHtml(reqItem.approvedByName || 'HOD')}<br>${new Date(reqItem.approvedAt).toLocaleDateString()}</div>`;
+            } else if (reqItem.status === 'REJECTED') {
+                actionCol = `<div style="font-size:11px;color:#dc2626;text-align:right;">"${escapeHtml(reqItem.rejectionReason || 'Rejected')}"<br><span style="color:#64748b;">By: ${escapeHtml(reqItem.rejectedByName || 'HOD')}</span></div>`;
+            } else {
+                actionCol = `<div style="font-size:11px;color:#64748b;text-align:right;">Conflict detected</div>`;
+            }
+
+            html += `
+                <tr style="border-bottom:1px solid #e2e8f0;">
+                    <td style="padding:10px 12px;">
+                        <strong style="color:#0f172a;display:block;">${escapeHtml(reqItem.studentName)}</strong>
+                        <span style="font-family:monospace;font-size:11px;color:#64748b;">${reqItem.rollNo}</span>
+                    </td>
+                    <td style="padding:10px 12px;font-weight:700;color:#1e293b;">
+                        ${reqItem.subject}
+                        ${isPubTag}
+                    </td>
+                    <td style="padding:10px 12px;">
+                        <span style="color:#64748b;font-weight:600;">${reqItem.currentScoreDisplay}</span>
+                        &rarr;
+                        <strong style="color:#0f172a;font-size:13.5px;">${reqItem.proposedScoreDisplay}</strong>
+                        ${diffTag}
+                        ${conflictNotice}
+                    </td>
+                    <td style="padding:10px 12px;max-width:240px;">
+                        <div style="color:#334155;font-size:12px;line-height:1.4;">${escapeHtml(reqItem.reason)}</div>
+                    </td>
+                    <td style="padding:10px 12px;">
+                        <span style="font-weight:600;color:#334155;">${escapeHtml(reqItem.requestedByName)}</span>
+                        <div style="font-size:10.5px;color:#64748b;">${new Date(reqItem.requestedAt).toLocaleString([], { dateStyle:'short', timeStyle:'short' })}</div>
+                    </td>
+                    <td style="padding:10px 12px;">${statusBadge}</td>
+                    <td style="padding:10px 12px;">${actionCol}</td>
+                </tr>
+            `;
+        });
+
+        html += `</tbody></table>`;
+        container.innerHTML = html;
+    };
+
+    window.approveMarksRequest = async (requestId, isPublished) => {
+        let confirmAmendment = false;
+        if (isPublished) {
+            const confirmed = confirm(
+                "⚠️ POST-PUBLICATION RESULT AMENDMENT\n\n" +
+                "Results for this subject are already published to students.\n" +
+                "Approving this request will modify the official examination record and log an official Gazette Amendment in the institutional audit trail.\n\n" +
+                "Do you authorize this official post-publication marks amendment?"
+            );
+            if (!confirmed) return;
+            confirmAmendment = true;
+        } else {
+            const confirmed = confirm("Are you sure you want to approve this marks alteration proposal and update the candidate's official score?");
+            if (!confirmed) return;
+        }
+
+        try {
+            const res = await fetch('/api/approve-marks-request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ requestId, confirmAmendment })
+            });
+            const data = await res.json();
+            if (!res.ok || !data.success) {
+                throw new Error(data.error || 'Failed to approve request');
+            }
+            showToast(data.message || 'Marks alteration approved successfully!', 'success');
+            loadHodMarksRequests();
+            if (typeof viewSubjectMarks === 'function') viewSubjectMarks('HOD');
+            if (typeof loadStudentRoster === 'function') loadStudentRoster('HOD');
+        } catch (err) {
+            alert("Approval Failed: " + err.message);
+        }
+    };
+
+    window.rejectMarksRequest = async (requestId) => {
+        const reason = prompt("Enter the reason for rejecting this marks alteration request (required for audit trail):");
+        if (reason === null) return;
+        if (!reason.trim() || reason.trim().length < 3) {
+            alert("A valid rejection reason (minimum 3 characters) is required.");
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/reject-marks-request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ requestId, reason: reason.trim() })
+            });
+            const data = await res.json();
+            if (!res.ok || !data.success) {
+                throw new Error(data.error || 'Failed to reject request');
+            }
+            showToast(data.message || 'Marks alteration request rejected.', 'success');
+            loadHodMarksRequests();
+        } catch (err) {
+            alert("Rejection Failed: " + err.message);
+        }
+    };
+
+    // ============ FACULTY MARKS REQUESTS ============
+    window.loadFacultyMarksRequests = async () => {
+        const container = document.getElementById('facMarksRequestsContainer');
+        if (!container) return;
+
+        try {
+            const res = await fetch('/api/marks-requests');
+            const data = await res.json();
+            const requests = data.requests || [];
+
+            if (!requests.length) {
+                container.innerHTML = `
+                    <div style="text-align:center;padding:40px 20px;color:#64748b;background:#f8fafc;border-radius:8px;border:1px dashed #cbd5e1;">
+                        <div style="font-size:28px;margin-bottom:8px;">📝</div>
+                        <strong style="color:#334155;font-size:14px;">No marks change proposals submitted</strong>
+                        <p style="margin:4px 0 0;font-size:12.5px;">To adjust or penalize a candidate score, use the 'Edit / Penalize' button on the Student Roster tab. Your proposal will be tracked here until reviewed by the HOD.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <table class="table" style="font-size:12.5px;width:100%;border-collapse:collapse;">
+                    <thead>
+                        <tr style="background:#f1f5f9;text-align:left;color:#475569;font-size:11.5px;text-transform:uppercase;letter-spacing:0.04em;">
+                            <th style="padding:10px 12px;">Candidate</th>
+                            <th style="padding:10px 12px;">Subject</th>
+                            <th style="padding:10px 12px;">Score Adjustment</th>
+                            <th style="padding:10px 12px;">Justification</th>
+                            <th style="padding:10px 12px;">Submitted</th>
+                            <th style="padding:10px 12px;">Review Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            requests.forEach(r => {
+                let statusBadge = '';
+                if (r.status === 'PENDING') {
+                    statusBadge = '<span style="background:#fef3c7;color:#92400e;font-weight:700;padding:3px 8px;border-radius:9999px;font-size:11px;">⏳ Awaiting HOD Review</span>';
+                } else if (r.status === 'APPROVED') {
+                    statusBadge = `<span style="background:#dcfce7;color:#15803d;font-weight:700;padding:3px 8px;border-radius:9999px;font-size:11px;">✅ Approved by ${escapeHtml(r.approvedByName || 'HOD')}</span>`;
+                } else if (r.status === 'REJECTED') {
+                    statusBadge = `<span style="background:#fee2e2;color:#991b1b;font-weight:700;padding:3px 8px;border-radius:9999px;font-size:11px;">❌ Rejected: ${escapeHtml(r.rejectionReason || '')}</span>`;
+                } else {
+                    statusBadge = '<span style="background:#fee2e2;color:#991b1b;font-weight:700;padding:3px 8px;border-radius:9999px;font-size:11px;">⚠️ Stale Conflict</span>';
+                }
+
+                html += `
+                    <tr style="border-bottom:1px solid #e2e8f0;">
+                        <td style="padding:10px 12px;">
+                            <strong style="color:#0f172a;">${escapeHtml(r.studentName)}</strong>
+                            <div style="font-family:monospace;font-size:11px;color:#64748b;">${r.rollNo}</div>
+                        </td>
+                        <td style="padding:10px 12px;font-weight:700;">${r.subject}</td>
+                        <td style="padding:10px 12px;">
+                            ${r.currentScoreDisplay} &rarr; <strong>${r.proposedScoreDisplay}</strong>
+                        </td>
+                        <td style="padding:10px 12px;max-width:260px;">${escapeHtml(r.reason)}</td>
+                        <td style="padding:10px 12px;font-size:11px;color:#64748b;">${new Date(r.requestedAt).toLocaleString([], { dateStyle:'short', timeStyle:'short' })}</td>
+                        <td style="padding:10px 12px;">${statusBadge}</td>
+                    </tr>
+                `;
+            });
+
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        } catch (err) {
+            console.error('Failed to load faculty marks requests:', err);
+            container.innerHTML = `<div style="color:#dc2626;padding:20px;text-align:center;">Failed to load requests: ${err.message}</div>`;
+        }
     };
 
     // ============ FACULTY ============
@@ -3546,7 +3931,8 @@
             'exam': 'Exam Control & Parameters',
             'live': 'Live Hall Invigilation Monitor',
             'students': 'Student Roster & Progression',
-            'marks': 'Results & Score Disclosure'
+            'marks': 'Results & Score Disclosure',
+            'requests': 'Marks Alteration Proposals'
         };
         const bc = document.getElementById('fac-breadcrumb');
         if (bc && breadcrumbMap[tab]) bc.textContent = breadcrumbMap[tab];
@@ -3556,6 +3942,7 @@
         if (tab === 'exam') { loadFacultyQuestions(); loadFacultyExamConfig(); }
         if (tab === 'students') loadStudentRoster('FAC');
         if (tab === 'marks') { loadFacultyDisclosureSettings(); searchStudents('FAC'); }
+        if (tab === 'requests') loadFacultyMarksRequests();
         if (tab === 'live') {
             loadLiveInvigilation('FAC');
             startLiveInvigilationPolling('FAC');
@@ -3583,6 +3970,7 @@
         loadFacultyDisclosureSettings();
         loadStudentRoster('FAC');
         searchStudents('FAC');
+        loadFacultyMarksRequests();
         pollWaitingRoom();
         if (facultyPollInterval) clearInterval(facultyPollInterval);
         facultyPollInterval = setInterval(pollWaitingRoom, 3000);

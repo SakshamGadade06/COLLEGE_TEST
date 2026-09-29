@@ -19,6 +19,7 @@ const examStatusFile = path.join(ROOT, 'exam_status.json');
 const cheatLogsFile = path.join(ROOT, 'cheat_logs.json');
 const examsFile = path.join(ROOT, 'exams.json');
 const auditLogsFile = path.join(ROOT, 'audit_logs.json');
+const marksRequestsFile = path.join(ROOT, 'marks_requests.json');
 const EXAM_MS = 120 * 60 * 1000;
 const SESSION_MS = 8 * 60 * 60 * 1000;
 const sessions = new Map();
@@ -1229,15 +1230,307 @@ app.get('/api/get-submissions', staff('HOD', 'CLASS_TEACHER', 'FACULTY'), ownSub
     res.json(enriched);
 });
 
+// ==========================================
+// MARKS ALTERATION REQUESTS & HOD APPROVAL WORKFLOW
+// ==========================================
+
+// 1. Submit a marks change request (Faculty proposes change)
+app.post('/api/request-marks-change', staff('FACULTY', 'HOD'), (req, res) => {
+    const { rollNo, subject, proposedScore, rawScore, newScore, totalMarks, total, reason } = req.body;
+    const roll = String(rollNo || '').trim().toUpperCase();
+    const sub = String(subject || '').trim();
+    if (!roll || !sub || !validSubject(sub)) {
+        return res.status(400).json({ error: 'Valid roll number and subject required' });
+    }
+
+    if (req.staff.role === 'FACULTY' && req.staff.subject && req.staff.subject.toUpperCase() !== sub.toUpperCase()) {
+        return res.status(403).json({ error: `You are only authorized to request marks alterations for your assigned subject (${req.staff.subject})` });
+    }
+
+    const scoreToSet = proposedScore !== undefined ? proposedScore : (rawScore !== undefined ? rawScore : newScore);
+    const parsedProposed = Number(scoreToSet);
+    const parsedTotal = Number(totalMarks || total) || 20;
+
+    if (isNaN(parsedProposed) || parsedProposed < 0 || parsedProposed > parsedTotal) {
+        return res.status(400).json({ error: `Proposed score must be a number between 0 and ${parsedTotal}` });
+    }
+
+    const cleanReason = String(reason || '').trim();
+    if (!cleanReason || cleanReason.length < 5) {
+        return res.status(400).json({ error: 'A meaningful justification / reason is required (minimum 5 characters)' });
+    }
+
+    const submissions = readJSON(submissionsFile, []);
+    const target = submissions.find(s => s.rollNo && s.rollNo.toUpperCase() === roll && s.subject && s.subject.toUpperCase() === sub.toUpperCase());
+
+    const students = readJSON(studentsFile, []);
+    const studentObj = students.find(s => s.rollNo && s.rollNo.toUpperCase() === roll);
+    const studentName = studentObj ? studentObj.name : (target ? target.name : 'Student ' + roll);
+
+    const currentRawScore = target ? (target.rawScore !== undefined ? target.rawScore : (parseInt(target.score) || 0)) : 0;
+    const currentTotal = target ? (target.total || parsedTotal) : parsedTotal;
+
+    const settings = readJSON(settingsFile, {});
+    const isExamPublished = Boolean(settings.subjectMarks?.[sub]);
+
+    const requests = readJSON(marksRequestsFile, []);
+    const existingPending = requests.find(r => r.rollNo === roll && r.subject.toUpperCase() === sub.toUpperCase() && r.status === 'PENDING');
+    if (existingPending) {
+        return res.status(409).json({
+            error: `A pending marks change request (${existingPending.id}) is already awaiting HOD approval for this student in ${sub}.`,
+            pendingRequest: existingPending
+        });
+    }
+
+    const requestObj = {
+        id: 'MREQ_' + Date.now() + '_' + crypto.randomBytes(3).toString('hex').toUpperCase(),
+        rollNo: roll,
+        studentName,
+        subject: sub,
+        currentScore: currentRawScore,
+        currentTotal,
+        currentScoreDisplay: `${currentRawScore}/${currentTotal}`,
+        proposedScore: parsedProposed,
+        totalMarks: parsedTotal,
+        proposedScoreDisplay: `${parsedProposed}/${parsedTotal}`,
+        reason: cleanReason,
+        requestedBy: req.staff.id,
+        requestedByName: req.staff.name || req.staff.id,
+        requestedAt: new Date().toISOString(),
+        status: 'PENDING',
+        isPublished: isExamPublished,
+        submissionTime: target ? target.time : null,
+        approvedBy: null,
+        approvedByName: null,
+        approvedAt: null,
+        rejectedBy: null,
+        rejectedByName: null,
+        rejectedAt: null,
+        rejectionReason: null
+    };
+
+    requests.unshift(requestObj);
+    writeJSON(marksRequestsFile, requests);
+
+    logAudit(req.staff.id, req.staff.name, 'MARKS_CHANGE_REQUESTED', {
+        requestId: requestObj.id,
+        rollNo: requestObj.rollNo,
+        subject: requestObj.subject,
+        currentScore: requestObj.currentScoreDisplay,
+        proposedScore: requestObj.proposedScoreDisplay,
+        reason: requestObj.reason,
+        isPublished: isExamPublished
+    });
+
+    res.json({
+        success: true,
+        message: 'Marks alteration request submitted successfully. Awaiting HOD review and approval.',
+        request: requestObj
+    });
+});
+
+// 2. View marks change requests
+app.get('/api/marks-requests', staff('HOD', 'FACULTY'), (req, res) => {
+    const requests = readJSON(marksRequestsFile, []);
+    const submissions = readJSON(submissionsFile, []);
+    const settings = readJSON(settingsFile, {});
+
+    let filtered = requests;
+    if (req.staff.role === 'FACULTY') {
+        const facSub = (req.staff.subject || '').toUpperCase();
+        filtered = requests.filter(r => (r.requestedBy === req.staff.id) || (facSub && r.subject.toUpperCase() === facSub));
+    }
+
+    const enriched = filtered.map(reqItem => {
+        const target = submissions.find(s => s.rollNo && s.rollNo.toUpperCase() === reqItem.rollNo.toUpperCase() && s.subject.toUpperCase() === reqItem.subject.toUpperCase());
+        const liveRaw = target ? (target.rawScore !== undefined ? target.rawScore : (parseInt(target.score) || 0)) : 0;
+        const liveTotal = target ? (target.total || reqItem.totalMarks) : reqItem.totalMarks;
+        const isCurrentlyPublished = Boolean(settings.subjectMarks?.[reqItem.subject]);
+        const hasScoreChanged = reqItem.status === 'PENDING' && (liveRaw !== reqItem.currentScore || liveTotal !== reqItem.currentTotal);
+
+        return {
+            ...reqItem,
+            liveScoreDisplay: `${liveRaw}/${liveTotal}`,
+            hasConflict: hasScoreChanged,
+            isCurrentlyPublished
+        };
+    });
+
+    res.json({
+        success: true,
+        requests: enriched,
+        pendingCount: enriched.filter(r => r.status === 'PENDING').length
+    });
+});
+
+// 3. HOD approves request
+app.post('/api/approve-marks-request', staff('HOD'), (req, res) => {
+    const { requestId, confirmAmendment } = req.body;
+    if (!requestId) return res.status(400).json({ error: 'Request ID is required' });
+
+    const requests = readJSON(marksRequestsFile, []);
+    const request = requests.find(r => r.id === requestId);
+
+    if (!request) {
+        return res.status(404).json({ error: 'Marks request not found' });
+    }
+
+    if (request.status !== 'PENDING') {
+        return res.status(409).json({
+            error: `Request ${requestId} has already been ${request.status.toLowerCase()} and cannot be processed again.`
+        });
+    }
+
+    const submissions = readJSON(submissionsFile, []);
+    let target = submissions.find(s => s.rollNo && s.rollNo.toUpperCase() === request.rollNo.toUpperCase() && s.subject.toUpperCase() === request.subject.toUpperCase());
+
+    const currentLiveRaw = target ? (target.rawScore !== undefined ? target.rawScore : (parseInt(target.score) || 0)) : 0;
+    if (currentLiveRaw !== request.currentScore) {
+        request.status = 'CONFLICT';
+        request.conflictDetails = { expectedScore: request.currentScore, actualScore: currentLiveRaw, detectedAt: new Date().toISOString() };
+        writeJSON(marksRequestsFile, requests);
+
+        logAudit(req.staff.id, req.staff.name, 'MARKS_REQUEST_CONFLICT', {
+            requestId: request.id,
+            rollNo: request.rollNo,
+            subject: request.subject,
+            expected: request.currentScore,
+            actual: currentLiveRaw
+        });
+
+        return res.status(409).json({
+            error: `Score conflict: Student's recorded score changed (was ${request.currentScore}, now ${currentLiveRaw}) after this request was submitted. Approval stopped for fresh review.`
+        });
+    }
+
+    const settings = readJSON(settingsFile, {});
+    const isExamPublished = Boolean(settings.subjectMarks?.[request.subject]);
+    if (isExamPublished && !confirmAmendment) {
+        return res.status(400).json({
+            error: `Results for ${request.subject} are already published. Explicit confirmation of post-publication gazette amendment is required.`,
+            requiresConfirmation: true
+        });
+    }
+
+    const overrideEntry = {
+        rawScore: request.proposedScore,
+        total: request.totalMarks,
+        score: `${request.proposedScore}/${request.totalMarks}`,
+        isOverridden: true,
+        overrideReason: request.reason,
+        overriddenBy: `Faculty: ${request.requestedByName || request.requestedBy} (Approved by HOD ${req.staff.name || req.staff.id})`,
+        overriddenAt: new Date().toISOString(),
+        requestId: request.id,
+        isAmended: isExamPublished,
+        amendedAt: isExamPublished ? new Date().toISOString() : null,
+        amendedBy: isExamPublished ? (req.staff.name || req.staff.id) : null
+    };
+
+    if (target) {
+        Object.assign(target, overrideEntry);
+    } else {
+        const students = readJSON(studentsFile, []);
+        const studentObj = students.find(s => s.rollNo && s.rollNo.toUpperCase() === request.rollNo.toUpperCase());
+        target = {
+            collegeId: request.rollNo,
+            rollNo: request.rollNo,
+            name: request.studentName || studentObj?.name || 'Student ' + request.rollNo,
+            subject: request.subject,
+            examId: 'MANUAL_OVERRIDE_' + Date.now(),
+            answers: {},
+            ...overrideEntry,
+            time: new Date().toISOString()
+        };
+        submissions.unshift(target);
+    }
+    writeJSON(submissionsFile, submissions);
+
+    request.status = 'APPROVED';
+    request.approvedBy = req.staff.id;
+    request.approvedByName = req.staff.name || req.staff.id;
+    request.approvedAt = new Date().toISOString();
+    if (isExamPublished) {
+        request.isAmended = true;
+        request.amendedAt = request.approvedAt;
+        request.amendedBy = request.approvedByName;
+    }
+    writeJSON(marksRequestsFile, requests);
+
+    logAudit(req.staff.id, req.staff.name, isExamPublished ? 'PUBLISHED_RESULT_AMENDED' : 'MARKS_REQUEST_APPROVED', {
+        requestId: request.id,
+        rollNo: request.rollNo,
+        subject: request.subject,
+        oldScore: request.currentScoreDisplay,
+        newScore: request.proposedScoreDisplay,
+        requestedBy: request.requestedByName || request.requestedBy,
+        approvedBy: req.staff.name || req.staff.id,
+        reason: request.reason,
+        isAmended: isExamPublished
+    });
+
+    res.json({
+        success: true,
+        message: `Marks alteration approved. Official score for ${request.rollNo} in ${request.subject} updated to ${request.proposedScoreDisplay}.`,
+        request,
+        submission: target
+    });
+});
+
+// 4. HOD rejects request
+app.post('/api/reject-marks-request', staff('HOD'), (req, res) => {
+    const { requestId, reason } = req.body;
+    if (!requestId) return res.status(400).json({ error: 'Request ID is required' });
+
+    const cleanReason = String(reason || '').trim();
+    if (!cleanReason || cleanReason.length < 3) {
+        return res.status(400).json({ error: 'A rejection reason is required (minimum 3 characters)' });
+    }
+
+    const requests = readJSON(marksRequestsFile, []);
+    const request = requests.find(r => r.id === requestId);
+
+    if (!request) {
+        return res.status(404).json({ error: 'Marks request not found' });
+    }
+
+    if (request.status !== 'PENDING') {
+        return res.status(409).json({
+            error: `Request ${requestId} has already been ${request.status.toLowerCase()} and cannot be rejected.`
+        });
+    }
+
+    request.status = 'REJECTED';
+    request.rejectedBy = req.staff.id;
+    request.rejectedByName = req.staff.name || req.staff.id;
+    request.rejectedAt = new Date().toISOString();
+    request.rejectionReason = cleanReason;
+    writeJSON(marksRequestsFile, requests);
+
+    logAudit(req.staff.id, req.staff.name, 'MARKS_REQUEST_REJECTED', {
+        requestId: request.id,
+        rollNo: request.rollNo,
+        subject: request.subject,
+        requestedBy: request.requestedByName || request.requestedBy,
+        rejectedBy: req.staff.name || req.staff.id,
+        rejectionReason: cleanReason
+    });
+
+    res.json({
+        success: true,
+        message: `Marks alteration request ${requestId} has been rejected. Official marks remain unchanged.`,
+        request
+    });
+});
+
+// 5. Direct override endpoint strictly restricted to HOD (Faculty cannot bypass)
 const handleMarksOverride = (req, res) => {
+    if (req.staff.role !== 'HOD') {
+        return res.status(403).json({ error: 'Direct marks alterations by faculty are disabled. Please submit a marks change proposal for HOD review.' });
+    }
     const { rollNo, subject, rawScore, newScore, total, reason } = req.body;
     const roll = String(rollNo || '').trim().toUpperCase();
     const sub = String(subject || '').trim();
     if (!roll || !sub) return res.status(400).json({ error: 'Roll number and subject are required' });
-
-    if (req.staff.role === 'FACULTY' && req.staff.subject && req.staff.subject.toUpperCase() !== sub.toUpperCase()) {
-        return res.status(403).json({ error: 'You are only authorized to edit marks for your assigned subject (' + req.staff.subject + ')' });
-    }
 
     const scoreToSet = rawScore !== undefined ? rawScore : newScore;
     const parsedScore = Number(scoreToSet);
@@ -1245,6 +1538,9 @@ const handleMarksOverride = (req, res) => {
     if (isNaN(parsedScore) || parsedScore < 0 || parsedScore > parsedTotal) {
         return res.status(400).json({ error: `Score must be a number between 0 and ${parsedTotal}` });
     }
+
+    const settings = readJSON(settingsFile, {});
+    const isExamPublished = Boolean(settings.subjectMarks?.[sub]);
 
     const submissions = readJSON(submissionsFile, []);
     let target = submissions.find(s => s.rollNo && s.rollNo.toUpperCase() === roll && s.subject && s.subject.toUpperCase() === sub.toUpperCase());
@@ -1258,9 +1554,12 @@ const handleMarksOverride = (req, res) => {
         total: parsedTotal,
         score: `${parsedScore}/${parsedTotal}`,
         isOverridden: true,
-        overrideReason: String(reason || 'Mark adjustment by faculty').trim(),
+        overrideReason: String(reason || 'Administrative adjustment by HOD').trim(),
         overriddenBy: req.staff.name || req.staff.id,
-        overriddenAt: new Date().toISOString()
+        overriddenAt: new Date().toISOString(),
+        isAmended: isExamPublished,
+        amendedAt: isExamPublished ? new Date().toISOString() : null,
+        amendedBy: isExamPublished ? (req.staff.name || req.staff.id) : null
     };
 
     if (target) {
@@ -1281,18 +1580,19 @@ const handleMarksOverride = (req, res) => {
 
     writeJSON(submissionsFile, submissions);
 
-    logAudit(req.staff.id, req.staff.name, 'MARKS_OVERRIDE', {
+    logAudit(req.staff.id, req.staff.name, isExamPublished ? 'PUBLISHED_RESULT_AMENDED' : 'MARKS_OVERRIDE', {
         rollNo: roll,
         subject: sub,
         newScore: target.score,
-        reason: target.overrideReason
+        reason: target.overrideReason,
+        isAmended: isExamPublished
     });
 
     res.json({ success: true, submission: target, message: `Marks for ${roll} in ${sub} updated to ${target.score}` });
 };
 
-app.post('/api/edit-student-marks', staff('HOD', 'FACULTY'), handleMarksOverride);
-app.post('/api/override-marks', staff('HOD', 'FACULTY'), handleMarksOverride);
+app.post('/api/edit-student-marks', staff('HOD'), handleMarksOverride);
+app.post('/api/override-marks', staff('HOD'), handleMarksOverride);
 app.post('/api/log-cheat', student, (req, res) => {
     const reason = String(req.body.reason || 'Unusual activity detected').slice(0, 150);
     const strike = Number(req.body.strike) || 1;
