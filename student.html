@@ -1002,36 +1002,80 @@
                 <a href="/staff">Go to Staff &amp; Faculty Portal &rarr;</a>
             </div>
 
+            <!-- Institutional Admittance Guidance -->
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12.5px;color:#475569;display:flex;align-items:flex-start;gap:10px;">
+                <span style="font-size:16px;line-height:1;">🏛️</span>
+                <div>
+                    <strong style="color:#0f172a;">Institutional Admittance Protocol:</strong> Select your Department, Academic Year, Division, and Name from the verified college roster. Your roll number and registration details are auto-verified.
+                </div>
+            </div>
+
+            <!-- Empty State Warning when no roster is loaded -->
+            <div id="noRosterNotice" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px;margin-bottom:16px;color:#991b1b;font-size:13px;">
+                <strong>⚠️ No Active Roster Available</strong><br>
+                Student roster has not been uploaded yet for this academic term. Please contact your Class Teacher or Examination Cell.
+            </div>
+
             <div class="two-row">
                 <div class="form-group">
-                    <label for="stuName">Full Name</label>
-                    <input type="text" id="stuName" class="input-field" placeholder="e.g. Rahul Sharma" value="Rahul Sharma">
+                    <label for="selDept">1. Department <span style="color:#dc2626;">*</span></label>
+                    <select id="selDept" class="input-field" onchange="window.handleDeptChange()">
+                        <option value="">-- Loading Departments... --</option>
+                    </select>
                 </div>
                 <div class="form-group">
-                    <label for="stuRoll">Roll Number</label>
-                    <input type="text" id="stuRoll" class="input-field" placeholder="e.g. ROLL101" value="ROLL101">
+                    <label for="selYear">2. Academic Year <span style="color:#dc2626;">*</span></label>
+                    <select id="selYear" class="input-field" onchange="window.handleYearChange()" disabled>
+                        <option value="">-- Select Department First --</option>
+                    </select>
                 </div>
             </div>
             <div class="two-row">
                 <div class="form-group">
-                    <label for="stuReg">Registration No. / PRN</label>
-                    <input type="text" id="stuReg" class="input-field" placeholder="e.g. REG2026001" value="REG2026001">
+                    <label for="selDiv">3. Division <span style="color:#dc2626;">*</span></label>
+                    <select id="selDiv" class="input-field" onchange="window.handleDivChange()" disabled>
+                        <option value="">-- Select Year First --</option>
+                    </select>
                 </div>
                 <div class="form-group">
-                    <label for="stuClass">Academic Class</label>
-                    <input type="text" id="stuClass" class="input-field" placeholder="e.g. SY" value="SY">
+                    <label for="selStudent">4. Candidate Name <span style="color:#dc2626;">*</span></label>
+                    <select id="selStudent" class="input-field" onchange="window.handleStudentChange()" disabled>
+                        <option value="">-- Select Division First --</option>
+                    </select>
                 </div>
             </div>
-            <div class="two-row">
-                <div class="form-group">
-                    <label for="stuDiv">Division</label>
-                    <input type="text" id="stuDiv" class="input-field" placeholder="e.g. A" value="A">
+
+            <!-- Auto-filled Verified Institutional Details (Read-Only) -->
+            <div id="verifiedDetailsSection" style="margin-top:10px;margin-bottom:16px;padding:12px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                    <span style="font-size:11px;font-weight:700;letter-spacing:0.05em;color:#64748b;text-transform:uppercase;">Verified Institutional Credentials (Read-Only)</span>
+                    <span id="verificationBadge" style="display:none;background:#dcfce7;color:#15803d;font-size:11px;font-weight:700;padding:2px 8px;border-radius:9999px;">✓ Roster Record Verified</span>
                 </div>
-                <div class="form-group">
-                    <label for="stuDept">Department</label>
-                    <input type="text" id="stuDept" class="input-field" placeholder="e.g. Computer Engineering" value="Computer Engineering">
+                <div class="two-row">
+                    <div class="form-group" style="margin-bottom:8px;">
+                        <label for="stuName" style="font-size:11.5px;color:#475569;">Candidate Full Name</label>
+                        <input type="text" id="stuName" class="input-field" readonly style="background:#ffffff;color:#1e293b;cursor:not-allowed;" placeholder="Auto-filled on selection">
+                    </div>
+                    <div class="form-group" style="margin-bottom:8px;">
+                        <label for="stuRoll" style="font-size:11.5px;color:#475569;">Roll Number</label>
+                        <input type="text" id="stuRoll" class="input-field" readonly style="background:#ffffff;color:#1e293b;cursor:not-allowed;font-family:monospace;font-weight:700;" placeholder="Auto-filled on selection">
+                    </div>
                 </div>
+                <div class="two-row">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label for="stuReg" style="font-size:11.5px;color:#475569;">Registration No. / PRN</label>
+                        <input type="text" id="stuReg" class="input-field" readonly style="background:#ffffff;color:#1e293b;cursor:not-allowed;font-family:monospace;" placeholder="Auto-filled on selection">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label for="stuClassDisplay" style="font-size:11.5px;color:#475569;">Class &amp; Division</label>
+                        <input type="text" id="stuClassDisplay" class="input-field" readonly style="background:#ffffff;color:#1e293b;cursor:not-allowed;" placeholder="Auto-filled on selection">
+                    </div>
+                </div>
+                <input type="hidden" id="stuClass">
+                <input type="hidden" id="stuDiv">
+                <input type="hidden" id="stuDept">
             </div>
+
             <div class="form-group">
                 <label for="stuSub">Examination Subject</label>
                 <select id="stuSub" class="input-field" style="font-weight:700;">
@@ -1470,11 +1514,227 @@
         if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ['i','j','c'].includes(e.key.toLowerCase()))) { e.preventDefault(); return false; }
     });
 
+    // ======= CASCADING ROSTER SELECTION =======
+    let currentDivisionStudents = [];
+
+    window.resetStudentDetails = function() {
+        const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+        setVal('stuName', '');
+        setVal('stuRoll', '');
+        setVal('stuReg', '');
+        setVal('stuClassDisplay', '');
+        setVal('stuClass', '');
+        setVal('stuDiv', '');
+        setVal('stuDept', '');
+        const badge = document.getElementById('verificationBadge');
+        if (badge) badge.style.display = 'none';
+    };
+
+    window.initRosterDropdowns = async function() {
+        const selDept = document.getElementById('selDept');
+        const selYear = document.getElementById('selYear');
+        const selDiv = document.getElementById('selDiv');
+        const selStudent = document.getElementById('selStudent');
+        const noRosterNotice = document.getElementById('noRosterNotice');
+
+        if (!selDept) return;
+
+        try {
+            const res = await fetch('/api/roster/departments');
+            const data = await res.json();
+            const depts = data.departments || [];
+
+            if (!depts.length) {
+                if (noRosterNotice) noRosterNotice.style.display = 'block';
+                selDept.innerHTML = '<option value="">No departments uploaded</option>';
+                selDept.disabled = true;
+                return;
+            }
+
+            if (noRosterNotice) noRosterNotice.style.display = 'none';
+            selDept.innerHTML = '<option value="">-- Select Department --</option>' +
+                depts.map(d => `<option value="${encodeURIComponent(d)}">${d}</option>`).join('');
+            selDept.disabled = false;
+
+            // Auto-select if single department
+            if (depts.length === 1) {
+                selDept.value = encodeURIComponent(depts[0]);
+                window.handleDeptChange();
+            }
+        } catch (err) {
+            console.error('Failed to load departments:', err);
+            selDept.innerHTML = '<option value="">Failed to load departments</option>';
+        }
+    };
+
+    window.handleDeptChange = async function() {
+        const selDept = document.getElementById('selDept');
+        const selYear = document.getElementById('selYear');
+        const selDiv = document.getElementById('selDiv');
+        const selStudent = document.getElementById('selStudent');
+
+        window.resetStudentDetails();
+        selYear.innerHTML = '<option value="">-- Loading Academic Years... --</option>';
+        selYear.disabled = true;
+        selDiv.innerHTML = '<option value="">-- Select Year First --</option>';
+        selDiv.disabled = true;
+        selStudent.innerHTML = '<option value="">-- Select Division First --</option>';
+        selStudent.disabled = true;
+
+        const dept = decodeURIComponent(selDept.value || '');
+        if (!dept) {
+            selYear.innerHTML = '<option value="">-- Select Department First --</option>';
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/roster/years?dept=' + encodeURIComponent(dept));
+            const data = await res.json();
+            const years = data.years || [];
+
+            if (!years.length) {
+                selYear.innerHTML = '<option value="">No academic years found</option>';
+                return;
+            }
+
+            selYear.innerHTML = '<option value="">-- Select Academic Year --</option>' +
+                years.map(y => `<option value="${encodeURIComponent(y)}">${y}</option>`).join('');
+            selYear.disabled = false;
+
+            // Auto-select if only 1 year
+            if (years.length === 1) {
+                selYear.value = encodeURIComponent(years[0]);
+                window.handleYearChange();
+            }
+        } catch (err) {
+            console.error('Failed to load years:', err);
+            selYear.innerHTML = '<option value="">Error loading years</option>';
+        }
+    };
+
+    window.handleYearChange = async function() {
+        const selDept = document.getElementById('selDept');
+        const selYear = document.getElementById('selYear');
+        const selDiv = document.getElementById('selDiv');
+        const selStudent = document.getElementById('selStudent');
+
+        window.resetStudentDetails();
+        selDiv.innerHTML = '<option value="">-- Loading Divisions... --</option>';
+        selDiv.disabled = true;
+        selStudent.innerHTML = '<option value="">-- Select Division First --</option>';
+        selStudent.disabled = true;
+
+        const dept = decodeURIComponent(selDept.value || '');
+        const year = decodeURIComponent(selYear.value || '');
+        if (!dept || !year) {
+            selDiv.innerHTML = '<option value="">-- Select Year First --</option>';
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/roster/divisions?dept=${encodeURIComponent(dept)}&year=${encodeURIComponent(year)}`);
+            const data = await res.json();
+            const divisions = data.divisions || [];
+
+            if (!divisions.length) {
+                selDiv.innerHTML = '<option value="">No divisions found</option>';
+                return;
+            }
+
+            selDiv.innerHTML = '<option value="">-- Select Division --</option>' +
+                divisions.map(d => `<option value="${encodeURIComponent(d)}">Division ${d}</option>`).join('');
+            selDiv.disabled = false;
+
+            // Auto-select if only 1 division
+            if (divisions.length === 1) {
+                selDiv.value = encodeURIComponent(divisions[0]);
+                window.handleDivChange();
+            }
+        } catch (err) {
+            console.error('Failed to load divisions:', err);
+            selDiv.innerHTML = '<option value="">Error loading divisions</option>';
+        }
+    };
+
+    window.handleDivChange = async function() {
+        const selDept = document.getElementById('selDept');
+        const selYear = document.getElementById('selYear');
+        const selDiv = document.getElementById('selDiv');
+        const selStudent = document.getElementById('selStudent');
+
+        window.resetStudentDetails();
+        selStudent.innerHTML = '<option value="">-- Loading Candidate Roster... --</option>';
+        selStudent.disabled = true;
+
+        const dept = decodeURIComponent(selDept.value || '');
+        const year = decodeURIComponent(selYear.value || '');
+        const division = decodeURIComponent(selDiv.value || '');
+        if (!dept || !year || !division) {
+            selStudent.innerHTML = '<option value="">-- Select Division First --</option>';
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/roster/students?dept=${encodeURIComponent(dept)}&year=${encodeURIComponent(year)}&division=${encodeURIComponent(division)}`);
+            const data = await res.json();
+            currentDivisionStudents = data.students || [];
+
+            if (!currentDivisionStudents.length) {
+                selStudent.innerHTML = '<option value="">No candidates found in this division</option>';
+                return;
+            }
+
+            // Detect duplicates by name to ensure transparent disambiguation
+            const nameCounts = {};
+            currentDivisionStudents.forEach(s => {
+                const k = (s.name || '').trim().toLowerCase();
+                nameCounts[k] = (nameCounts[k] || 0) + 1;
+            });
+
+            selStudent.innerHTML = '<option value="">-- Select Candidate Name --</option>' +
+                currentDivisionStudents.map(s => {
+                    const prnTag = s.registrationNo ? ` • PRN: ${s.registrationNo}` : '';
+                    return `<option value="${encodeURIComponent(s.rollNo)}">${s.name} (Roll: ${s.rollNo}${prnTag})</option>`;
+                }).join('');
+            selStudent.disabled = false;
+        } catch (err) {
+            console.error('Failed to load students:', err);
+            selStudent.innerHTML = '<option value="">Error loading candidates</option>';
+        }
+    };
+
+    window.handleStudentChange = function() {
+        const selStudent = document.getElementById('selStudent');
+        const selectedRoll = decodeURIComponent(selStudent.value || '');
+        const student = currentDivisionStudents.find(s => s.rollNo.toUpperCase() === selectedRoll.toUpperCase());
+
+        if (student) {
+            document.getElementById('stuName').value = student.name;
+            document.getElementById('stuRoll').value = student.rollNo;
+            document.getElementById('stuReg').value = student.registrationNo || 'Not Available / Unassigned';
+            document.getElementById('stuClassDisplay').value = `${student.className || student.year} (Div ${student.division})`;
+            document.getElementById('stuClass').value = student.className || student.year || 'SY';
+            document.getElementById('stuDiv').value = student.division || 'A';
+            document.getElementById('stuDept').value = student.dept || '';
+
+            const badge = document.getElementById('verificationBadge');
+            if (badge) badge.style.display = 'inline-block';
+            const err = document.getElementById('joinError');
+            if (err) err.style.display = 'none';
+        } else {
+            window.resetStudentDetails();
+        }
+    };
+
+    // Auto-initialize cascading roster dropdowns
+    window.initRosterDropdowns();
+
     // ======= JOIN FLOW =======
     document.getElementById('joinBtn').onclick = async () => {
         const name = document.getElementById('stuName').value.trim();
         const roll = document.getElementById('stuRoll').value.trim();
-        const reg = document.getElementById('stuReg').value.trim();
+        const regRaw = document.getElementById('stuReg').value.trim();
+        const reg = (regRaw && regRaw !== 'Not Available / Unassigned') ? regRaw : '';
         const cls = document.getElementById('stuClass').value.trim();
         const div = document.getElementById('stuDiv').value.trim();
         const dept = document.getElementById('stuDept').value.trim();
@@ -1482,8 +1742,13 @@
         const err = document.getElementById('joinError');
         const btn = document.getElementById('joinBtn');
 
-        if (!name || !roll || !sub) {
-            err.innerText = "Please provide your Full Name, Roll Number, and Subject.";
+        if (!roll || !name) {
+            err.innerText = "Please select your Department, Academic Year, Division, and Name from the verified roster.";
+            err.style.display = 'block';
+            return;
+        }
+        if (!sub) {
+            err.innerText = "Please select an examination subject.";
             err.style.display = 'block';
             return;
         }
@@ -1497,7 +1762,7 @@
         btn.disabled = true;
         btn.innerText = "Verifying hall ticket & connecting…";
 
-        studentData = { name, rollNo: roll, regNo: reg || roll, className: cls, division: div, dept, subject: sub, collegeId: roll };
+        studentData = { name, rollNo: roll, regNo: reg, className: cls, division: div, dept, subject: sub, collegeId: roll };
         try {
             const res = await fetch('/api/join', {
                 method: 'POST',
@@ -1508,11 +1773,23 @@
             let data = {};
             try { data = await res.json(); } catch(jsonErr) {}
             if (res.ok) {
+                if (data.student) {
+                    studentData.name = data.student.name || studentData.name;
+                    studentData.rollNo = data.student.rollNo || studentData.rollNo;
+                    studentData.regNo = data.student.registrationNo || (studentData.regNo && studentData.regNo !== 'Not Available / Unassigned' ? studentData.regNo : '');
+                    studentData.className = data.student.className || studentData.className;
+                    studentData.division = data.student.division || studentData.division;
+                    studentData.dept = data.student.dept || studentData.dept;
+                }
+
                 examDeadline = data.deadline;
                 const dName = document.getElementById('displayName');
                 if (dName) dName.innerText = studentData.name;
                 const wRollReg = document.getElementById('waitRollAndReg');
-                if (wRollReg) wRollReg.innerText = `${studentData.rollNo}  •  ${studentData.regNo}`;
+                if (wRollReg) {
+                    const regShow = studentData.regNo ? `PRN: ${studentData.regNo}` : 'PRN: Unassigned';
+                    wRollReg.innerText = `Roll No: ${studentData.rollNo}  •  ${regShow}`;
+                }
                 const wClass = document.getElementById('waitClassInfo');
                 if (wClass) wClass.innerText = `${studentData.className || 'SY'} - Div ${studentData.division || 'A'}  •  ${studentData.dept || 'Engineering'}`;
                 const wSub = document.getElementById('waitSubject');

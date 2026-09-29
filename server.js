@@ -328,6 +328,18 @@ app.get('/api/get-staff', staff('HOD', 'CLASS_TEACHER'), (req, res) => {
 // Excel & CSV Student Roster Upload
 const excelUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
+// Helper to extract & normalize academic year
+function extractYear(className = '', rawYear = '') {
+    const combined = `${rawYear} ${className}`.toUpperCase();
+    if (/\b(FIRST\s*YEAR|1ST\s*YEAR|FY|FE)\b/i.test(combined)) return 'FY';
+    if (/\b(SECOND\s*YEAR|2ND\s*YEAR|SY|SE)\b/i.test(combined)) return 'SY';
+    if (/\b(THIRD\s*YEAR|3RD\s*YEAR|TY|TE)\b/i.test(combined)) return 'TY';
+    if (/\b(FINAL\s*YEAR|FINAL|4TH\s*YEAR|BE|BTECH|LY)\b/i.test(combined)) return 'Final Year';
+    const trimmedYear = String(rawYear || '').trim();
+    if (trimmedYear && ['FY', 'SY', 'TY', 'Final Year'].includes(trimmedYear)) return trimmedYear;
+    return 'SY';
+}
+
 app.post('/api/upload-students', staff('HOD', 'CLASS_TEACHER'), excelUpload.single('file'), (req, res) => {
     let rawList = [];
     if (req.file) {
@@ -359,27 +371,48 @@ app.post('/api/upload-students', staff('HOD', 'CLASS_TEACHER'), excelUpload.sing
     if (!rawList.length) return res.status(400).json({ error: 'The uploaded file contains no rows' });
 
     const normalized = rawList.map(row => {
-        let rollNo = '', name = '', className = '', division = '', dept = '';
+        let rollNo = '', registrationNo = '', name = '', className = '', year = '', division = '', dept = '';
         for (const [k, v] of Object.entries(row)) {
             const cleanKey = k.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
             const val = String(v || '').trim();
-            if (['roll', 'rollno', 'prn', 'id', 'studentroll', 'rollnumber', 'seatno'].includes(cleanKey)) rollNo = val;
-            else if (['name', 'studentname', 'fullname', 'candidate', 'candidatename'].includes(cleanKey)) name = val;
-            else if (['class', 'classname', 'divisionclass', 'standard', 'year'].includes(cleanKey)) className = val;
-            else if (['div', 'division', 'sec', 'section'].includes(cleanKey)) division = val;
-            else if (['dept', 'department', 'branch', 'programme'].includes(cleanKey)) dept = val;
+            if (!val) continue;
+
+            if (cleanKey.includes('prn') || cleanKey.includes('regist') || cleanKey === 'regno') {
+                registrationNo = val;
+            } else if (cleanKey.includes('roll') || cleanKey.includes('seatno')) {
+                rollNo = val;
+            } else if (cleanKey === 'id' && !rollNo) {
+                rollNo = val;
+            } else if (cleanKey.includes('name') || cleanKey.includes('candidate')) {
+                name = val;
+            } else if (cleanKey.includes('class') || cleanKey.includes('standard')) {
+                className = val;
+            } else if (['year', 'academicyear', 'studyyear'].includes(cleanKey)) {
+                year = val;
+            } else if (cleanKey.includes('div') || cleanKey.includes('sec')) {
+                division = val;
+            } else if (cleanKey.includes('dept') || cleanKey.includes('depart') || cleanKey.includes('branch') || cleanKey.includes('program')) {
+                dept = val;
+            }
         }
-        if (!className && req.staff.className) className = req.staff.className;
+
+        const resolvedYear = extractYear(className, year);
+        if (!className) className = req.staff.className || `${resolvedYear}-AIML`;
         if (!division && className) {
             const match = className.match(/\b([A-D])\b/i);
             if (match) division = match[1].toUpperCase();
         }
+        if (!division) division = 'A';
+        if (!dept) dept = req.staff.department || 'Computer Engineering & AI';
+
         return {
             rollNo: rollNo || String(row.rollNo || row.roll || ''),
             name: name || String(row.name || ''),
-            className: className || req.staff.className || 'SY-AIML',
-            division: division || 'A',
-            dept: dept || 'Computer Engineering & AI'
+            registrationNo: registrationNo || String(row.registrationNo || row.regNo || row.prn || ''),
+            className: className,
+            division: division,
+            dept: dept,
+            year: resolvedYear
         };
     }).filter(s => s.rollNo && s.name);
 
@@ -390,7 +423,11 @@ app.post('/api/upload-students', staff('HOD', 'CLASS_TEACHER'), excelUpload.sing
     for (const student of normalized) {
         const idx = existing.findIndex(s => s.rollNo.toUpperCase() === student.rollNo.toUpperCase());
         if (idx >= 0) {
-            existing[idx] = { ...existing[idx], ...student };
+            existing[idx] = { 
+                ...existing[idx], 
+                ...student,
+                registrationNo: student.registrationNo || existing[idx].registrationNo || ''
+            };
             updated++;
         } else {
             existing.push(student);
@@ -399,6 +436,76 @@ app.post('/api/upload-students', staff('HOD', 'CLASS_TEACHER'), excelUpload.sing
     }
     writeJSON(studentsFile, existing);
     res.json({ success: true, added, updated, total: existing.length });
+});
+
+// ==========================================
+// CASCADING STUDENT ROSTER ENDPOINTS (STUDENT PORTAL)
+// ==========================================
+app.get('/api/roster/departments', (req, res) => {
+    const students = readJSON(studentsFile, []);
+    const depts = Array.from(new Set(students.map(s => String(s.dept || '').trim()).filter(Boolean)))
+        .sort((a, b) => a.localeCompare(b));
+    res.json({ success: true, departments: depts });
+});
+
+app.get('/api/roster/years', (req, res) => {
+    const dept = String(req.query.dept || '').trim();
+    if (!dept) return res.status(400).json({ error: 'Department parameter required' });
+    const students = readJSON(studentsFile, []);
+    const deptStudents = students.filter(s => String(s.dept || '').trim().toLowerCase() === dept.toLowerCase());
+
+    const yearOrder = ['FY', 'SY', 'TY', 'Final Year'];
+    const foundYears = new Set();
+    deptStudents.forEach(s => {
+        const y = s.year || extractYear(s.className);
+        if (y) foundYears.add(y);
+    });
+    const years = yearOrder.filter(y => foundYears.has(y));
+    foundYears.forEach(y => {
+        if (!years.includes(y)) years.push(y);
+    });
+    res.json({ success: true, years });
+});
+
+app.get('/api/roster/divisions', (req, res) => {
+    const dept = String(req.query.dept || '').trim();
+    const year = String(req.query.year || '').trim();
+    if (!dept || !year) return res.status(400).json({ error: 'Department and Year required' });
+    const students = readJSON(studentsFile, []);
+    const matched = students.filter(s => {
+        const sDept = String(s.dept || '').trim().toLowerCase();
+        const sYear = String(s.year || extractYear(s.className)).trim().toUpperCase();
+        return sDept === dept.toLowerCase() && sYear === year.toUpperCase();
+    });
+    const divisions = Array.from(new Set(matched.map(s => String(s.division || '').trim().toUpperCase()).filter(Boolean)))
+        .sort((a, b) => a.localeCompare(b));
+    res.json({ success: true, divisions });
+});
+
+app.get('/api/roster/students', (req, res) => {
+    const dept = String(req.query.dept || '').trim();
+    const year = String(req.query.year || '').trim();
+    const division = String(req.query.division || '').trim();
+    if (!dept || !year || !division) return res.status(400).json({ error: 'Department, Year, and Division required' });
+    const students = readJSON(studentsFile, []);
+    const matched = students.filter(s => {
+        const sDept = String(s.dept || '').trim().toLowerCase();
+        const sYear = String(s.year || extractYear(s.className)).trim().toUpperCase();
+        const sDiv = String(s.division || '').trim().toUpperCase();
+        return sDept === dept.toLowerCase() && sYear === year.toUpperCase() && sDiv === division.toUpperCase();
+    });
+
+    const list = matched.map(s => ({
+        rollNo: s.rollNo,
+        name: s.name,
+        registrationNo: s.registrationNo || '',
+        className: s.className || (s.year ? `${s.year}-AIML` : 'SY-AIML'),
+        division: s.division || division,
+        dept: s.dept || dept,
+        year: s.year || year
+    })).sort((a, b) => a.rollNo.localeCompare(b.rollNo, undefined, { numeric: true }));
+
+    res.json({ success: true, students: list });
 });
 
 app.get('/api/get-students', staff('HOD', 'CLASS_TEACHER', 'FACULTY'), (req, res) => {
@@ -667,31 +774,52 @@ app.post('/api/join', (req, res) => {
     const rawRoll = String(req.body.rollNo || '').trim();
     const rawSub = String(req.body.subject || '').trim();
     const rawName = String(req.body.name || '').trim();
-    const { className, division, dept, regNo, collegeId } = req.body;
 
     let cleanSub = rawSub;
     const knownSubs = ['DSA', 'AI', 'DBMS', 'Web Technology'];
     const matched = knownSubs.find(s => s.toLowerCase() === rawSub.toLowerCase());
     if (matched) cleanSub = matched;
 
-    if (!rawRoll || !cleanSub || !rawName || !/^[A-Za-z0-9_ .\/-]{1,64}$/.test(rawRoll) || !validSubject(cleanSub))
-        return res.status(400).json({ error: 'Valid name, roll number and subject required' });
+    if (!rawRoll || !cleanSub || !/^[A-Za-z0-9_ .\/-]{1,64}$/.test(rawRoll) || !validSubject(cleanSub))
+        return res.status(400).json({ error: 'Valid roll number and subject required' });
+
+    // Look up verified student record from roster if roster exists
+    const roster = readJSON(studentsFile, []);
+    let studentRecord = null;
+    if (roster.length > 0) {
+        studentRecord = roster.find(s => String(s.rollNo || '').trim().toUpperCase() === rawRoll.toUpperCase());
+        if (!studentRecord) {
+            return res.status(403).json({
+                error: 'Student roll number not found in verified institutional roster. Please contact your Class Teacher.'
+            });
+        }
+    }
+
+    // Authoritative student details (server-verified, not blind trust in client)
+    const verifiedName = studentRecord ? studentRecord.name : (rawName || 'Candidate ' + rawRoll);
+    const verifiedRoll = studentRecord ? studentRecord.rollNo : rawRoll;
+    const verifiedReg = studentRecord ? (studentRecord.registrationNo || '') : String(req.body.regNo || rawRoll).trim();
+    const verifiedClass = studentRecord ? (studentRecord.className || (studentRecord.year ? `${studentRecord.year}-AIML` : 'SY-AIML')) : String(req.body.className || 'SY').trim();
+    const verifiedDiv = studentRecord ? studentRecord.division : String(req.body.division || 'A').trim();
+    const verifiedDept = studentRecord ? studentRecord.dept : String(req.body.dept || 'Computer Engineering').trim();
+    const verifiedYear = studentRecord ? (studentRecord.year || extractYear(verifiedClass)) : extractYear(verifiedClass);
 
     const key = token();
     const participant = {
-        roll: rawRoll,
+        roll: verifiedRoll,
         subject: cleanSub,
-        name: rawName,
-        className: String(className || 'SY').trim(),
-        division: String(division || 'A').trim(),
-        dept: String(dept || 'Computer Engineering').trim(),
-        regNo: String(regNo || rawRoll).trim(),
-        collegeId: String(collegeId || rawRoll).trim(),
+        name: verifiedName,
+        className: verifiedClass,
+        division: verifiedDiv,
+        dept: verifiedDept,
+        year: verifiedYear,
+        regNo: verifiedReg,
+        collegeId: verifiedRoll,
         status: activeExam(cleanSub) ? 'in_exam' : 'waiting',
         expires: Date.now() + SESSION_MS
     };
     studentSessions.set(key, participant);
-    activeStudents.set(cleanSub + ':' + rawRoll.toUpperCase(), participant);
+    activeStudents.set(cleanSub + ':' + verifiedRoll.toUpperCase(), participant);
     setCookie(res, 'student_session', key, SESSION_MS);
 
     const examDef = getExamsList().find(e => e.subject.toUpperCase() === cleanSub.toUpperCase());
@@ -720,6 +848,15 @@ app.post('/api/join', (req, res) => {
     res.json({
         success: true,
         status: 'joined',
+        student: {
+            name: verifiedName,
+            rollNo: verifiedRoll,
+            registrationNo: verifiedReg,
+            className: verifiedClass,
+            division: verifiedDiv,
+            dept: verifiedDept,
+            year: verifiedYear
+        },
         examActive: !!activeExam(cleanSub),
         deadline: activeExam(cleanSub)?.deadline || null,
         examTitle: examMeta.title,

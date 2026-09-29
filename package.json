@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test security.test.js ct_export.test.js"
+    "test": "node --test security.test.js ct_export.test.js student_entry.test.js"
   },
   "dependencies": {
     "express": "^4.19.2",
